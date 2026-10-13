@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Trader Mobile Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-card: #121826;
+            --bg-card-hover: #182235;
+            --border: #1f293d;
+            --text-primary: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #10b981;
+            --accent-green-bg: rgba(16, 185, 129, 0.12);
+            --accent-red: #ef4444;
+            --accent-red-bg: rgba(239, 68, 68, 0.12);
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-yellow: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 16px;
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+
+        /* Top Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .brand-name {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .badge-paper {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-live {
+            background: var(--accent-green-bg);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: currentColor;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .text-green { color: var(--accent-green); }
+        .text-red { color: var(--accent-red); }
+
+        /* AI Brain Card */
+        .ai-card {
+            background: linear-gradient(145deg, #161c2d, #0f1422);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.25), transparent 70%);
+            border-radius: 50%;
+        }
+
+        .ai-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .ai-badge {
+            background: rgba(139, 92, 246, 0.2);
+            color: #c084fc;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-decision-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .ai-decision {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .decision-BUY { color: var(--accent-green); }
+        .decision-SELL { color: var(--accent-red); }
+        .decision-HOLD { color: var(--accent-yellow); }
+
+        .confidence-meter {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            width: 50%;
+            transition: width 0.5s ease;
+        }
+
+        .ai-reason {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.5;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 12px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent-purple);
+        }
+
+        .ai-targets {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .target-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+
+        .target-box span {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            display: block;
+            margin-top: 3px;
+            font-size: 14px;
+        }
+
+        /* Section Headings */
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Positions & History Cards */
+        .list-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .list-symbol {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .list-side {
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .side-buy { background: var(--accent-green-bg); color: var(--accent-green); }
+        .side-sell { background: var(--accent-red-bg); color: var(--accent-red); }
+
+        .list-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+            background: var(--bg-card);
+            border: 1px dashed var(--border);
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+
+        /* Floating Bottom Action Bar */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 14, 23, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border);
+            padding: 12px 16px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-danger {
+            background: var(--accent-red-bg);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-title">
+            <div class="logo-icon">🤖</div>
+            <div>
+                <div class="brand-name">AI Trader</div>
+                <div class="brand-sub">Mobile Terminal</div>
+            </div>
+        </div>
+        <div id="modeBadge" class="badge badge-paper">
+            <div class="pulse-dot"></div>
+            <span id="modeText">PAPER MODE</span>
+        </div>
+    </header>
+
+    <!-- Stats Grid -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">💵 Available Cash</div>
+            <div class="stat-value text-green" id="availableCash">₹50,000</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">📈 Total Equity</div>
+            <div class="stat-value" id="totalEquity">₹50,000</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">🎯 Unrealized P&L</div>
+            <div class="stat-value" id="unrealizedPnl">₹0.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">⚡ Broker Link</div>
+            <div class="stat-value text-green" id="brokerStatus">Active</div>
+        </div>
+    </section>
+
+    <!-- AI Brain Analysis Card -->
+    <section class="section-title">
+        <span>🧠 Live AI Brain Verdict</span>
+        <span id="lastUpdated" style="font-size: 11px;">Just now</span>
+    </section>
+
+    <div class="ai-card">
+        <div class="ai-header">
+            <span class="ai-badge">🤖 Gemini 2.5 Flash</span>
+            <span id="aiConfidenceText" style="font-size: 12px; font-weight: 700; color: #c084fc;">50% Confidence</span>
+        </div>
+        <div class="ai-decision-row">
+            <div>
+                <div style="font-size: 12px; color: var(--text-muted);">Current Decision</div>
+                <div class="ai-decision decision-HOLD" id="aiDecision">HOLD</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 12px; color: var(--text-muted);">Target Instrument</div>
+                <div style="font-weight: 700; font-size: 16px;" id="aiSymbol">NIFTY 24500 CE</div>
+            </div>
+        </div>
+
+        <div class="confidence-meter">
+            <div class="confidence-fill" id="confidenceFill" style="width: 50%;"></div>
+        </div>
+
+        <div class="ai-reason" id="aiReason">
+            Market consolidating near EMA levels. Waiting for volume breakout.
+        </div>
+
+        <div class="ai-targets">
+            <div class="target-box">
+                <span style="color: var(--accent-red);">🛡️ Stop Loss</span>
+                <span id="aiSl">₹0.00</span>
+            </div>
+            <div class="target-box">
+                <span style="color: var(--accent-green);">🚀 Target</span>
+                <span id="aiTarget">₹0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Positions -->
+    <section class="section-title">
+        <span>📈 Open Positions</span>
+        <span id="posCount" style="font-size: 11px;">0 active</span>
+    </section>
+
+    <div id="positionsContainer">
+        <div class="empty-state">No open positions currently. Bot is monitoring market.</div>
+    </div>
+
+    <!-- Trade History -->
+    <section class="section-title" style="margin-top: 16px;">
+        <span>📜 Recent Activity</span>
+    </section>
+
+    <div id="historyContainer">
+        <div class="empty-state">No recent trades executed today.</div>
+    </div>
+
+    <!-- Bottom Action Bar -->
+    <div class="bottom-bar">
+        <button class="btn btn-primary" id="btnAnalyze" onclick="triggerAnalyze()">
+            <span>🧠</span> Run AI Analysis
+        </button>
+        <button class="btn btn-danger" onclick="triggerKill()">
+            <span>🚨</span> Kill
+        </button>
+    </div>
+
+    <script>
+        async function fetchDashboardData() {
+            try {
+                const res = await fetch('/api/dashboard');
+                const data = await res.parse ? await res.json() : await res.json();
+                renderUI(data);
+            } catch (err) {
+                console.error("Dashboard fetch error:", err);
+            }
+        }
+
+        function renderUI(data) {
+            // Balance
+            if (data.balance) {
+                document.getElementById('availableCash').innerText = '₹' + Number(data.balance.available_cash || 0).toLocaleString('en-IN');
+                document.getElementById('totalEquity').innerText = '₹' + Number(data.balance.total_equity || 0).toLocaleString('en-IN');
+                const pnl = data.balance.unrealized_pnl || 0;
+                const pnlEl = document.getElementById('unrealizedPnl');
+                pnlEl.innerText = (pnl >= 0 ? '+₹' : '-₹') + Math.abs(pnl).toLocaleString('en-IN');
+                pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'text-green' : 'text-red');
+            }
+
+            // Mode
+            const isPaper = data.mode === "PAPER";
+            document.getElementById('modeText').innerText = isPaper ? "PAPER MODE (Safe)" : "LIVE TRADING";
+            document.getElementById('modeBadge').className = isPaper ? "badge badge-paper" : "badge badge-live";
+
+            // AI Decision
+            if (data.ai) {
+                const dec = data.ai.decision || "HOLD";
+                const decEl = document.getElementById('aiDecision');
+                decEl.innerText = dec;
+                decEl.className = 'ai-decision decision-' + dec;
+                
+                const conf = data.ai.confidence || 50;
+                document.getElementById('aiConfidenceText').innerText = conf + '% Confidence';
+                document.getElementById('confidenceFill').style.width = conf + '%';
+                document.getElementById('aiReason').innerText = data.ai.reason || "Analyzing indicators...";
+                document.getElementById('aiSl').innerText = '₹' + (data.ai.suggested_sl || '0');
+                document.getElementById('aiTarget').innerText = '₹' + (data.ai.suggested_target || '0');
+                if (data.ai.symbol) document.getElementById('aiSymbol').innerText = data.ai.symbol;
+            }
+
+            // Positions
+            const posContainer = document.getElementById('positionsContainer');
+            if (data.positions && data.positions.length > 0) {
+                document.getElementById('posCount').innerText = data.positions.length + ' active';
+                posContainer.innerHTML = data.positions.map(p => `
+                    <div class="list-card">
+                        <div class="list-header">
+                            <span class="list-symbol">${p.symbol}</span>
+                            <span class="list-side side-buy">QTY: ${p.quantity}</span>
+                        </div>
+                        <div class="list-details">
+                            <span>Entry: ₹${p.entry_price}</span>
+                            <span class="${(p.unrealized_pnl || 0) >= 0 ? 'text-green' : 'text-red'}">
+                                P&L: ₹${p.unrealized_pnl || 0}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('posCount').innerText = '0 active';
+                posContainer.innerHTML = '<div class="empty-state">No open positions currently.</div>';
+            }
+
+            // History
+            const histContainer = document.getElementById('historyContainer');
+            if (data.history && data.history.length > 0) {
+                histContainer.innerHTML = data.history.slice(-5).reverse().map(h => `
+                    <div class="list-card">
+                        <div class="list-header">
+                            <span class="list-symbol">${h.symbol}</span>
+                            <span class="list-side ${h.action === 'BUY' ? 'side-buy' : 'side-sell'}">${h.action}</span>
+                        </div>
+                        <div class="list-details">
+                            <span>Price: ₹${h.price} | Qty: ${h.quantity}</span>
+                            <span>${h.timestamp ? h.timestamp.split(' ')[1] : ''}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function triggerAnalyze() {
+            const btn = document.getElementById('btnAnalyze');
+            btn.innerHTML = '<span>⏳</span> Analyzing...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/analyze', { method: 'POST' });
+                const data = await res.json();
+                fetchDashboardData();
+            } catch (e) {
+                alert("Analysis request failed");
+            } finally {
+                btn.innerHTML = '<span>🧠</span> Run AI Analysis';
+                btn.disabled = false;
+            }
+        }
+
+        async function triggerKill() {
+            if (confirm("🚨 Emergency Kill Switch: Close all open positions?")) {
+                await fetch('/api/kill', { method: 'POST' });
+                fetchDashboardData();
+            }
+        }
+
+        // Auto poll every 4 seconds
+        setInterval(fetchDashboardData, 4000);
+        fetchDashboardData();
+    </script>
+</body>
+</html>
