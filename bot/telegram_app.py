@@ -8,7 +8,7 @@ class TelegramMobileController:
     """
     Mobile Telegram Controller interface.
     Allows user to monitor, control, start, stop, and emergency-kill trades
-    directly from Telegram mobile app.
+    directly from Telegram mobile app with auto-reconnect on network drops.
     """
 
     def __init__(self, bot_manager=None):
@@ -23,27 +23,53 @@ class TelegramMobileController:
             print("[Telegram] Bot Token not configured in .env. Mobile alerts disabled.")
             return
 
-        self.app = ApplicationBuilder().token(self.token).build()
+        try:
+            self.app = ApplicationBuilder().token(self.token).build()
 
-        # Register handlers
-        self.app.add_handler(CommandHandler("start", self.cmd_start))
-        self.app.add_handler(CommandHandler("status", self.cmd_status))
-        self.app.add_handler(CommandHandler("positions", self.cmd_positions))
-        self.app.add_handler(CommandHandler("analyze", self.cmd_analyze))
-        self.app.add_handler(CommandHandler("kill", self.cmd_kill))
-        self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_quick_buttons))
+            # Register handlers
+            self.app.add_handler(CommandHandler("start", self.cmd_start))
+            self.app.add_handler(CommandHandler("status", self.cmd_status))
+            self.app.add_handler(CommandHandler("positions", self.cmd_positions))
+            self.app.add_handler(CommandHandler("analyze", self.cmd_analyze))
+            self.app.add_handler(CommandHandler("kill", self.cmd_kill))
+            self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_quick_buttons))
 
-        await self.app.initialize()
-        await self.app.start()
-        await self.app.updater.start_polling()
-        self.is_running = True
-        print("[Telegram] Mobile Bot controller is active and listening for commands!")
+            # Add global error handler to prevent crashing
+            self.app.add_error_handler(self.error_handler)
+
+            await self.app.initialize()
+            await self.app.start()
+            # drop_pending_updates cleans up conflict from prior dead connections
+            await self.app.updater.start_polling(drop_pending_updates=True, poll_interval=1.0)
+            self.is_running = True
+            print("[Telegram] Mobile Bot controller is active and listening for commands!")
+
+            # Send a notification that bot is online
+            if self.chat_id:
+                try:
+                    await self.app.bot.send_message(
+                        chat_id=self.chat_id,
+                        text="🟢 *Bot Cloud Service is Active & Listening!*",
+                        parse_mode="Markdown"
+                    )
+                except Exception as e:
+                    print(f"[Telegram] Initial greeting failed: {e}")
+
+        except Exception as e:
+            print(f"[Telegram] Failed to start Telegram polling: {e}")
+
+    async def error_handler(self, update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Log errors caused by updates."""
+        print(f"[Telegram Error Handler] Exception while handling update: {context.error}")
 
     async def stop(self):
         if self.app and self.is_running:
-            await self.app.updater.stop()
-            await self.app.stop()
-            await self.app.shutdown()
+            try:
+                await self.app.updater.stop()
+                await self.app.stop()
+                await self.app.shutdown()
+            except Exception as e:
+                print(f"[Telegram] Error during shutdown: {e}")
             self.is_running = False
 
     async def send_alert(self, message: str):
@@ -75,11 +101,13 @@ class TelegramMobileController:
             f"• Confidence Threshold: *{settings.AI_CONFIDENCE_THRESHOLD}%*\n\n"
             "கீழே உள்ள பட்டன்களை பயன்படுத்தி கட்டுப்படுத்தலாம்:"
         )
-        await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
+        if update and update.message:
+            await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
 
     async def cmd_status(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self.bot_manager:
-            await update.message.reply_text("Bot Engine not attached.")
+            if update and update.message:
+                await update.message.reply_text("Bot Engine not attached.")
             return
 
         balance = self.bot_manager.broker.get_balance()
@@ -93,14 +121,16 @@ class TelegramMobileController:
             f"• Total Equity: ₹{balance.get('total_equity', balance.get('available_cash', 0)):,}\n"
             f"• Auto-Trading: {'Active ✅' if self.bot_manager.is_active else 'Paused ⏸️'}"
         )
-        await update.message.reply_text(status_msg, parse_mode="Markdown")
+        if update and update.message:
+            await update.message.reply_text(status_msg, parse_mode="Markdown")
 
     async def cmd_positions(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self.bot_manager:
             return
         positions = self.bot_manager.broker.get_open_positions()
         if not positions:
-            await update.message.reply_text("ℹ️ தற்போது எந்த Open Positions-ம் இல்லை.")
+            if update and update.message:
+                await update.message.reply_text("ℹ️ தற்போது எந்த Open Positions-ம் இல்லை.")
             return
 
         msg = "📈 *Current Open Positions:*\n\n"
@@ -110,13 +140,15 @@ class TelegramMobileController:
                 f"  Qty: {p.get('quantity')} | Entry: ₹{p.get('entry_price')}\n"
                 f"  Unrealized PnL: ₹{p.get('unrealized_pnl', 0)}\n\n"
             )
-        await update.message.reply_text(msg, parse_mode="Markdown")
+        if update and update.message:
+            await update.message.reply_text(msg, parse_mode="Markdown")
 
     async def cmd_analyze(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("⏳ AI Market-ஐ Analyze செய்கிறது... காத்திருக்கவும்.")
+        if update and update.message:
+            await update.message.reply_text("⏳ AI Market-ஐ Analyze செய்கிறது... காத்திருக்கவும்.")
         if self.bot_manager:
             res = await self.bot_manager.run_analysis_cycle()
-            if res:
+            if res and update and update.message:
                 trade_txt = (
                     f"🧠 *AI Analysis Result ({res.get('symbol')}):*\n\n"
                     f"• *Decision:* `{res.get('decision')}`\n"
@@ -130,9 +162,12 @@ class TelegramMobileController:
     async def cmd_kill(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if self.bot_manager:
             closed = self.bot_manager.broker.close_all_positions()
-            await update.message.reply_text(f"🚨 *Emergency Kill Triggered!* Closed {len(closed)} open positions.", parse_mode="Markdown")
+            if update and update.message:
+                await update.message.reply_text(f"🚨 *Emergency Kill Triggered!* Closed {len(closed)} open positions.", parse_mode="Markdown")
 
     async def handle_quick_buttons(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not update or not update.message:
+            return
         text = update.message.text
         if text == "📊 Status":
             await self.cmd_status(update, context)
@@ -141,6 +176,6 @@ class TelegramMobileController:
         elif text == "🧠 AI Analyze Now":
             await self.cmd_analyze(update, context)
         elif text == "🌐 Web Dashboard":
-            await update.message.reply_text("🌐 *Mobile Web Dashboard Link:*\n\nஉங்கள் Browser-ல் பார்க்க: `http://localhost:8000`\n(Render Cloud-ல் deploy ஆனதும் உங்கள் Cloud URL இங்கே வரும்)", parse_mode="Markdown")
+            await update.message.reply_text("🌐 *Mobile Web Dashboard:*\n\nஉங்க Render Cloud Service Dashboard URL-ஐ மொபைல் பிரவுசரில் open செய்து பாருங்கள்!", parse_mode="Markdown")
         elif text == "🚨 Emergency Kill Switch":
             await self.cmd_kill(update, context)

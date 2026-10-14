@@ -7,16 +7,15 @@ from brokers.paper_broker import PaperBroker
 from brokers.angel_one import AngelOneBroker
 from strategies.technical import TechnicalAnalyzer
 from ai.analyzer import AIAgentAnalyzer
-from bot.telegram_app import TelegramMobileController
 
 class BotEngine:
     """
     Central Engine coordinating Market Data, Technical Indicators,
-    AI Analysis, Order Execution, and Mobile Telegram Control.
+    AI Analysis, Order Execution, and Web Dashboard.
+    (100% Web Native - No Telegram dependency/conflicts)
     """
 
     def __init__(self):
-        # Choose broker based on settings
         if settings.PAPER_TRADING:
             print("[Engine] Initializing in PAPER TRADING (Virtual Capital) mode.")
             self.broker = PaperBroker(initial_capital=settings.INITIAL_PAPER_CAPITAL)
@@ -26,7 +25,6 @@ class BotEngine:
 
         self.tech_analyzer = TechnicalAnalyzer()
         self.ai_analyzer = AIAgentAnalyzer()
-        self.telegram = TelegramMobileController(bot_manager=self)
         self.is_active = True
         self.last_ai_verdict = {
             "decision": "HOLD",
@@ -38,11 +36,8 @@ class BotEngine:
         }
 
     async def initialize(self):
-        # Connect broker
         self.broker.connect()
-        # Start telegram mobile controller
-        await self.telegram.start()
-        print("[Engine] Bot Engine fully initialized.")
+        print("[Engine] Bot Engine fully initialized & Broker connected.")
 
     async def run_analysis_cycle(self, symbol: Optional[str] = None) -> Optional[Dict[str, Any]]:
         target_symbol = symbol or settings.DEFAULT_SYMBOL
@@ -63,37 +58,26 @@ class BotEngine:
         decision = ai_verdict.get("decision", "HOLD")
         confidence = int(ai_verdict.get("confidence", 0))
 
-        print(f"[Engine] {target_symbol} Analysis: {decision} | Confidence: {confidence}% | Reason: {ai_verdict.get('reason')}")
+        now_str = datetime.now().strftime('%H:%M:%S')
+        print(f"[{now_str}] [AI Evaluation] {target_symbol} -> Decision: {decision} | Conf: {confidence}% | Reason: {ai_verdict.get('reason')}")
 
         # 4. Check Risk & Confidence Threshold
         if decision in ["BUY", "SELL"] and confidence >= settings.AI_CONFIDENCE_THRESHOLD:
-            # Execute Trade
             current_price = summary["current_price"]
-            # Default single lot or fixed quantity
-            qty = 15 if "NIFTY" in target_symbol else 1
+            trade_price = current_price
+            qty = 15
+            if current_price > 5000 and settings.PAPER_TRADING:
+                trade_price = round(current_price * 0.006, 2)
 
-            order = self.broker.place_order(target_symbol, decision, quantity=qty, price=current_price)
-            
-            # Send Instant Alert to Mobile Telegram
-            alert_msg = (
-                f"🚨 *NEW AI TRADE EXECUTED!*\n\n"
-                f"• *Symbol:* `{target_symbol}`\n"
-                f"• *Action:* *{decision}*\n"
-                f"• *Price:* ₹{current_price}\n"
-                f"• *Quantity:* {qty}\n"
-                f"• *Confidence:* {confidence}%\n"
-                f"• *Target:* ₹{ai_verdict.get('suggested_target')}\n"
-                f"• *Stop Loss:* ₹{ai_verdict.get('suggested_sl')}\n\n"
-                f"🧠 *AI Reason:* {ai_verdict.get('reason')}"
-            )
-            await self.telegram.send_alert(alert_msg)
+            order = self.broker.place_order(target_symbol, decision, quantity=qty, price=trade_price)
+            print(f"[{now_str}] [TRADE EXECUTED] {decision} {qty} {target_symbol} @ Rs.{trade_price} | Order: {order}")
 
         ai_verdict["symbol"] = target_symbol
         self.last_ai_verdict = ai_verdict
         return ai_verdict
 
     async def background_trading_loop(self, interval_seconds: int = 60):
-        """Continuous background trading loop that evaluates markets at set intervals."""
+        print(f"[Engine] Background autonomous trading loop active (every {interval_seconds}s)")
         while True:
             try:
                 if self.is_active:
