@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Trader Mobile Dashboard</title>
+    <title>AI Trader - Real-Time Terminal</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #0a0e17;
             --bg-card: #121826;
-            --bg-card-hover: #182235;
             --border: #1f293d;
             --text-primary: #f8fafc;
             --text-muted: #94a3b8;
@@ -34,7 +33,7 @@
             background-color: var(--bg-primary);
             color: var(--text-primary);
             padding: 16px;
-            padding-bottom: 80px;
+            padding-bottom: 85px;
             min-height: 100vh;
         }
 
@@ -43,9 +42,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 16px;
+            padding-bottom: 14px;
             border-bottom: 1px solid var(--border);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .header-title {
@@ -55,70 +54,118 @@
         }
 
         .logo-icon {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 20px;
         }
 
         .brand-name {
             font-size: 18px;
             font-weight: 700;
-            letter-spacing: -0.3px;
         }
 
         .brand-sub {
             font-size: 11px;
             color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 5px;
-        }
-
-        .badge-paper {
-            background: rgba(59, 130, 246, 0.15);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         .badge-live {
             background: var(--accent-green-bg);
             color: var(--accent-green);
             border: 1px solid var(--accent-green);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .pulse-dot {
-            width: 6px;
-            height: 6px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background-color: currentColor;
-            animation: pulse 1.5s infinite;
+            animation: pulse 1.2s infinite;
         }
 
         @keyframes pulse {
             0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.8); }
+            50% { opacity: 0.3; transform: scale(0.8); }
             100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Daily Target Progress Card */
+        .target-card {
+            background: linear-gradient(145deg, #131c31, #0d1322);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .target-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .target-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .target-values {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar-bg {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .target-note {
+            font-size: 12px;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
         }
 
         /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 16px;
         }
 
@@ -126,197 +173,129 @@
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 14px;
+            padding: 12px 14px;
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            margin-bottom: 4px;
         }
 
         .stat-value {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
         }
 
         .text-green { color: var(--accent-green); }
         .text-red { color: var(--accent-red); }
 
-        /* AI Brain Card */
+        /* AI & Signal Card */
         .ai-card {
-            background: linear-gradient(145deg, #161c2d, #0f1422);
-            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 16px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ai-card::before {
-            content: '';
-            position: absolute;
-            top: -30px;
-            right: -30px;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, rgba(139, 92, 246, 0.25), transparent 70%);
-            border-radius: 50%;
         }
 
         .ai-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .ai-badge {
-            background: rgba(139, 92, 246, 0.2);
-            color: #c084fc;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .ai-decision-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .ai-decision {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 800;
-            letter-spacing: -0.5px;
         }
 
         .decision-BUY { color: var(--accent-green); }
         .decision-SELL { color: var(--accent-red); }
         .decision-HOLD { color: var(--accent-yellow); }
 
-        .confidence-meter {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            height: 8px;
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
-
-        .confidence-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
-            width: 50%;
-            transition: width 0.5s ease;
-        }
-
         .ai-reason {
-            font-size: 13px;
+            font-size: 12px;
             color: #cbd5e1;
-            line-height: 1.5;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 10px 12px;
-            border-radius: 10px;
-            border-left: 3px solid var(--accent-purple);
-        }
-
-        .ai-targets {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        .target-box {
-            background: rgba(0, 0, 0, 0.2);
+            line-height: 1.4;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 8px 12px;
             border-radius: 8px;
-            padding: 8px 10px;
-            font-size: 12px;
+            border-left: 3px solid var(--accent-blue);
+            margin-top: 10px;
         }
 
-        .target-box span {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 600;
-            display: block;
-            margin-top: 3px;
-            font-size: 14px;
-        }
-
-        /* Section Headings */
-        .section-title {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Positions & History Cards */
-        .list-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 10px;
-        }
-
-        .list-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .list-symbol {
-            font-weight: 700;
-            font-size: 15px;
-        }
-
-        .list-side {
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .side-buy { background: var(--accent-green-bg); color: var(--accent-green); }
-        .side-sell { background: var(--accent-red-bg); color: var(--accent-red); }
-
-        .list-details {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--text-muted);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 24px;
-            color: var(--text-muted);
-            font-size: 13px;
-            background: var(--bg-card);
-            border: 1px dashed var(--border);
-            border-radius: 14px;
+        /* Target & SL Explanation Card */
+        .rules-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-bottom: 16px;
         }
 
-        /* Floating Bottom Action Bar */
+        .rule-box {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .rule-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .rule-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        /* Positions & History */
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pos-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+
+        .pos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .pos-symbol { font-weight: 700; font-size: 14px; }
+        .pos-pnl { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 12px;
+            background: var(--bg-card);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* Fixed Bottom Controls */
         .bottom-bar {
             position: fixed;
             bottom: 0;
@@ -334,32 +313,26 @@
 
         .btn {
             border: none;
-            padding: 12px 16px;
+            padding: 12px;
             border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
+            gap: 6px;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
             color: white;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
         }
 
         .btn-danger {
             background: var(--accent-red-bg);
             color: var(--accent-red);
             border: 1px solid var(--accent-red);
-        }
-
-        .btn:active {
-            transform: scale(0.97);
         }
     </style>
 </head>
@@ -368,219 +341,246 @@
     <!-- Header -->
     <header class="header">
         <div class="header-title">
-            <div class="logo-icon">🤖</div>
+            <div class="logo-icon">⚡</div>
             <div>
-                <div class="brand-name">AI Trader</div>
-                <div class="brand-sub">Mobile Terminal</div>
+                <div class="brand-name">AI Real-Time Trader</div>
+                <div class="brand-sub">
+                    <span id="wsStatus">🟢 WebSocket Connected</span>
+                </div>
             </div>
         </div>
-        <div id="modeBadge" class="badge badge-paper">
+        <div class="badge-live">
             <div class="pulse-dot"></div>
-            <span id="modeText">PAPER MODE</span>
+            <span>PAPER ₹50k</span>
         </div>
     </header>
+
+    <!-- Daily Target Rs 200 Card -->
+    <section class="target-card">
+        <div class="target-header">
+            <span class="target-title">🎯 Daily Profit Target</span>
+            <span id="targetStatusBadge" style="font-size: 11px; font-weight: 700; color: var(--accent-green);">RUNNING ⚡</span>
+        </div>
+        <div class="target-values">
+            <span id="todayProfitText" class="text-green">₹0.00</span>
+            <span style="font-size: 14px; color: var(--text-muted);">/ ₹200.00 Goal</span>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill" style="width: 0%;"></div>
+        </div>
+        <div class="target-note">
+            <span>Progress: <strong id="progressPctText">0%</strong></span>
+            <span>Target எட்டினால் Trading தானாக நிற்கும் 🔒</span>
+        </div>
+    </section>
 
     <!-- Stats Grid -->
     <section class="stats-grid">
         <div class="stat-card">
-            <div class="stat-label">💵 Available Cash</div>
-            <div class="stat-value text-green" id="availableCash">₹50,000</div>
+            <div class="stat-label">💵 Available Margin</div>
+            <div class="stat-value" id="cashVal">₹50,000</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">📈 Total Equity</div>
-            <div class="stat-value" id="totalEquity">₹50,000</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">🎯 Unrealized P&L</div>
-            <div class="stat-value" id="unrealizedPnl">₹0.00</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">⚡ Broker Link</div>
-            <div class="stat-value text-green" id="brokerStatus">Active</div>
+            <div class="stat-label">📈 Current Open P&L</div>
+            <div class="stat-value" id="unrealizedVal">₹0.00</div>
         </div>
     </section>
 
-    <!-- AI Brain Analysis Card -->
+    <!-- Target & Stop-Loss Explanation (Tamil) -->
+    <section class="rules-card">
+        <div class="rule-box" style="border-left: 3px solid var(--accent-green);">
+            <div class="rule-title" style="color: var(--accent-green);">🎯 Target (+₹15)</div>
+            <div class="rule-desc">வாங்கின விலையில் இருந்து ₹15 ஏறினால் லாபத்தோடு <strong>தானாக விற்றுவிடும்</strong> (+₹225).</div>
+        </div>
+        <div class="rule-box" style="border-left: 3px solid var(--accent-red);">
+            <div class="rule-title" style="color: var(--accent-red);">🛡️ Stop Loss (-₹7)</div>
+            <div class="rule-desc">விலை ₹7 இறங்கினால் பெரிய நஷ்டம் வராமல் <strong>தானாக விற்று பணத்தை காப்பாற்றும்</strong> (-₹105).</div>
+        </div>
+    </section>
+
+    <!-- AI Live Decision -->
     <section class="section-title">
-        <span>🧠 Live AI Brain Verdict</span>
-        <span id="lastUpdated" style="font-size: 11px;">Just now</span>
+        <span>🧠 Live AI Analysis</span>
+        <span id="lastTickTime" style="font-size: 11px;">00:00:00</span>
     </section>
 
     <div class="ai-card">
         <div class="ai-header">
-            <span class="ai-badge">🤖 Gemini 2.5 Flash</span>
-            <span id="aiConfidenceText" style="font-size: 12px; font-weight: 700; color: #c084fc;">50% Confidence</span>
-        </div>
-        <div class="ai-decision-row">
             <div>
-                <div style="font-size: 12px; color: var(--text-muted);">Current Decision</div>
-                <div class="ai-decision decision-HOLD" id="aiDecision">HOLD</div>
+                <span style="font-size: 11px; color: var(--text-muted);">Signal</span>
+                <div class="ai-decision decision-HOLD" id="aiDecisionText">HOLD</div>
             </div>
             <div style="text-align: right;">
-                <div style="font-size: 12px; color: var(--text-muted);">Target Instrument</div>
-                <div style="font-weight: 700; font-size: 16px;" id="aiSymbol">NIFTY 24500 CE</div>
+                <span style="font-size: 11px; color: var(--text-muted);">Confidence</span>
+                <div style="font-weight: 700; font-size: 16px; color: #c084fc;" id="aiConfidenceText">50%</div>
             </div>
         </div>
-
-        <div class="confidence-meter">
-            <div class="confidence-fill" id="confidenceFill" style="width: 50%;"></div>
-        </div>
-
-        <div class="ai-reason" id="aiReason">
-            Market consolidating near EMA levels. Waiting for volume breakout.
-        </div>
-
-        <div class="ai-targets">
-            <div class="target-box">
-                <span style="color: var(--accent-red);">🛡️ Stop Loss</span>
-                <span id="aiSl">₹0.00</span>
-            </div>
-            <div class="target-box">
-                <span style="color: var(--accent-green);">🚀 Target</span>
-                <span id="aiTarget">₹0.00</span>
-            </div>
+        <div class="ai-reason" id="aiReasonText">
+            AI is scanning 15-second candle patterns and moving average crossovers...
         </div>
     </div>
 
-    <!-- Active Positions -->
+    <!-- Active Trades -->
     <section class="section-title">
-        <span>📈 Open Positions</span>
-        <span id="posCount" style="font-size: 11px;">0 active</span>
+        <span>📈 Open Trades (Real-Time)</span>
+        <span id="openCount">0 active</span>
     </section>
-
     <div id="positionsContainer">
-        <div class="empty-state">No open positions currently. Bot is monitoring market.</div>
+        <div class="empty-state">No open positions. Bot is scanning high-probability setup.</div>
     </div>
 
-    <!-- Trade History -->
-    <section class="section-title" style="margin-top: 16px;">
-        <span>📜 Recent Activity</span>
+    <!-- Activity Log -->
+    <section class="section-title" style="margin-top: 14px;">
+        <span>📜 Trade Execution History</span>
     </section>
-
     <div id="historyContainer">
-        <div class="empty-state">No recent trades executed today.</div>
+        <div class="empty-state">No trades executed today yet.</div>
     </div>
 
     <!-- Bottom Action Bar -->
     <div class="bottom-bar">
-        <button class="btn btn-primary" id="btnAnalyze" onclick="triggerAnalyze()">
-            <span>🧠</span> Run AI Analysis
+        <button class="btn btn-primary" id="btnAnalyze" onclick="manualAnalyze()">
+            <span>🧠</span> Scan Market Now
         </button>
-        <button class="btn btn-danger" onclick="triggerKill()">
-            <span>🚨</span> Kill
+        <button class="btn btn-danger" onclick="emergencyKill()">
+            <span>🚨</span> Panic Kill
         </button>
     </div>
 
     <script>
-        async function fetchDashboardData() {
-            try {
-                const res = await fetch('/api/dashboard');
-                const data = await res.parse ? await res.json() : await res.json();
-                renderUI(data);
-            } catch (err) {
-                console.error("Dashboard fetch error:", err);
-            }
+        // ==========================================
+        // AUTO-RECONNECTING WEBSOCKET CLIENT
+        // ==========================================
+        let ws;
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                document.getElementById('wsStatus').innerHTML = '🟢 Real-Time (WebSocket Connected)';
+                document.getElementById('wsStatus').style.color = '#10b981';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'TICK') {
+                    updateDashboard(data);
+                }
+            };
+
+            ws.onclose = () => {
+                document.getElementById('wsStatus').innerHTML = '🟡 Reconnecting...';
+                document.getElementById('wsStatus').style.color = '#f59e0b';
+                setTimeout(connectWebSocket, 2000); // Reconnect in 2s
+            };
+
+            ws.onerror = () => ws.close();
         }
 
-        function renderUI(data) {
-            // Balance
-            if (data.balance) {
-                document.getElementById('availableCash').innerText = '₹' + Number(data.balance.available_cash || 0).toLocaleString('en-IN');
-                document.getElementById('totalEquity').innerText = '₹' + Number(data.balance.total_equity || 0).toLocaleString('en-IN');
-                const pnl = data.balance.unrealized_pnl || 0;
-                const pnlEl = document.getElementById('unrealizedPnl');
-                pnlEl.innerText = (pnl >= 0 ? '+₹' : '-₹') + Math.abs(pnl).toLocaleString('en-IN');
-                pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'text-green' : 'text-red');
+        function updateDashboard(data) {
+            // Timestamp
+            document.getElementById('lastTickTime').innerText = data.timestamp;
+
+            // Daily Target Progress
+            if (data.daily_stats) {
+                const profit = data.daily_stats.daily_profit;
+                const pEl = document.getElementById('todayProfitText');
+                pEl.innerText = (profit >= 0 ? '+₹' : '-₹') + Math.abs(profit).toFixed(2);
+                pEl.className = profit >= 0 ? 'text-green' : 'text-red';
+
+                const pct = data.daily_stats.progress_pct;
+                document.getElementById('progressFill').style.width = pct + '%';
+                document.getElementById('progressPctText').innerText = pct + '%';
+
+                const badge = document.getElementById('targetStatusBadge');
+                if (data.daily_stats.target_reached) {
+                    badge.innerText = '🔒 TARGET REACHED';
+                    badge.style.color = '#10b981';
+                } else {
+                    badge.innerText = 'RUNNING ⚡';
+                    badge.style.color = '#3b82f6';
+                }
             }
 
-            // Mode
-            const isPaper = data.mode === "PAPER";
-            document.getElementById('modeText').innerText = isPaper ? "PAPER MODE (Safe)" : "LIVE TRADING";
-            document.getElementById('modeBadge').className = isPaper ? "badge badge-paper" : "badge badge-live";
+            // Balances
+            if (data.balance) {
+                document.getElementById('cashVal').innerText = '₹' + Number(data.balance.available_cash || 0).toLocaleString('en-IN');
+                const unpnl = data.balance.unrealized_pnl || 0;
+                const unEl = document.getElementById('unrealizedVal');
+                unEl.innerText = (unpnl >= 0 ? '+₹' : '-₹') + Math.abs(unpnl).toFixed(2);
+                unEl.className = 'stat-value ' + (unpnl >= 0 ? 'text-green' : 'text-red');
+            }
 
-            // AI Decision
+            // AI Status
             if (data.ai) {
-                const dec = data.ai.decision || "HOLD";
-                const decEl = document.getElementById('aiDecision');
+                const dec = data.ai.decision || 'HOLD';
+                const decEl = document.getElementById('aiDecisionText');
                 decEl.innerText = dec;
                 decEl.className = 'ai-decision decision-' + dec;
-                
-                const conf = data.ai.confidence || 50;
-                document.getElementById('aiConfidenceText').innerText = conf + '% Confidence';
-                document.getElementById('confidenceFill').style.width = conf + '%';
-                document.getElementById('aiReason').innerText = data.ai.reason || "Analyzing indicators...";
-                document.getElementById('aiSl').innerText = '₹' + (data.ai.suggested_sl || '0');
-                document.getElementById('aiTarget').innerText = '₹' + (data.ai.suggested_target || '0');
-                if (data.ai.symbol) document.getElementById('aiSymbol').innerText = data.ai.symbol;
+                document.getElementById('aiConfidenceText').innerText = (data.ai.confidence || 50) + '%';
+                document.getElementById('aiReasonText').innerText = data.ai.reason || 'Analyzing...';
             }
 
-            // Positions
-            const posContainer = document.getElementById('positionsContainer');
+            // Open Positions
+            const posCont = document.getElementById('positionsContainer');
             if (data.positions && data.positions.length > 0) {
-                document.getElementById('posCount').innerText = data.positions.length + ' active';
-                posContainer.innerHTML = data.positions.map(p => `
-                    <div class="list-card">
-                        <div class="list-header">
-                            <span class="list-symbol">${p.symbol}</span>
-                            <span class="list-side side-buy">QTY: ${p.quantity}</span>
-                        </div>
-                        <div class="list-details">
-                            <span>Entry: ₹${p.entry_price}</span>
-                            <span class="${(p.unrealized_pnl || 0) >= 0 ? 'text-green' : 'text-red'}">
-                                P&L: ₹${p.unrealized_pnl || 0}
+                document.getElementById('openCount').innerText = data.positions.length + ' active';
+                posCont.innerHTML = data.positions.map(p => `
+                    <div class="pos-card">
+                        <div class="pos-header">
+                            <span class="pos-symbol">${p.symbol} (Qty: ${p.quantity})</span>
+                            <span class="pos-pnl ${(p.unrealized_pnl || 0) >= 0 ? 'text-green' : 'text-red'}">
+                                ${(p.unrealized_pnl || 0) >= 0 ? '+₹' : '-₹'}${Math.abs(p.unrealized_pnl || 0)}
                             </span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; font-family:monospace;">
+                            <span>Entry: ₹${p.entry_price}</span>
+                            <span>Target: ₹${p.target_price || (p.entry_price + 15)}</span>
+                            <span>SL: ₹${p.sl_price || (p.entry_price - 7)}</span>
                         </div>
                     </div>
                 `).join('');
             } else {
-                document.getElementById('posCount').innerText = '0 active';
-                posContainer.innerHTML = '<div class="empty-state">No open positions currently.</div>';
+                document.getElementById('openCount').innerText = '0 active';
+                posCont.innerHTML = '<div class="empty-state">No open positions. Bot is monitoring market.</div>';
             }
 
             // History
-            const histContainer = document.getElementById('historyContainer');
+            const histCont = document.getElementById('historyContainer');
             if (data.history && data.history.length > 0) {
-                histContainer.innerHTML = data.history.slice(-5).reverse().map(h => `
-                    <div class="list-card">
-                        <div class="list-header">
-                            <span class="list-symbol">${h.symbol}</span>
-                            <span class="list-side ${h.action === 'BUY' ? 'side-buy' : 'side-sell'}">${h.action}</span>
+                histCont.innerHTML = data.history.slice().reverse().map(h => `
+                    <div class="pos-card" style="padding: 10px 14px;">
+                        <div class="pos-header">
+                            <span style="font-weight:700; font-size:13px;">${h.symbol}</span>
+                            <span style="font-weight:700; font-size:12px; color:${h.action === 'BUY' ? '#10b981' : '#ef4444'}">${h.action} @ ₹${h.price}</span>
                         </div>
-                        <div class="list-details">
-                            <span>Price: ₹${h.price} | Qty: ${h.quantity}</span>
-                            <span>${h.timestamp ? h.timestamp.split(' ')[1] : ''}</span>
-                        </div>
+                        <div style="font-size:10px; color:#94a3b8; text-align:right;">${h.timestamp}</div>
                     </div>
                 `).join('');
             }
         }
 
-        async function triggerAnalyze() {
+        async function manualAnalyze() {
             const btn = document.getElementById('btnAnalyze');
-            btn.innerHTML = '<span>⏳</span> Analyzing...';
+            btn.innerHTML = '<span>⏳</span> Scanning...';
             btn.disabled = true;
             try {
-                const res = await fetch('/api/analyze', { method: 'POST' });
-                const data = await res.json();
-                fetchDashboardData();
-            } catch (e) {
-                alert("Analysis request failed");
+                await fetch('/api/analyze', { method: 'POST' });
             } finally {
-                btn.innerHTML = '<span>🧠</span> Run AI Analysis';
+                btn.innerHTML = '<span>🧠</span> Scan Market Now';
                 btn.disabled = false;
             }
         }
 
-        async function triggerKill() {
-            if (confirm("🚨 Emergency Kill Switch: Close all open positions?")) {
+        async function emergencyKill() {
+            if (confirm("🚨 Emergency: Close all open positions immediately?")) {
                 await fetch('/api/kill', { method: 'POST' });
-                fetchDashboardData();
             }
         }
 
-        // Auto poll every 4 seconds
-        setInterval(fetchDashboardData, 4000);
-        fetchDashboardData();
+        // Start WebSocket on Load
+        window.onload = connectWebSocket;
     </script>
 </body>
 </html>
