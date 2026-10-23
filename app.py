@@ -7,16 +7,16 @@ import json
 from datetime import datetime
 
 # ==========================================
-# PAGE CONFIGURATION
+# PAGE CONFIGURATION (Mobile Responsive)
 # ==========================================
 st.set_page_config(
-    page_title="AI Institutional Portfolio Terminal",
-    page_icon="🏦",
+    page_title="Autonomous AI Hedge Fund Terminal",
+    page_icon="🤖",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Dark Theme Institutional UI Styling
+# Custom Styling
 st.markdown("""
 <style>
     .stApp { background-color: #080c14; color: #f8fafc; }
@@ -29,28 +29,36 @@ st.markdown("""
     }
     .text-green { color: #10b981; font-weight: 700; }
     .text-red { color: #ef4444; font-weight: 700; }
-    .target-banner {
-        background: linear-gradient(135deg, #064e3b, #0f172a);
-        border: 1px solid #10b981;
+    .autopilot-banner {
+        background: linear-gradient(135deg, #1e1b4b, #0f172a);
+        border: 1px solid #6366f1;
         border-radius: 14px;
-        padding: 16px;
+        padding: 14px;
         margin-bottom: 16px;
     }
     .stock-chip {
         display: inline-block;
-        padding: 4px 10px;
+        padding: 3px 8px;
         border-radius: 6px;
-        background: rgba(56, 189, 248, 0.15);
-        color: #38bdf8;
+        background: rgba(99, 102, 241, 0.2);
+        color: #818cf8;
         font-weight: 700;
-        font-size: 12px;
+        font-size: 11px;
+    }
+    .pulse {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10b981;
+        box-shadow: 0 0 10px #10b981;
         margin-right: 6px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# PERSISTENT DATABASE ENGINE (Local JSON DB)
+# PERSISTENT DATABASE ENGINE
 # ==========================================
 DB_DIR = os.path.join(os.path.dirname(__file__), "data")
 DB_FILE = os.path.join(DB_DIR, "trade_ledger.json")
@@ -59,12 +67,8 @@ def init_db():
     if not os.path.exists(DB_DIR):
         os.makedirs(DB_DIR, exist_ok=True)
     if not os.path.exists(DB_FILE):
-        default_data = {
-            "initial_capital": 50000.0,
-            "trades": []
-        }
         with open(DB_FILE, "w", encoding="utf-8") as f:
-            json.dump(default_data, f, indent=2)
+            json.dump({"initial_capital": 50000.0, "trades": []}, f, indent=2)
 
 def load_db():
     init_db()
@@ -82,17 +86,16 @@ def save_trade(trade_record):
 
 db_data = load_db()
 
-# Calculate today's realized profit from persistent DB
+# Calculate lifetime and today's profit
 today_str = datetime.now().strftime("%Y-%m-%d")
-today_trades = [t for t in db_data.get("trades", []) if t.get("date") == today_str]
+all_trades = db_data.get("trades", [])
+today_trades = [t for t in all_trades if t.get("date") == today_str]
 today_realized_pnl = sum(t.get("pnl", 0.0) for t in today_trades)
-
-# Dynamic Capital calculation: Initial Capital + Total Realized PnL
-all_realized_pnl = sum(t.get("pnl", 0.0) for t in db_data.get("trades", []))
+all_realized_pnl = sum(t.get("pnl", 0.0) for t in all_trades)
 current_cash = db_data.get("initial_capital", 50000.0) + all_realized_pnl
 
 # ==========================================
-# NIFTY 50 UNIVERSE FOR AUTONOMOUS SCANNING
+# NIFTY 50 UNIVERSE FOR SCANNING
 # ==========================================
 STOCK_UNIVERSE = [
     {"symbol": "TATAMOTORS", "base_price": 960.0, "sector": "Auto"},
@@ -110,34 +113,65 @@ STOCK_UNIVERSE = [
 # State setup
 if "positions" not in st.session_state:
     st.session_state.positions = []
-if "last_scan" not in st.session_state:
-    st.session_state.last_scan = []
-
-# Title & Status
-st.title("🏦 AI Institutional Portfolio Terminal")
-st.caption("Autonomous Multi-Stock Parallel Calibration • Persistent Storage • Zero Manual Picking")
+if "auto_pilot" not in st.session_state:
+    st.session_state.auto_pilot = True  # Always True by default!
+if "last_action" not in st.session_state:
+    st.session_state.last_action = "AI initialized autonomous scanning..."
 
 # ==========================================
-# DAILY TARGET PROGRESS (Rs. 200)
+# AUTONOMOUS ENGINE: SCAN & REPLACE OPEN SLOTS
 # ==========================================
-target_goal = 200.0
-pct = min(100.0, max(0.0, (today_realized_pnl / target_goal) * 100))
-target_reached = today_realized_pnl >= target_goal
+def auto_fill_slots():
+    """Keeps exactly 3 calibrated parallel stocks active at all times automatically."""
+    active_symbols = [p["symbol"] for p in st.session_state.positions]
+    needed_slots = 3 - len(st.session_state.positions)
+    
+    if needed_slots > 0:
+        available_stocks = [s for s in STOCK_UNIVERSE if s["symbol"] not in active_symbols]
+        np.random.shuffle(available_stocks)
+        
+        for stock in available_stocks[:needed_slots]:
+            price = stock["base_price"]
+            qty = max(1, int(10000.0 // price)) # Allocates ~Rs 10,000 per slot
+            target_p = round(price * 1.012, 2)  # +1.2% Target Profit
+            sl_p = round(price * 0.994, 2)      # -0.6% Stop Loss
 
-status_badge = "🔒 DAILY TARGET REACHED (PROFIT LOCKED)" if target_reached else "⚡ AUTONOMOUS SCANNER ACTIVE"
+            score = np.random.randint(82, 98)
+            st.session_state.positions.append({
+                "symbol": stock["symbol"],
+                "sector": stock["sector"],
+                "entry": price,
+                "current": price,
+                "qty": qty,
+                "target": target_p,
+                "sl": sl_p,
+                "unrealized": 0.0,
+                "score": score,
+                "reason": f"AI Momentum Score: {score}%"
+            })
+            st.session_state.last_action = f"AI Auto-Picked {stock['symbol']} ({stock['sector']}) at ₹{price}"
+
+# Trigger auto-fill if slots empty
+if st.session_state.auto_pilot:
+    auto_fill_slots()
+
+# ==========================================
+# HEADER & AUTOPILOT BANNER
+# ==========================================
+st.title("🤖 Autonomous AI Hedge Fund Terminal")
+st.caption("100% Hands-Free • Continuous Parallel Execution • No Daily Profit Cap")
 
 st.markdown(f"""
-<div class="target-banner">
+<div class="autopilot-banner">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase;">Daily Profit Target (Goal: ₹200)</span>
-        <span style="font-size:11px; font-weight:700; color:{'#10b981' if target_reached else '#38bdf8'};">{status_badge}</span>
+        <span style="font-weight:700; font-size:14px;"><span class="pulse"></span>100% FULL AUTO-PILOT ACTIVE</span>
+        <span style="font-size:12px; color:#818cf8; font-weight:700;">UNLIMITED TRADES • NO LIMIT</span>
     </div>
-    <div style="font-size:26px; font-weight:800; margin:6px 0; color:{'#10b981' if today_realized_pnl>=0 else '#ef4444'};">
-        {'+' if today_realized_pnl>=0 else ''}₹{today_realized_pnl:.2f} <span style="font-size:14px; color:#94a3b8; font-weight:400;">/ ₹200.00</span>
+    <div style="font-size:12px; color:#94a3b8; margin-top:6px;">
+        AI scans, buys, exits on target, and continuously refills 3 parallel stock slots without any manual intervention.
     </div>
 </div>
 """, unsafe_allow_html=True)
-st.progress(int(pct))
 
 # ==========================================
 # METRICS ROW
@@ -145,33 +179,33 @@ st.progress(int(pct))
 unrealized_total = sum(p.get("unrealized", 0.0) for p in st.session_state.positions)
 m1, m2, m3, m4 = st.columns(4)
 with m1:
-    st.metric("💵 Available Capital", f"₹{(current_cash - sum(p['entry']*p['qty'] for p in st.session_state.positions)):,.2f}")
+    st.metric("💵 Total Cumulative Profit", f"{'+' if all_realized_pnl>=0 else ''}₹{all_realized_pnl:,.2f}", delta=f"Today: ₹{today_realized_pnl:.2f}")
 with m2:
     st.metric("📈 Live Open P&L", f"{'+' if unrealized_total>=0 else ''}₹{unrealized_total:.2f}", delta=f"{unrealized_total:.2f}")
 with m3:
     st.metric("🎯 Total Portfolio Equity", f"₹{(current_cash + unrealized_total):,.2f}")
 with m4:
-    total_trades = len(db_data.get("trades", []))
-    wins = len([t for t in db_data.get("trades", []) if t.get("pnl", 0) > 0])
-    win_rate = (wins / max(1, total_trades)) * 100
-    st.metric("⚡ All-Time Win Rate", f"{win_rate:.0f}%", f"{wins}/{total_trades} Wins")
+    total_trades_count = len(all_trades)
+    wins = len([t for t in all_trades if t.get("pnl", 0) > 0])
+    win_rate = (wins / max(1, total_trades_count)) * 100
+    st.metric("⚡ Win Rate", f"{win_rate:.0f}%", f"{wins}/{total_trades_count} Trades")
 
 st.divider()
 
 # ==========================================
-# SIMULATION TICK MOTOR FOR PARALLEL TRADES
+# TICK MOTOR & AUTOMATIC PROFIT BOOKING
 # ==========================================
 remaining_positions = []
 for p in st.session_state.positions:
-    # Random realistic price movement
-    move = np.random.choice([0.003, 0.005, -0.002, 0.004, -0.001]) # ~0.3% to 0.5% tick
+    # Continuous market tick fluctuation
+    move = np.random.choice([0.003, 0.005, -0.002, 0.004, -0.001])
     cur_price = round(p["current"] * (1 + move), 2)
     p["current"] = cur_price
     
     unreal = round((cur_price - p["entry"]) * p["qty"], 2)
     p["unrealized"] = unreal
 
-    # Check Target or SL
+    # Check Target (+1.2%) or SL (-0.6%)
     if cur_price >= p["target"]:
         realized = round((cur_price - p["entry"]) * p["qty"], 2)
         record = {
@@ -183,11 +217,12 @@ for p in st.session_state.positions:
             "entry_price": p["entry"],
             "exit_price": cur_price,
             "pnl": realized,
-            "status": "🎯 TARGET HIT (+1.2%)",
-            "reason": p.get("reason", "AI Breakout")
+            "status": "🎯 TARGET PROFIT",
+            "reason": "AI Target Hit (+1.2%)"
         }
         save_trade(record)
-        st.toast(f"🎯 Target Hit! {p['symbol']} Profit: +₹{realized}", icon="✅")
+        st.session_state.last_action = f"🎯 TARGET HIT! Sold {p['symbol']} (+₹{realized}). Auto-Scanning next stock..."
+        st.toast(f"🎯 Target Hit! Sold {p['symbol']} (+₹{realized})", icon="✅")
     elif cur_price <= p["sl"]:
         loss = round((cur_price - p["entry"]) * p["qty"], 2)
         record = {
@@ -199,109 +234,32 @@ for p in st.session_state.positions:
             "entry_price": p["entry"],
             "exit_price": cur_price,
             "pnl": loss,
-            "status": "🛡️ STOP LOSS (-0.6%)",
-            "reason": "Risk Management Cut"
+            "status": "🛡️ STOP LOSS",
+            "reason": "Risk Cut (-0.6%)"
         }
         save_trade(record)
-        st.toast(f"🛡️ Stop Loss Cut {p['symbol']} Loss: ₹{loss}", icon="⚠️")
+        st.session_state.last_action = f"🛡️ SL Hit! Exited {p['symbol']} (₹{loss}). Auto-Scanning next stock..."
+        st.toast(f"🛡️ SL Cut {p['symbol']} (₹{loss})", icon="⚠️")
     else:
         remaining_positions.append(p)
 
 st.session_state.positions = remaining_positions
 
-# ==========================================
-# AUTONOMOUS PARALLEL SELECTION ENGINE
-# ==========================================
-def run_autonomous_portfolio_scan():
-    """Scans universe, scores momentum, picks Top 3 calibrated parallel stocks."""
-    scanned = []
-    for s in STOCK_UNIVERSE:
-        # Generate algorithmic quant momentum score (RSI + Trend + Volume)
-        rsi = np.random.randint(48, 72)
-        score = np.random.randint(65, 96)
-        scanned.append({
-            "symbol": s["symbol"],
-            "sector": s["sector"],
-            "price": s["base_price"],
-            "rsi": rsi,
-            "score": score
-        })
-    
-    # Sort by highest AI score
-    scanned.sort(key=lambda x: x["score"], reverse=True)
-    top_3 = scanned[:3]
-    st.session_state.last_scan = top_3
-
-    # Capital Allocation: Distribute ₹30,000 across 3 stocks (₹10,000 each)
-    allocated_cash_per_stock = 10000.0
-    new_positions = []
-    for stock in top_3:
-        price = stock["price"]
-        qty = max(1, int(allocated_cash_per_stock // price))
-        target_p = round(price * 1.012, 2)  # +1.2% Target
-        sl_p = round(price * 0.994, 2)      # -0.6% Stop-Loss (2:1 Risk-Reward)
-
-        new_positions.append({
-            "symbol": stock["symbol"],
-            "sector": stock["sector"],
-            "entry": price,
-            "current": price,
-            "qty": qty,
-            "target": target_p,
-            "sl": sl_p,
-            "unrealized": 0.0,
-            "score": stock["score"],
-            "reason": f"AI Momentum Score: {stock['score']}% (RSI {stock['rsi']})"
-        })
-
-    st.session_state.positions = new_positions
-
-# Controls
-c1, c2, c3 = st.columns([2, 1, 1])
-with c1:
-    if st.button("🤖 Autonomous Scan & Deploy 3 Parallel Stocks", type="primary", use_container_width=True):
-        if len(st.session_state.positions) == 0:
-            if not target_reached:
-                run_autonomous_portfolio_scan()
-                st.toast("🧠 AI Scanned NIFTY 50! Top 3 Parallel Positions Allocated.", icon="🚀")
-                st.rerun()
-            else:
-                st.warning("Daily Target of ₹200 reached! Trading is locked for safety.")
-        else:
-            st.info("Portfolio already running 3 parallel positions. Risk calibrated.")
-
-with c2:
-    if st.button("🔄 Refresh Tick", use_container_width=True):
-        st.rerun()
-
-with c3:
-    if st.button("🚨 Emergency Close All", use_container_width=True):
-        for p in st.session_state.positions:
-            unreal = p["unrealized"]
-            record = {
-                "date": today_str,
-                "time": datetime.now().strftime("%H:%M:%S"),
-                "symbol": p["symbol"],
-                "sector": p["sector"],
-                "qty": p["qty"],
-                "entry_price": p["entry"],
-                "exit_price": p["current"],
-                "pnl": unreal,
-                "status": "🚨 MANUAL EXIT",
-                "reason": "Emergency Flatten"
-            }
-            save_trade(record)
-        st.session_state.positions = []
-        st.rerun()
+# Automatically refill any slots that were just exited!
+if st.session_state.auto_pilot and len(st.session_state.positions) < 3:
+    auto_fill_slots()
 
 # ==========================================
-# PARALLEL POSITIONS DISPLAY
+# PARALLEL ACTIVE SLOTS DISPLAY
 # ==========================================
-st.subheader("📊 Live Parallel Portfolio (Multi-Stock Allocation)")
-if len(st.session_state.positions) > 0:
-    cols = st.columns(len(st.session_state.positions))
-    for i, p in enumerate(st.session_state.positions):
-        with cols[i]:
+st.subheader("📊 Live Parallel Executions (Continuous 3 Slots)")
+st.caption(f"⚡ Status: {st.session_state.last_action}")
+
+cols = st.columns(3)
+for i in range(3):
+    with cols[i]:
+        if i < len(st.session_state.positions):
+            p = st.session_state.positions[i]
             st.markdown(f"""
             <div class="card" style="border-left: 4px solid {'#10b981' if p['unrealized']>=0 else '#ef4444'};">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -319,27 +277,48 @@ if len(st.session_state.positions) > 0:
                 </div>
             </div>
             """, unsafe_allow_html=True)
-else:
-    st.info("ℹ️ No active parallel positions. Press 'Autonomous Scan & Deploy' to let AI pick 3 parallel stocks.")
+        else:
+            st.markdown("""
+            <div class="card" style="border: 1px dashed #334155; text-align:center; padding:35px 14px;">
+                <span style="color:#64748b; font-size:13px;">AI Scanning next stock...</span>
+            </div>
+            """, unsafe_allow_html=True)
 
-# ==========================================
-# PERSISTENT AUDIT HISTORY (NEVER DISAPPEARS)
-# ==========================================
-st.subheader("📜 Persistent Trade Ledger (Permanent History)")
-fresh_db = load_db()
-all_trades = fresh_db.get("trades", [])
-
-if len(all_trades) > 0:
-    df_history = pd.DataFrame(all_trades)[["date", "time", "symbol", "sector", "qty", "entry_price", "exit_price", "pnl", "status"]]
-    # Style dataframe
-    st.dataframe(df_history.iloc[::-1], use_container_width=True)
-    st.caption("🔒 All trades are permanently stored on disk. Refreshing or closing browser will NEVER lose history.")
-else:
-    st.caption("No permanent trades recorded yet.")
-
-# ==========================================
-# AUTO LOOP IF POSITIONS ACTIVE
-# ==========================================
-if len(st.session_state.positions) > 0 and not target_reached:
-    time.sleep(2)
+# Emergency Manual Control (Only for Panic)
+if st.button("🚨 Emergency Stop & Flatten All Positions", type="secondary", use_container_width=True):
+    for p in st.session_state.positions:
+        unreal = p["unrealized"]
+        save_trade({
+            "date": today_str,
+            "time": datetime.now().strftime("%H:%M:%S"),
+            "symbol": p["symbol"],
+            "sector": p["sector"],
+            "qty": p["qty"],
+            "entry_price": p["entry"],
+            "exit_price": p["current"],
+            "pnl": unreal,
+            "status": "🚨 MANUAL FLATTEN",
+            "reason": "Emergency Flatten"
+        })
+    st.session_state.positions = []
     st.rerun()
+
+# ==========================================
+# PERMANENT AUDIT HISTORY
+# ==========================================
+st.subheader("📜 Continuous Trade Ledger (Permanent Database)")
+fresh_db = load_db()
+all_completed = fresh_db.get("trades", [])
+
+if len(all_completed) > 0:
+    df_history = pd.DataFrame(all_completed)[["date", "time", "symbol", "sector", "qty", "entry_price", "exit_price", "pnl", "status"]]
+    st.dataframe(df_history.iloc[::-1], use_container_width=True)
+    st.caption("🔒 All closed trades are permanently recorded in database file.")
+else:
+    st.caption("No completed trades recorded yet.")
+
+# ==========================================
+# 100% AUTONOMOUS REAL-TIME STREAMING LOOP
+# ==========================================
+time.sleep(2)
+st.rerun()
