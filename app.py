@@ -94,30 +94,29 @@ all_realized_pnl = sum(t.get("pnl", 0.0) for t in all_trades)
 current_cash = db_data.get("initial_capital", 50000.0) + all_realized_pnl
 
 # ==========================================
-# FETCH REAL-TIME LIVE 24/7 CRYPTO PRICES (BINANCE REST API)
+# FETCH REAL-TIME LIVE 24/7 CRYPTO PRICES (COINBASE GLOBAL PUBLIC FEED)
 # ==========================================
-CRYPTO_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "DOGEUSDT", "XRPUSDT"]
-INR_RATE = 87.5  # 1 USDT = approx Rs 87.5
+CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL", "DOGE", "XRP"]
+INR_RATE = 87.5  # 1 USD = approx Rs 87.5
 
 @st.cache_data(ttl=2)
 def fetch_real_live_crypto_prices():
-    """Fetches real-time price directly from Binance official API with 0 delay."""
+    """Fetches real-time price directly from Coinbase Global Official API with 0 delay."""
     prices = {}
-    try:
-        url = "https://api.binance.com/api/v3/ticker/price"
-        resp = requests.get(url, timeout=3)
-        if resp.status_code == 200:
-            raw = resp.json()
-            for item in raw:
-                sym = item.get("symbol")
-                if sym in CRYPTO_SYMBOLS:
-                    usd_p = float(item["price"])
-                    prices[sym] = {
-                        "usd": usd_p,
-                        "inr": round(usd_p * INR_RATE, 2)
-                    }
-    except Exception as e:
-        pass
+    import urllib.request
+    for sym in CRYPTO_SYMBOLS:
+        url = f"https://api.coinbase.com/v2/prices/{sym}-USD/spot"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        try:
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                usd_p = float(data["data"]["amount"])
+                prices[sym] = {
+                    "usd": usd_p,
+                    "inr": round(usd_p * INR_RATE, 2)
+                }
+        except Exception:
+            pass
     return prices
 
 live_prices = fetch_real_live_crypto_prices()
@@ -132,16 +131,16 @@ if "last_action" not in st.session_state:
 # HEADER BANNER (100% REAL DATA PROOF)
 # ==========================================
 st.title("🪙 24/7 Real-Time Crypto AI Terminal")
-st.caption("Live Official Binance Exchange Data Feed • Zero Simulation • 100% Real Market Prices")
+st.caption("Live Official Coinbase Global Data Feed • Zero Simulation • 100% Real Market Prices")
 
 st.markdown(f"""
 <div class="real-data-banner">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <span style="font-weight:700; font-size:14px;"><span class="pulse"></span>100% REAL LIVE MARKET FEED ACTIVE</span>
-        <span class="live-chip">SOURCE: BINANCE PUBLIC TICKER</span>
+        <span class="live-chip">SOURCE: COINBASE GLOBAL SPOT TICKER</span>
     </div>
     <div style="font-size:12px; color:#cbd5e1; margin-top:6px;">
-        இந்த விலை நீங்கள் Binance அல்லது TradingView-ல் பார்க்கும் அதே சர்வதேச சந்தை லைவ் விலை! நள்ளிரவிலும் 24 மணி நேரமும் தொடர்ச்சியாக இயங்கும்.
+        இந்த விலை நீங்கள் Coinbase அல்லது TradingView-ல் பார்க்கும் அதே சர்வதேச சந்தை லைவ் விலை! நள்ளிரவிலும் 24 மணி நேரமும் தொடர்ச்சியாக இயங்கும்.
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -153,9 +152,8 @@ ticker_cols = st.columns(len(CRYPTO_SYMBOLS))
 for i, sym in enumerate(CRYPTO_SYMBOLS):
     with ticker_cols[i]:
         p_info = live_prices.get(sym, {"usd": 0, "inr": 0})
-        clean_name = sym.replace("USDT", "")
         st.metric(
-            f"🪙 {clean_name}",
+            f"🪙 {sym}",
             f"${p_info['usd']:,.2f}" if p_info['usd'] > 1 else f"${p_info['usd']:.4f}",
             f"₹{p_info['inr']:,.2f}"
         )
@@ -177,13 +175,12 @@ def auto_fill_real_crypto():
             if inr_p <= 0:
                 continue
 
-            # Allocate Rs 10,000 per slot
             qty = max(0.001, round(10000.0 / inr_p, 4))
-            target_p = round(inr_p * 1.008, 2)  # +0.8% Target
-            sl_p = round(inr_p * 0.995, 2)      # -0.5% SL
+            target_p = round(inr_p * 1.008, 2)
+            sl_p = round(inr_p * 0.995, 2)
 
             st.session_state.positions.append({
-                "symbol": sym.replace("USDT", ""),
+                "symbol": sym,
                 "pair": sym,
                 "entry_inr": inr_p,
                 "current_inr": inr_p,
@@ -193,7 +190,7 @@ def auto_fill_real_crypto():
                 "unrealized": 0.0,
                 "time": datetime.now().strftime("%H:%M:%S")
             })
-            st.session_state.last_action = f"AI Bought {sym.replace('USDT','')} at Real Price ₹{inr_p:,} ($ {p_data['usd']})"
+            st.session_state.last_action = f"AI Bought {sym} at Real Price ₹{inr_p:,} (${p_data['usd']})"
 
 auto_fill_real_crypto()
 
@@ -202,14 +199,13 @@ auto_fill_real_crypto()
 # ==========================================
 remaining = []
 for p in st.session_state.positions:
-    sym = p["pair"]
+    sym = p["symbol"]
     if sym in live_prices:
         cur_inr = live_prices[sym]["inr"]
         p["current_inr"] = cur_inr
         unreal = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
         p["unrealized"] = unreal
 
-        # Check Real Target or SL
         if cur_inr >= p["target_inr"]:
             realized = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
             record = {
@@ -221,7 +217,7 @@ for p in st.session_state.positions:
                 "exit_price": cur_inr,
                 "pnl": realized,
                 "status": "🎯 REAL TARGET HIT",
-                "feed": "Binance Live"
+                "feed": "Coinbase Global"
             }
             save_trade(record)
             st.toast(f"🎯 Real Target Hit on {p['symbol']}! Profit: +₹{realized}", icon="✅")
@@ -236,7 +232,7 @@ for p in st.session_state.positions:
                 "exit_price": cur_inr,
                 "pnl": loss,
                 "status": "🛡️ REAL SL CUT",
-                "feed": "Binance Live"
+                "feed": "Coinbase Global"
             }
             save_trade(record)
             st.toast(f"🛡️ Real Stop-Loss Cut on {p['symbol']}! Loss: ₹{loss}", icon="⚠️")
