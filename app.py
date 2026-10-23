@@ -94,9 +94,9 @@ all_realized_pnl = sum(t.get("pnl", 0.0) for t in all_trades)
 current_cash = db_data.get("initial_capital", 50000.0) + all_realized_pnl
 
 # ==========================================
-# FETCH REAL-TIME LIVE 24/7 CRYPTO PRICES (COINBASE GLOBAL PUBLIC FEED)
+# FETCH REAL-TIME LIVE 24/7 CRYPTO PRICES (EXPANDED GLOBAL UNIVERSE)
 # ==========================================
-CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL", "DOGE", "XRP"]
+CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL", "DOGE", "XRP", "ADA", "AVAX", "LINK"]
 INR_RATE = 87.5  # 1 USD = approx Rs 87.5
 
 @st.cache_data(ttl=2)
@@ -161,36 +161,44 @@ for i, sym in enumerate(CRYPTO_SYMBOLS):
 st.divider()
 
 # ==========================================
-# AUTONOMOUS PARALLEL REFILL FROM REAL DATA
+# OPEN-HAND DYNAMIC MULTI-SLOT AUTONOMOUS ENGINE (NO SLOT LIMIT)
 # ==========================================
 def auto_fill_real_crypto():
     active_symbols = [p["symbol"] for p in st.session_state.positions]
-    needed = 3 - len(st.session_state.positions)
+    available = [s for s in CRYPTO_SYMBOLS if s not in active_symbols and s in live_prices]
     
-    if needed > 0 and live_prices:
-        available = [s for s in CRYPTO_SYMBOLS if s not in active_symbols and s in live_prices]
-        for sym in available[:needed]:
-            p_data = live_prices[sym]
-            inr_p = p_data["inr"]
-            if inr_p <= 0:
-                continue
+    # Calculate available unallocated capital
+    used_capital = sum(p["entry_inr"] * p["qty"] for p in st.session_state.positions)
+    free_cash = max(0.0, current_cash - used_capital)
 
-            qty = max(0.001, round(10000.0 / inr_p, 4))
-            target_p = round(inr_p * 1.008, 2)
-            sl_p = round(inr_p * 0.995, 2)
+    # Automatically open slots for any available asset as long as free capital exists (min Rs 3,000 per slot)
+    for sym in available:
+        if free_cash < 3000:
+            break
+        p_data = live_prices[sym]
+        inr_p = p_data["inr"]
+        if inr_p <= 0:
+            continue
 
-            st.session_state.positions.append({
-                "symbol": sym,
-                "pair": sym,
-                "entry_inr": inr_p,
-                "current_inr": inr_p,
-                "qty": qty,
-                "target_inr": target_p,
-                "sl_inr": sl_p,
-                "unrealized": 0.0,
-                "time": datetime.now().strftime("%H:%M:%S")
-            })
-            st.session_state.last_action = f"AI Bought {sym} at Real Price ₹{inr_p:,} (${p_data['usd']})"
+        # Smart capital allocation: Rs 6,000 to Rs 8,000 per slot
+        allocation = min(free_cash, 7000.0)
+        qty = max(0.0001, round(allocation / inr_p, 4))
+        target_p = round(inr_p * 1.008, 2)  # +0.8% Target
+        sl_p = round(inr_p * 0.995, 2)      # -0.5% SL
+
+        st.session_state.positions.append({
+            "symbol": sym,
+            "pair": sym,
+            "entry_inr": inr_p,
+            "current_inr": inr_p,
+            "qty": qty,
+            "target_inr": target_p,
+            "sl_inr": sl_p,
+            "unrealized": 0.0,
+            "time": datetime.now().strftime("%H:%M:%S")
+        })
+        free_cash -= (inr_p * qty)
+        st.session_state.last_action = f"🚀 Open-Hand: AI Deployed Slot on {sym} @ ₹{inr_p:,}"
 
 auto_fill_real_crypto()
 
@@ -265,21 +273,23 @@ with m4:
 st.divider()
 
 # ==========================================
-# LIVE PARALLEL SLOTS DISPLAY
+# LIVE OPEN-HAND PARALLEL SLOTS DISPLAY (UNLIMITED SLOTS)
 # ==========================================
-st.subheader("📊 Active Live Real-Market Positions (3 Slots)")
+st.subheader(f"📊 Active Open-Hand Parallel Slots ({len(st.session_state.positions)} Active Trades)")
 st.caption(f"⚡ Status: {st.session_state.last_action}")
 
-cols = st.columns(3)
-for i in range(3):
-    with cols[i]:
-        if i < len(st.session_state.positions):
-            p = st.session_state.positions[i]
+if len(st.session_state.positions) > 0:
+    # Render in dynamic 3-column rows
+    num_cols = min(3, len(st.session_state.positions))
+    cols = st.columns(num_cols)
+    for i, p in enumerate(st.session_state.positions):
+        col_idx = i % num_cols
+        with cols[col_idx]:
             st.markdown(f"""
             <div class="card" style="border-left: 4px solid {'#10b981' if p['unrealized']>=0 else '#ef4444'};">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-weight:800; font-size:17px;">{p['symbol']} / USDT</span>
-                    <span class="live-chip">REAL BINANCE</span>
+                    <span style="font-weight:800; font-size:17px;">{p['symbol']} / USD</span>
+                    <span class="live-chip">REAL COINBASE</span>
                 </div>
                 <div style="font-size:22px; font-weight:800; margin:8px 0;" class="{'text-green' if p['unrealized']>=0 else 'text-red'}">
                     {'+' if p['unrealized']>=0 else ''}₹{p['unrealized']:.2f}
@@ -293,12 +303,8 @@ for i in range(3):
                 </div>
             </div>
             """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div class="card" style="border: 1px dashed #334155; text-align:center; padding:35px 14px;">
-                <span style="color:#64748b; font-size:13px;">Connecting next real ticker...</span>
-            </div>
-            """, unsafe_allow_html=True)
+else:
+    st.info("AI is evaluating global pairs to open new slots...")
 
 # Emergency Flatten
 if st.button("🚨 Panic Close All Real Positions", use_container_width=True):
