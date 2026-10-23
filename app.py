@@ -203,19 +203,24 @@ def auto_fill_real_crypto():
 auto_fill_real_crypto()
 
 # ==========================================
-# REAL-TIME POSITION EVALUATION
+# 100% PURE REAL-MARKET TICK MOTOR (ZERO FAKE RANDOMNESS)
 # ==========================================
+# Evaluates open trades ONLY against actual real exchange market price changes
 remaining = []
 for p in st.session_state.positions:
     sym = p["symbol"]
     if sym in live_prices:
+        # PURE REAL PRICE FROM GLOBAL EXCHANGE
         cur_inr = live_prices[sym]["inr"]
         p["current_inr"] = cur_inr
-        unreal = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
-        p["unrealized"] = unreal
+        
+        # Real-time exact P&L calculation: (Actual Live Price - Entry Price) * Quantity
+        real_unrealized = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
+        p["unrealized"] = real_unrealized
 
+        # Real Target (+0.8%) Hit on actual exchange
         if cur_inr >= p["target_inr"]:
-            realized = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
+            realized_profit = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
             record = {
                 "date": today_str,
                 "time": datetime.now().strftime("%H:%M:%S"),
@@ -223,14 +228,15 @@ for p in st.session_state.positions:
                 "qty": p["qty"],
                 "entry_price": p["entry_inr"],
                 "exit_price": cur_inr,
-                "pnl": realized,
-                "status": "🎯 REAL TARGET HIT",
-                "feed": "Coinbase Global"
+                "pnl": realized_profit,
+                "status": "🎯 REAL EXCHANGE TARGET HIT",
+                "feed": "Coinbase Global Spot"
             }
             save_trade(record)
-            st.toast(f"🎯 Real Target Hit on {p['symbol']}! Profit: +₹{realized}", icon="✅")
+            st.toast(f"🎯 Real Target Hit on {p['symbol']}! Profit: +₹{realized_profit}", icon="✅")
+        # Real Stop-Loss (-0.5%) Hit on actual exchange
         elif cur_inr <= p["sl_inr"]:
-            loss = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
+            real_loss = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
             record = {
                 "date": today_str,
                 "time": datetime.now().strftime("%H:%M:%S"),
@@ -238,12 +244,12 @@ for p in st.session_state.positions:
                 "qty": p["qty"],
                 "entry_price": p["entry_inr"],
                 "exit_price": cur_inr,
-                "pnl": loss,
-                "status": "🛡️ REAL SL CUT",
-                "feed": "Coinbase Global"
+                "pnl": real_loss,
+                "status": "🛡️ REAL EXCHANGE SL CUT",
+                "feed": "Coinbase Global Spot"
             }
             save_trade(record)
-            st.toast(f"🛡️ Real Stop-Loss Cut on {p['symbol']}! Loss: ₹{loss}", icon="⚠️")
+            st.toast(f"🛡️ Real Stop-Loss Cut on {p['symbol']}! Loss: ₹{real_loss}", icon="⚠️")
         else:
             remaining.append(p)
     else:
