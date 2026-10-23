@@ -330,8 +330,12 @@ fresh_db = load_db()
 completed = fresh_db.get("trades", [])
 
 if len(completed) > 0:
-    df_h = pd.DataFrame(completed)[["date", "time", "symbol", "qty", "entry_price", "exit_price", "pnl", "status", "feed"]]
-    st.dataframe(df_h.iloc[::-1], use_container_width=True)
+    df_h = pd.DataFrame(completed)
+    for col in ["date", "time", "symbol", "qty", "entry_price", "exit_price", "pnl", "status"]:
+        if col not in df_h.columns:
+            df_h[col] = "-"
+    available_cols = [c for c in ["date", "time", "symbol", "qty", "entry_price", "exit_price", "pnl", "status"] if c in df_h.columns]
+    st.dataframe(df_h[available_cols].iloc[::-1], use_container_width=True)
 else:
     st.caption("No closed trades recorded yet.")
 
