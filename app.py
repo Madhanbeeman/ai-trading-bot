@@ -7,49 +7,48 @@ import urllib.request
 from datetime import datetime
 
 # ==========================================
-# ULTRA-PREMIUM FINTECH MOBILE APP CONFIG
+# 100% NATIVE MOBILE FINTECH APP CONFIG
 # ==========================================
 st.set_page_config(
-    page_title="Fintech Pro Mobile",
+    page_title="Fintech Pro Terminal",
     page_icon="⚡",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-# Custom Ultra-Modern Neo-Fintech Styling (Exact Match to User Reference Image)
+# Custom Ultra-Modern Fintech Styling with Fixed Bottom Navigation Bar
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
 
-    /* Global Viewport Reset */
     html, body, [class*="stApp"] {
-        background-color: #0b0f17 !important;
+        background-color: #0b0f19 !important;
         color: #0f172a !important;
         font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
     
     .block-container {
         padding-top: 0.5rem !important;
-        padding-bottom: 2rem !important;
+        padding-bottom: 95px !important; /* Space so fixed bottom bar never overlaps content */
         padding-left: 0.6rem !important;
         padding-right: 0.6rem !important;
         max-width: 440px !important;
         margin: auto !important;
     }
 
-    /* Top User Bar */
-    .user-nav {
+    /* User Profile Bar */
+    .user-bar {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 8px 4px 14px 4px;
+        padding: 6px 4px 12px 4px;
     }
-    .user-profile {
+    .user-info {
         display: flex;
         align-items: center;
         gap: 10px;
     }
-    .avatar-circle {
+    .user-avatar {
         width: 38px;
         height: 38px;
         background: #e2e8f0;
@@ -60,106 +59,29 @@ st.markdown("""
         font-size: 18px;
     }
 
-    /* Main Balance White / Glass Card (As in Ref Image 1) */
-    .balance-card {
+    /* Master Total Asset Card (Reference Image White Surface) */
+    .master-card {
         background: #ffffff;
         border-radius: 26px;
         padding: 22px 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        margin-bottom: 14px;
         color: #0f172a;
-        margin-bottom: 16px;
     }
-    .balance-label {
-        font-size: 12px;
-        font-weight: 600;
+    .master-label {
+        font-size: 11px;
+        font-weight: 700;
         color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
     }
-    .balance-val {
+    .master-val {
         font-size: 34px;
         font-weight: 800;
         letter-spacing: -1px;
-        margin: 4px 0 14px 0;
+        margin: 4px 0 12px 0;
         color: #0f172a;
     }
-    .btn-lime {
-        background: #ccff00;
-        color: #0f172a;
-        font-weight: 700;
-        font-size: 13px;
-        padding: 10px 18px;
-        border-radius: 20px;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        text-decoration: none;
-    }
-    .btn-white {
-        background: #f1f5f9;
-        color: #0f172a;
-        font-weight: 700;
-        font-size: 13px;
-        padding: 10px 18px;
-        border-radius: 20px;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    /* Dark Mode Rounded Sub-Container (As in Ref Image 1 & 2) */
-    .black-vault {
-        background: #000000;
-        border-radius: 28px;
-        padding: 18px 16px;
-        color: #ffffff;
-        margin-bottom: 16px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
-    .vault-title-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 14px;
-    }
-
-    /* Pastel Mini Cards: Mint Green & Soft Lavender (Image 1 style) */
-    .pastel-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 14px;
-    }
-    .card-mint {
-        background: #d1fae5;
-        color: #064e3b;
-        border-radius: 20px;
-        padding: 14px;
-    }
-    .card-lavender {
-        background: #ede9fe;
-        color: #3b0764;
-        border-radius: 20px;
-        padding: 14px;
-    }
-    .card-coral {
-        background: #ffe4e6;
-        color: #881337;
-        border-radius: 20px;
-        padding: 14px;
-    }
-
-    /* White Chart Surface (As in Ref Image 2) */
-    .chart-surface {
-        background: #ffffff;
-        border-radius: 26px;
-        padding: 18px;
-        color: #0f172a;
-        margin-bottom: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    }
-
-    /* Pill Badges */
     .pill-lime {
         background: #ccff00;
         color: #0f172a;
@@ -167,34 +89,109 @@ st.markdown("""
         font-size: 11px;
         padding: 3px 8px;
         border-radius: 12px;
+        vertical-align: middle;
+        margin-left: 6px;
     }
 
-    /* Floating Black Bottom Dock Bar (As in Ref Image Bottom) */
-    .bottom-dock {
-        background: #000000;
-        border-radius: 30px;
-        padding: 10px 18px;
+    /* 6-Grid Financial Stats Card (Comprehensive Account Ledger) */
+    .stats-vault {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 22px;
+        padding: 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .vault-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .vault-item {
+        background: #090d16;
+        border: 1px solid #1e293b;
+        padding: 10px 12px;
+        border-radius: 14px;
+    }
+    .v-label {
+        font-size: 10px;
+        color: #94a3b8;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .v-val {
+        font-size: 15px;
+        font-weight: 800;
+        margin-top: 3px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Pastel Mini Cards */
+    .card-mint {
+        background: #d1fae5;
+        color: #064e3b;
+        border-radius: 18px;
+        padding: 14px;
+    }
+    .card-lavender {
+        background: #ede9fe;
+        color: #3b0764;
+        border-radius: 18px;
+        padding: 14px;
+    }
+
+    /* FIXED MOBILE BOTTOM APP MENU BAR (Stick to bottom of screen permanently) */
+    .fixed-bottom-bar {
+        position: fixed;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 24px);
+        max-width: 420px;
+        background: rgba(10, 14, 23, 0.95);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid #1f2937;
+        border-radius: 35px;
+        padding: 8px 16px;
         display: flex;
         justify-content: space-around;
         align-items: center;
-        margin-top: 10px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        z-index: 9999;
     }
-    .dock-active {
-        width: 36px;
-        height: 36px;
+    .nav-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .nav-icon-active {
+        width: 38px;
+        height: 38px;
         background: #ccff00;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #000000;
-        font-size: 16px;
-    }
-    .dock-icon {
-        color: #64748b;
+        color: #0f172a;
         font-size: 18px;
+        box-shadow: 0 0 12px rgba(204, 255, 0, 0.4);
     }
+    .nav-icon {
+        font-size: 18px;
+        color: #64748b;
+    }
+
+    /* Utility Colors */
+    .green { color: #10b981 !important; }
+    .red { color: #ef4444 !important; }
+    .lime { color: #ccff00 !important; }
 
     /* Hide Streamlit Clutter */
     #MainMenu, footer, header { visibility: hidden !important; }
@@ -231,12 +228,18 @@ def save_trade(trade_record):
 db_data = load_db()
 all_trades = db_data.get("trades", [])
 today_str = datetime.now().strftime("%Y-%m-%d")
-all_realized_pnl = sum(t.get("pnl", 0.0) for t in all_trades)
-current_cash = db_data.get("initial_capital", 50000.0) + all_realized_pnl
+
+# Real Financial Calculations
+initial_capital = db_data.get("initial_capital", 50000.0)
+all_realized_profit = sum(t.get("pnl", 0.0) for t in all_trades)
+today_trades = [t for t in all_trades if t.get("date") == today_str]
+today_profit = sum(t.get("pnl", 0.0) for t in today_trades)
 
 # Session state
 if "crypto_positions" not in st.session_state:
     st.session_state.crypto_positions = []
+if "menu_selection" not in st.session_state:
+    st.session_state.menu_selection = "Home"
 
 # ==========================================
 # LIVE CRYPTO SPOT FEED (COINBASE)
@@ -261,12 +264,12 @@ def fetch_crypto_prices():
 
 live_prices = fetch_crypto_prices()
 
-# Auto refill positions from real live prices
+# Auto position manager
 def manage_positions():
     active = [p["symbol"] for p in st.session_state.crypto_positions]
     available = [s for s in CRYPTO_SYMBOLS if s not in active and s in live_prices]
     used = sum(p["entry_inr"] * p["qty"] for p in st.session_state.crypto_positions)
-    free = max(0.0, current_cash - used)
+    free = max(0.0, (initial_capital + all_realized_profit) - used)
 
     for sym in available:
         if free < 3000:
@@ -275,7 +278,7 @@ def manage_positions():
         inr_p = p_data["inr"]
         if inr_p <= 0:
             continue
-        alloc = min(free, 8000.0)
+        alloc = min(free, 7500.0)
         qty = max(0.0001, round(alloc / inr_p, 4))
         st.session_state.crypto_positions.append({
             "symbol": sym,
@@ -291,7 +294,7 @@ def manage_positions():
 
 manage_positions()
 
-# Real Evaluation
+# Evaluate live target and stop-loss
 rem = []
 for p in st.session_state.crypto_positions:
     sym = p["symbol"]
@@ -307,8 +310,11 @@ for p in st.session_state.crypto_positions:
                 "date": today_str,
                 "time": datetime.now().strftime("%H:%M:%S"),
                 "symbol": p["symbol"],
+                "qty": p["qty"],
+                "entry_price": p["entry_inr"],
+                "exit_price": cur_inr,
                 "pnl": realized,
-                "status": "🎯 TARGET PROFIT"
+                "status": "🎯 TARGET HIT"
             })
             st.toast(f"🎯 Target Hit! {p['symbol']} +₹{realized}", icon="✅")
         elif cur_inr <= p["sl_inr"]:
@@ -317,6 +323,9 @@ for p in st.session_state.crypto_positions:
                 "date": today_str,
                 "time": datetime.now().strftime("%H:%M:%S"),
                 "symbol": p["symbol"],
+                "qty": p["qty"],
+                "entry_price": p["entry_inr"],
+                "exit_price": cur_inr,
                 "pnl": loss,
                 "status": "🛡️ STOP LOSS"
             })
@@ -329,140 +338,199 @@ for p in st.session_state.crypto_positions:
 st.session_state.crypto_positions = rem
 manage_positions()
 
-# Totals
+# Financial Balance Calculations
+invested_amount = sum(p["entry_inr"] * p["qty"] for p in st.session_state.crypto_positions)
+available_balance = max(0.0, (initial_capital + all_realized_profit) - invested_amount)
 unrealized_total = sum(p.get("unrealized", 0.0) for p in st.session_state.crypto_positions)
-total_portfolio_val = current_cash + unrealized_total
+total_net_portfolio = (initial_capital + all_realized_profit) + unrealized_total
+today_invested = invested_amount # Current open allocation for today
 
 # ==========================================
-# 1. TOP USER NAV (Reference Image 1 Top)
+# 1. TOP USER BAR
 # ==========================================
 st.markdown("""
-<div class="user-nav">
-    <div class="user-profile">
-        <div class="avatar-circle">🧑‍💻</div>
+<div class="user-bar">
+    <div class="user-info">
+        <div class="user-avatar">🧑‍💼</div>
         <div>
-            <div style="font-size:11px; color:#94a3b8; font-weight:600;">Hello, good evening!</div>
-            <div style="font-size:15px; font-weight:800; color:#ffffff;">Trader Pro</div>
+            <div style="font-size:11px; color:#94a3b8; font-weight:600;">Welcome back</div>
+            <div style="font-size:15px; font-weight:800; color:#ffffff;">Trader Pro Dashboard</div>
         </div>
     </div>
-    <div style="font-size:20px;">🔔</div>
+    <div style="font-size:18px;">🔔</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# 2. WHITE HERO BALANCE CARD (Reference Image 1)
-# ==========================================
-st.markdown(f"""
-<div class="balance-card">
-    <div class="balance-label">Available Balance</div>
-    <div class="balance-val">
-        ₹{total_portfolio_val:,.2f}
-        <span class="pill-lime" style="vertical-align:middle; margin-left:8px;">+14.2% ↑</span>
-    </div>
-    <div style="display:flex; gap:10px;">
-        <span class="btn-lime">⚡ Auto-Pilot Active</span>
-        <span class="btn-white">🔒 24/7 Shield</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# Navigation Menu Selector (Tabs sync with Bottom Dock)
+menu_choice = st.radio(
+    "MenuNav",
+    ["🏠 Home", "📈 Live Trades", "📜 History", "🇮🇳 Angel One"],
+    horizontal=True,
+    label_visibility="collapsed"
+)
 
-# ==========================================
-# 3. BLACK CURVED VAULT - PORTFOLIO CARDS (Reference Image 1)
-# ==========================================
-st.markdown("""
-<div class="black-vault">
-    <div class="vault-title-row">
-        <span style="font-size:16px; font-weight:800;">Portfolio</span>
-        <span style="font-size:12px; color:#94a3b8; font-weight:600;">View All</span>
+# ####################################################################
+# SCREEN 1: 🏠 HOME DASHBOARD (REQUESTED FINANCIAL LEDGER)
+# ####################################################################
+if menu_choice == "🏠 Home":
+    # Master Total Asset Value Card
+    pct_gain = ((total_net_portfolio - initial_capital) / initial_capital) * 100
+    st.markdown(f"""
+    <div class="master-card">
+        <div class="master-label">Total Net Portfolio Value</div>
+        <div class="master-val">
+            ₹{total_net_portfolio:,.2f}
+            <span class="pill-lime">{'+' if pct_gain>=0 else ''}{pct_gain:.1f}% ↑</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; color:#64748b; font-weight:600;">
+            <span>Initial Capital: ₹{initial_capital:,.0f}</span>
+            <span style="color:#10b981;">● 24/7 Engine Active</span>
+        </div>
     </div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-# Display Pastel Mint & Lavender Cards in 2 columns
-pastels = ["card-mint", "card-lavender", "card-coral"]
-pos_list = st.session_state.crypto_positions[:2]
+    # 6-GRID FINANCIAL STATS VAULT (Requested Complete Breakdown)
+    st.markdown(f"""
+    <div class="stats-vault">
+        <div style="font-size:12px; font-weight:700; color:#cbd5e1; margin-bottom:12px; text-transform:uppercase;">
+            📊 Financial Breakdown & Capital Ledger
+        </div>
+        <div class="vault-grid">
+            <div class="vault-item">
+                <div class="v-label">💼 Total Capital</div>
+                <div class="v-val" style="color:#ffffff;">₹{initial_capital:,.2f}</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">⚡ Invested Amount</div>
+                <div class="v-val" style="color:#38bdf8;">₹{invested_amount:,.2f}</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">💵 Available Balance</div>
+                <div class="v-val" style="color:#f8fafc;">₹{available_balance:,.2f}</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">🟢 Total Net Profit</div>
+                <div class="v-val {'green' if all_realized_profit>=0 else 'red'}">
+                    {'+' if all_realized_profit>=0 else ''}₹{all_realized_profit:,.2f}
+                </div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">📅 Today's Invested</div>
+                <div class="v-val" style="color:#94a3b8;">₹{today_invested:,.2f}</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">🚀 Today's Profit / Loss</div>
+                <div class="v-val {'green' if today_profit>=0 else 'red'}">
+                    {'+' if today_profit>=0 else ''}₹{today_profit:,.2f}
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-if len(pos_list) > 0:
-    st.markdown('<div class="pastel-grid">', unsafe_allow_html=True)
-    c_m1, c_m2 = st.columns(2)
-    for idx, p in enumerate(pos_list):
-        col = c_m1 if idx == 0 else c_m2
-        theme = pastels[idx % len(pastels)]
+    # Mini Live Spotlight (Top 2 Active Stocks)
+    st.markdown('<div style="font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:10px;">⚡ Active Asset Spotlight</div>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    pos_sub = st.session_state.crypto_positions[:2]
+    for idx, p in enumerate(pos_sub):
+        col = c1 if idx == 0 else c2
+        theme = "card-mint" if idx == 0 else "card-lavender"
         with col:
             st.markdown(f"""
             <div class="{theme}">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-weight:800; font-size:16px;">{p['symbol']}</span>
-                    <span style="font-size:16px;">📈</span>
+                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:15px;">
+                    <span>{p['symbol']}</span>
+                    <span>📈</span>
                 </div>
                 <div style="font-size:11px; margin-top:2px; opacity:0.8;">Live Market</div>
-                <div style="font-size:18px; font-weight:800; margin-top:6px;">₹{p['current_inr']:,.1f}</div>
-                <div style="font-size:11px; font-weight:700; margin-top:4px;">
+                <div style="font-size:17px; font-weight:800; margin-top:4px;">₹{p['current_inr']:,.1f}</div>
+                <div style="font-size:11px; font-weight:700; margin-top:3px;">
                     P&L: {'+' if p['unrealized']>=0 else ''}₹{p['unrealized']:.2f}
                 </div>
             </div>
             """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True) # Close black vault
+
+# ####################################################################
+# SCREEN 2: 📈 LIVE TRADES
+# ####################################################################
+elif menu_choice == "📈 Live Trades":
+    st.write(f"**⚡ Active Open Positions ({len(st.session_state.crypto_positions)})**")
+    for p in st.session_state.crypto_positions:
+        with st.container(border=True):
+            tc1, tc2 = st.columns([2, 1])
+            with tc1:
+                st.subheader(f"{p['symbol']} / USD")
+            with tc2:
+                pnl = p['unrealized']
+                st.metric("P&L", f"{'+' if pnl>=0 else ''}₹{pnl:.2f}", delta=f"{pnl:.2f}", label_visibility="collapsed")
+            
+            g1, g2 = st.columns(2)
+            with g1:
+                st.caption("Entry Price")
+                st.markdown(f"**₹{p['entry_inr']:,.1f}**")
+                st.caption("🎯 Target (+0.6%)")
+                st.markdown(f"<span style='color:#10b981; font-weight:700;'>₹{p['target_inr']:,.1f}</span>", unsafe_allow_html=True)
+            with g2:
+                st.caption("Live Price")
+                st.markdown(f"**₹{p['current_inr']:,.1f}**")
+                st.caption("🛡️ Stop Loss (-0.4%)")
+                st.markdown(f"<span style='color:#ef4444; font-weight:700;'>₹{p['sl_inr']:,.1f}</span>", unsafe_allow_html=True)
+
+
+# ####################################################################
+# SCREEN 3: 📜 HISTORY
+# ####################################################################
+elif menu_choice == "📜 History":
+    st.write(f"**Trade Ledger ({len(all_trades)} Trades)**")
+    if len(all_trades) > 0:
+        for t in reversed(all_trades[-15:]):
+            with st.container(border=True):
+                h1, h2 = st.columns([2, 1])
+                with h1:
+                    st.markdown(f"**{t.get('symbol')}**")
+                    st.caption(f"{t.get('time')} • {t.get('status')}")
+                with h2:
+                    p = t.get('pnl', 0)
+                    st.metric("PnL", f"{'+' if p>=0 else ''}₹{p:.2f}", delta=f"{p:.2f}", label_visibility="collapsed")
+    else:
+        st.info("No closed trades recorded yet.")
+
+
+# ####################################################################
+# SCREEN 4: 🇮🇳 ANGEL ONE
+# ####################################################################
+else:
+    st.write("**🇮🇳 Angel One SmartAPI (Indian Market)**")
+    with st.container(border=True):
+        st.markdown("**Client ID: IIRA162977** (Connected)")
+        st.caption("Opens Mon-Fri 9:15 AM to 3:30 PM for NIFTY F&O")
+
 
 # ==========================================
-# 4. WHITE SURFACE - LIVE CANDLE / CHART (Reference Image 2)
+# FIXED MOBILE BOTTOM APP MENU BAR (Always Anchored)
 # ==========================================
-st.markdown("""
-<div class="chart-surface">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <div style="font-size:11px; color:#64748b; font-weight:600;">Analytics Overview</div>
-            <div style="font-size:22px; font-weight:800; color:#0f172a;">Live Momentum Chart</div>
-        </div>
-        <span class="pill-lime">REAL-TIME</span>
+st.markdown(f"""
+<div class="fixed-bottom-bar">
+    <div class="nav-btn">
+        <div class="{'nav-icon-active' if menu_choice=='🏠 Home' else 'nav-icon'}">🏠</div>
+        <span style="color:{'#ccff00' if menu_choice=='🏠 Home' else '#94a3b8'};">Home</span>
     </div>
-""", unsafe_allow_html=True)
-
-# Interactive Mini Price Trend Chart
-chart_data = pd.DataFrame({
-    'Live Tick': [
-        live_prices.get('BTC', {}).get('inr', 7000000) * (1 - 0.002),
-        live_prices.get('BTC', {}).get('inr', 7000000) * (1 + 0.001),
-        live_prices.get('BTC', {}).get('inr', 7000000) * (1 - 0.001),
-        live_prices.get('BTC', {}).get('inr', 7000000) * (1 + 0.003),
-        live_prices.get('BTC', {}).get('inr', 7000000)
-    ]
-})
-st.line_chart(chart_data, use_container_width=True, height=130)
-
-# Gain / Loss boxes (As in Reference Image 2 Bottom)
-c_g1, c_g2 = st.columns(2)
-with c_g1:
-    st.markdown(f"""
-    <div style="background:#f1f5f9; padding:10px 14px; border-radius:14px;">
-        <span style="font-size:11px; color:#64748b; font-weight:600;">🟢 Today's Gain</span>
-        <div style="font-size:18px; font-weight:800; color:#10b981;">{'+' if all_realized_pnl>=0 else ''}₹{all_realized_pnl:,.2f}</div>
+    <div class="nav-btn">
+        <div class="{'nav-icon-active' if menu_choice=='📈 Live Trades' else 'nav-icon'}">📈</div>
+        <span style="color:{'#ccff00' if menu_choice=='📈 Live Trades' else '#94a3b8'};">Trades</span>
     </div>
-    """, unsafe_allow_html=True)
-
-with c_g2:
-    st.markdown(f"""
-    <div style="background:#f1f5f9; padding:10px 14px; border-radius:14px;">
-        <span style="font-size:11px; color:#64748b; font-weight:600;">⚡ Open Exposure</span>
-        <div style="font-size:18px; font-weight:800; color:#0f172a;">₹{(total_portfolio_val - current_cash):,.2f}</div>
+    <div class="nav-btn">
+        <div class="{'nav-icon-active' if menu_choice=='📜 History' else 'nav-icon'}">📜</div>
+        <span style="color:{'#ccff00' if menu_choice=='📜 History' else '#94a3b8'};">Ledger</span>
     </div>
-    """, unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True) # Close chart surface
-
-# ==========================================
-# 5. FLOATING BOTTOM BLACK DOCK (Reference Image Bottom)
-# ==========================================
-st.markdown("""
-<div class="bottom-dock">
-    <div class="dock-active">⚡</div>
-    <div class="dock-icon">📊</div>
-    <div class="dock-icon">🔁</div>
-    <div class="dock-icon">👤</div>
+    <div class="nav-btn">
+        <div class="{'nav-icon-active' if menu_choice=='🇮🇳 Angel One' else 'nav-icon'}">🇮🇳</div>
+        <span style="color:{'#ccff00' if menu_choice=='🇮🇳 Angel One' else '#94a3b8'};">Angel</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Auto-tick refresh loop every 2 seconds
+# Auto refresh loop
 time.sleep(2)
 st.rerun()
