@@ -364,7 +364,7 @@ st.markdown("""
 # Navigation Menu Selector (Tabs sync with Bottom Dock)
 menu_choice = st.radio(
     "MenuNav",
-    ["🏠 Home", "📈 Live Trades", "📜 History", "🇮🇳 Angel One"],
+    ["🏠 Home", "🇮🇳 Angel One", "📈 Live Trades", "📜 History"],
     horizontal=True,
     label_visibility="collapsed"
 )
@@ -452,7 +452,17 @@ if menu_choice == "🏠 Home":
 
 
 # ####################################################################
-# SCREEN 2: 📈 LIVE TRADES
+# SCREEN 2: 🇮🇳 ANGEL ONE
+# ####################################################################
+elif menu_choice == "🇮🇳 Angel One":
+    st.write("**🇮🇳 Angel One SmartAPI (Indian Market)**")
+    with st.container(border=True):
+        st.markdown("**Client ID: IIRA162977** (Connected)")
+        st.caption("Opens Mon-Fri 9:15 AM to 3:30 PM for NIFTY F&O")
+
+
+# ####################################################################
+# SCREEN 3: 📈 LIVE TRADES
 # ####################################################################
 elif menu_choice == "📈 Live Trades":
     st.write(f"**⚡ Active Open Positions ({len(st.session_state.crypto_positions)})**")
@@ -479,9 +489,9 @@ elif menu_choice == "📈 Live Trades":
 
 
 # ####################################################################
-# SCREEN 3: 📜 HISTORY
+# SCREEN 4: 📜 HISTORY
 # ####################################################################
-elif menu_choice == "📜 History":
+else:
     st.write(f"**Trade Ledger ({len(all_trades)} Trades)**")
     if len(all_trades) > 0:
         for t in reversed(all_trades[-15:]):
@@ -497,16 +507,6 @@ elif menu_choice == "📜 History":
         st.info("No closed trades recorded yet.")
 
 
-# ####################################################################
-# SCREEN 4: 🇮🇳 ANGEL ONE
-# ####################################################################
-else:
-    st.write("**🇮🇳 Angel One SmartAPI (Indian Market)**")
-    with st.container(border=True):
-        st.markdown("**Client ID: IIRA162977** (Connected)")
-        st.caption("Opens Mon-Fri 9:15 AM to 3:30 PM for NIFTY F&O")
-
-
 # ==========================================
 # FIXED MOBILE BOTTOM APP MENU BAR (Always Anchored)
 # ==========================================
@@ -517,16 +517,16 @@ st.markdown(f"""
         <span style="color:{'#ccff00' if menu_choice=='🏠 Home' else '#94a3b8'};">Home</span>
     </div>
     <div class="nav-btn">
+        <div class="{'nav-icon-active' if menu_choice=='🇮🇳 Angel One' else 'nav-icon'}">🇮🇳</div>
+        <span style="color:{'#ccff00' if menu_choice=='🇮🇳 Angel One' else '#94a3b8'};">Angel One</span>
+    </div>
+    <div class="nav-btn">
         <div class="{'nav-icon-active' if menu_choice=='📈 Live Trades' else 'nav-icon'}">📈</div>
         <span style="color:{'#ccff00' if menu_choice=='📈 Live Trades' else '#94a3b8'};">Trades</span>
     </div>
     <div class="nav-btn">
         <div class="{'nav-icon-active' if menu_choice=='📜 History' else 'nav-icon'}">📜</div>
         <span style="color:{'#ccff00' if menu_choice=='📜 History' else '#94a3b8'};">Ledger</span>
-    </div>
-    <div class="nav-btn">
-        <div class="{'nav-icon-active' if menu_choice=='🇮🇳 Angel One' else 'nav-icon'}">🇮🇳</div>
-        <span style="color:{'#ccff00' if menu_choice=='🇮🇳 Angel One' else '#94a3b8'};">Angel</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
