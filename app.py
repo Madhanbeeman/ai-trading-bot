@@ -364,7 +364,7 @@ st.markdown("""
 # Navigation Menu Selector (Tabs sync with Bottom Dock)
 menu_choice = st.radio(
     "MenuNav",
-    ["🏠 Home", "Bybit Crypto", "Angel One", "📜 History"],
+    ["🏠 Home", "Bybit Crypto", "Angel One", "CoinDCX"],
     horizontal=True,
     label_visibility="collapsed"
 )
@@ -505,10 +505,20 @@ elif menu_choice == "Angel One":
 
 
 # ####################################################################
-# SCREEN 4: 📜 HISTORY
+# SCREEN 4: COINDCX (INDIA'S NO.1 CRYPTO EXCHANGE)
 # ####################################################################
 else:
-    st.write(f"**Trade Ledger ({len(all_trades)} Trades)**")
+    st.markdown("""
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <img src="https://assets.coingecko.com/markets/images/617/small/CoinDCX.png" style="width:28px; height:28px; border-radius:6px;" />
+        <span style="font-size:16px; font-weight:800; color:#f8fafc;">CoinDCX India Terminal</span>
+    </div>
+    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**🇮🇳 CoinDCX FIU-Regulated Hub**")
+        st.caption("Direct Indian Bank IMPS / UPI INR Deposit & Instant Withdrawal Ready")
+
+    st.write(f"**CoinDCX Trade Ledger ({len(all_trades)} Executed Trades)**")
     if len(all_trades) > 0:
         for t in reversed(all_trades[-15:]):
             with st.container(border=True):
@@ -545,8 +555,10 @@ st.markdown(f"""
         <span style="color:{'#ccff00' if menu_choice=='Angel One' else '#94a3b8'};">Angel One</span>
     </div>
     <div class="nav-btn">
-        <div class="{'nav-icon-active' if menu_choice=='📜 History' else 'nav-icon'}">📜</div>
-        <span style="color:{'#ccff00' if menu_choice=='📜 History' else '#94a3b8'};">Ledger</span>
+        <div class="{'nav-icon-active' if menu_choice=='CoinDCX' else 'nav-icon'}" style="padding:2px;">
+            <img src="https://assets.coingecko.com/markets/images/617/small/CoinDCX.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
+        </div>
+        <span style="color:{'#ccff00' if menu_choice=='CoinDCX' else '#94a3b8'};">CoinDCX</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
