@@ -364,7 +364,7 @@ st.markdown("""
 # Navigation Menu Selector (Tabs sync with Bottom Dock)
 menu_choice = st.radio(
     "MenuNav",
-    ["🏠 Home", "Angel One", "📈 Live Trades", "📜 History"],
+    ["🏠 Home", "Bybit Crypto", "Angel One", "📜 History"],
     horizontal=True,
     label_visibility="collapsed"
 )
@@ -452,30 +452,26 @@ if menu_choice == "🏠 Home":
 
 
 # ####################################################################
-# SCREEN 2: ANGEL ONE
+# SCREEN 2: BYBIT CRYPTO FUTURES (24/7 GLOBAL)
 # ####################################################################
-elif menu_choice == "Angel One":
+elif menu_choice == "Bybit Crypto":
     st.markdown("""
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-        <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:28px; height:28px; border-radius:6px;" />
-        <span style="font-size:16px; font-weight:800; color:#f8fafc;">Angel One SmartAPI</span>
+        <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:28px; height:28px; border-radius:6px;" />
+        <span style="font-size:16px; font-weight:800; color:#f8fafc;">Bybit Global Crypto Terminal</span>
     </div>
     """, unsafe_allow_html=True)
+
     with st.container(border=True):
-        st.markdown("**Client ID: IIRA162977** (Connected & TOTP Verified)")
-        st.caption("Opens Mon-Fri 9:15 AM to 3:30 PM for NIFTY F&O")
+        st.markdown("**⚡ Bybit High-Speed Engine (24/7 Live)**")
+        st.caption("Official Bybit Pro API Ready • 10x Futures & Spot Scalping")
 
-
-# ####################################################################
-# SCREEN 3: 📈 LIVE TRADES
-# ####################################################################
-elif menu_choice == "📈 Live Trades":
-    st.write(f"**⚡ Active Open Positions ({len(st.session_state.crypto_positions)})**")
+    st.write(f"**Live Bybit Open Positions ({len(st.session_state.crypto_positions)})**")
     for p in st.session_state.crypto_positions:
         with st.container(border=True):
             tc1, tc2 = st.columns([2, 1])
             with tc1:
-                st.subheader(f"{p['symbol']} / USD")
+                st.subheader(f"{p['symbol']} / USDT")
             with tc2:
                 pnl = p['unrealized']
                 st.metric("P&L", f"{'+' if pnl>=0 else ''}₹{pnl:.2f}", delta=f"{pnl:.2f}", label_visibility="collapsed")
@@ -491,6 +487,21 @@ elif menu_choice == "📈 Live Trades":
                 st.markdown(f"**₹{p['current_inr']:,.1f}**")
                 st.caption("🛡️ Stop Loss (-0.4%)")
                 st.markdown(f"<span style='color:#ef4444; font-weight:700;'>₹{p['sl_inr']:,.1f}</span>", unsafe_allow_html=True)
+
+
+# ####################################################################
+# SCREEN 3: ANGEL ONE
+# ####################################################################
+elif menu_choice == "Angel One":
+    st.markdown("""
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:28px; height:28px; border-radius:6px;" />
+        <span style="font-size:16px; font-weight:800; color:#f8fafc;">Angel One SmartAPI</span>
+    </div>
+    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**Client ID: IIRA162977** (Connected & TOTP Verified)")
+        st.caption("Opens Mon-Fri 9:15 AM to 3:30 PM for NIFTY F&O")
 
 
 # ####################################################################
@@ -522,14 +533,16 @@ st.markdown(f"""
         <span style="color:{'#ccff00' if menu_choice=='🏠 Home' else '#94a3b8'};">Home</span>
     </div>
     <div class="nav-btn">
+        <div class="{'nav-icon-active' if menu_choice=='Bybit Crypto' else 'nav-icon'}" style="padding:2px;">
+            <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
+        </div>
+        <span style="color:{'#ccff00' if menu_choice=='Bybit Crypto' else '#94a3b8'};">Bybit</span>
+    </div>
+    <div class="nav-btn">
         <div class="{'nav-icon-active' if menu_choice=='Angel One' else 'nav-icon'}" style="padding:2px;">
             <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
         <span style="color:{'#ccff00' if menu_choice=='Angel One' else '#94a3b8'};">Angel One</span>
-    </div>
-    <div class="nav-btn">
-        <div class="{'nav-icon-active' if menu_choice=='📈 Live Trades' else 'nav-icon'}">📈</div>
-        <span style="color:{'#ccff00' if menu_choice=='📈 Live Trades' else '#94a3b8'};">Trades</span>
     </div>
     <div class="nav-btn">
         <div class="{'nav-icon-active' if menu_choice=='📜 History' else 'nav-icon'}">📜</div>
