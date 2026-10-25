@@ -510,7 +510,7 @@ elif menu_choice == "Angel One":
 else:
     st.markdown("""
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-        <img src="https://assets.coingecko.com/markets/images/617/small/CoinDCX.png" style="width:28px; height:28px; border-radius:6px;" />
+        <img src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/630.png" style="width:28px; height:28px; border-radius:6px;" />
         <span style="font-size:16px; font-weight:800; color:#f8fafc;">CoinDCX India Terminal</span>
     </div>
     """, unsafe_allow_html=True)
@@ -556,7 +556,7 @@ st.markdown(f"""
     </div>
     <div class="nav-btn">
         <div class="{'nav-icon-active' if menu_choice=='CoinDCX' else 'nav-icon'}" style="padding:2px;">
-            <img src="https://assets.coingecko.com/markets/images/617/small/CoinDCX.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
+            <img src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/630.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
         <span style="color:{'#ccff00' if menu_choice=='CoinDCX' else '#94a3b8'};">CoinDCX</span>
     </div>
