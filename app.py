@@ -398,17 +398,24 @@ st.markdown("""
 # SEAMLESS URL QUERY PARAMETER NAVIGATION (NO TOP RADIO BUTTONS)
 # ==========================================
 active_tab = "home"
+angel_sub = "stocks"
 try:
     if hasattr(st, "query_params"):
         val = st.query_params.get("tab", "home")
         active_tab = val[0] if isinstance(val, list) else str(val)
+        sub_val = st.query_params.get("sub", "stocks")
+        angel_sub = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
     elif hasattr(st, "experimental_get_query_params"):
         val = st.experimental_get_query_params().get("tab", ["home"])
         active_tab = val[0] if isinstance(val, list) else str(val)
+        sub_val = st.experimental_get_query_params().get("sub", ["stocks"])
+        angel_sub = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
 except Exception:
     active_tab = "home"
+    angel_sub = "stocks"
 
 active_tab = (active_tab or "home").lower().strip()
+angel_sub = (angel_sub or "stocks").lower().strip()
 
 # ####################################################################
 # SCREEN 2: BYBIT CRYPTO FUTURES (24/7 GLOBAL)
@@ -454,12 +461,12 @@ if active_tab == "bybit":
 elif active_tab == "angel":
     # 1. Header
     st.markdown("""
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <div style="display:flex; align-items:center; gap:10px;">
             <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid #ccff00;" />
             <div>
                 <div style="font-size:16px; font-weight:800; color:#ffffff;">Angel One SmartAPI</div>
-                <div style="font-size:11px; color:#94a3b8; font-weight:600;">NSE / BSE / NFO Autonomous Engine</div>
+                <div style="font-size:11px; color:#94a3b8; font-weight:600;">Client ID: IIRA162977 • TOTP Verified 🔒</div>
             </div>
         </div>
         <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800;">
@@ -468,109 +475,296 @@ elif active_tab == "angel":
     </div>
     """, unsafe_allow_html=True)
 
-    # 2. Account & Demat Ledger Card
-    now = datetime.now()
-    is_market_open = (now.weekday() < 5) and ((now.hour == 9 and now.minute >= 15) or (10 <= now.hour < 15) or (now.hour == 15 and now.minute <= 30))
-    market_badge = '<span style="color:#10b981; font-weight:700;">● Market Live</span>' if is_market_open else '<span style="color:#eab308; font-weight:700;">○ Off-Market (Pre-Open Ready)</span>'
-
-    st.markdown(f"""
-    <div style="background:#111827; border:1px solid #1f2937; border-radius:20px; padding:16px; margin-bottom:14px; box-shadow:0 4px 20px rgba(0,0,0,0.4);">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:10px; margin-bottom:12px;">
-            <div>
-                <div style="font-size:10px; color:#94a3b8; font-weight:700; text-transform:uppercase;">Demat Account</div>
-                <div style="font-size:15px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono', monospace;">Client ID: IIRA162977</div>
-            </div>
-            <div style="text-align:right;">
-                <div style="font-size:10px; color:#94a3b8; font-weight:700; text-transform:uppercase;">Session Auth</div>
-                <div style="font-size:12px; font-weight:800; color:#38bdf8;">TOTP Verified 🔒</div>
-            </div>
+    # 2. Master Portfolio Card (Angel One)
+    st.markdown("""
+    <div class="master-card" style="background:#ffffff !important; border-radius:24px !important; padding:18px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:12px !important;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase; letter-spacing:0.6px;">
+                Angel One Total Demat Value
+            </span>
+            <span style="background:rgba(16,185,129,0.15); color:#059669; font-weight:800; font-size:10px; padding:2px 8px; border-radius:10px;">
+                ● NSE / F&O Live
+            </span>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px;">
-                <div style="font-size:10px; color:#94a3b8; font-weight:700; text-transform:uppercase;">Available Margin</div>
-                <div style="font-size:16px; font-weight:800; color:#ccff00; margin-top:2px; font-family:'JetBrains Mono', monospace;">₹50,000.00</div>
-            </div>
-            <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px;">
-                <div style="font-size:10px; color:#94a3b8; font-weight:700; text-transform:uppercase;">Utilized Margin</div>
-                <div style="font-size:16px; font-weight:800; color:#ffffff; margin-top:2px; font-family:'JetBrains Mono', monospace;">₹0.00</div>
-            </div>
+        <div class="master-val" style="font-size:32px !important; font-weight:800 !important; letter-spacing:-1px; margin:4px 0 10px 0; color:#0f172a !important;">
+            ₹51,980.30
+            <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px; padding:3px 8px; border-radius:12px; margin-left:6px; display:inline-block !important;">
+                +3.96% ↑
+            </span>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:11px; color:#94a3b8;">
-            <span>NSE Timing: 9:15 AM - 3:30 PM</span>
-            <span>{market_badge}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="master-sub-left" style="color:#475569 !important; font-size:11px !important; font-weight:700 !important;">
+                Initial Margin: ₹50,000
+            </span>
+            <span class="master-sub-right" style="color:#059669 !important; font-size:11px !important; font-weight:800 !important;">
+                ● SmartAPI Auto Engine
+            </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 3. Benchmark Indices Watchlist
-    st.markdown('<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🇮🇳 Indian Indices Radar</div>', unsafe_allow_html=True)
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("""
-        <div style="background:#0f172a; border:1px solid #1e293b; border-radius:16px; padding:12px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px; color:#ffffff;">
-                <span>NIFTY 50</span>
-                <span style="color:#10b981; font-size:12px;">+0.52% ↑</span>
-            </div>
-            <div style="font-size:18px; font-weight:800; color:#ffffff; margin-top:4px; font-family:'JetBrains Mono', monospace;">24,852.15</div>
-            <div style="font-size:10px; color:#64748b; margin-top:2px;">NSE Benchmark Index</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with c2:
-        st.markdown("""
-        <div style="background:#0f172a; border:1px solid #1e293b; border-radius:16px; padding:12px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px; color:#ffffff;">
-                <span>BANK NIFTY</span>
-                <span style="color:#10b981; font-size:12px;">+0.64% ↑</span>
-            </div>
-            <div style="font-size:18px; font-weight:800; color:#ffffff; margin-top:4px; font-family:'JetBrains Mono', monospace;">52,240.80</div>
-            <div style="font-size:10px; color:#64748b; margin-top:2px;">Banking Sector F&O</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 4. Autonomous Scalper Signal Radar
-    st.markdown('<div style="font-size:13px; font-weight:800; color:#f8fafc; margin:14px 0 10px 0; text-transform:uppercase; letter-spacing:0.5px;">⚡ NIFTY Options & Equity Scanner</div>', unsafe_allow_html=True)
-
-    signals = [
-        {"symbol": "NIFTY 24850 CE", "type": "OPTIONS", "cmp": "₹148.20", "signal": "BUY CALL", "color": "#10b981", "badge": "BULLISH BREAKOUT", "target": "₹172.00", "sl": "₹132.00"},
-        {"symbol": "BANKNIFTY 52200 CE", "type": "OPTIONS", "cmp": "₹320.50", "signal": "WAIT BREAKOUT", "color": "#eab308", "badge": "CONSOLIDATION", "target": "₹370.00", "sl": "₹290.00"},
-        {"symbol": "RELIANCE (NSE)", "type": "EQUITY", "cmp": "₹2,748.60", "signal": "ACCUMULATE", "color": "#38bdf8", "badge": "EMA 9/21 CROSS", "target": "₹2,790.00", "sl": "₹2,720.00"},
-        {"symbol": "HDFCBANK (NSE)", "type": "EQUITY", "cmp": "₹1,684.10", "signal": "MOMENTUM LONG", "color": "#10b981", "badge": "RSI REVERSAL", "target": "₹1,715.00", "sl": "₹1,665.00"},
-    ]
-
-    for s in signals:
-        st.markdown(f"""
-        <div style="background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:14px; font-weight:800; color:#ffffff;">{s['symbol']}</span>
-                    <span style="background:#1e293b; color:#94a3b8; font-size:9px; font-weight:700; padding:2px 6px; border-radius:6px;">{s['type']}</span>
-                </div>
-                <span style="background:{s['color']}22; color:{s['color']}; border:1px solid {s['color']}55; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">
-                    {s['badge']}
-                </span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-family:'JetBrains Mono', monospace;">
-                <div>
-                    <span style="font-size:10px; color:#64748b; font-family:'Plus Jakarta Sans', sans-serif;">Live CMP: </span>
-                    <span style="font-size:15px; font-weight:800; color:#ffffff;">{s['cmp']}</span>
-                </div>
-                <div style="text-align:right; font-size:11px;">
-                    <span style="color:#10b981; font-weight:700;">🎯 {s['target']}</span>
-                    <span style="color:#64748b; margin:0 4px;">|</span>
-                    <span style="color:#ef4444; font-weight:700;">🛡️ {s['sl']}</span>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 5. Execution Rules Info Card
+    # 3. 5-Grid Financial Breakdown Vault (Angel One Wallet & Profit Ledger)
     st.markdown("""
-    <div style="background:#090d16; border:1px solid #1e293b; border-radius:14px; padding:12px; margin-top:12px; font-size:11px; color:#94a3b8;">
-        <div style="color:#ffffff; font-weight:700; margin-bottom:4px;">🛡️ SmartAPI Autonomous Risk Rules</div>
-        <div>• 1:1.5 Risk-Reward Ratio enforced strictly on all orders.</div>
-        <div>• Automated Intraday Square-off at 3:15 PM IST.</div>
-        <div>• TOTP session token automatically refreshed daily.</div>
+    <div class="stats-vault" style="margin-bottom:14px;">
+        <div style="font-size:11px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+            💼 Angel One Margin & Financial Ledger
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="vault-item">
+                <div class="v-label">💵 Wallet / Available</div>
+                <div class="v-val" style="color:#ccff00;">₹38,450.00</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">⚡ Invested Amount</div>
+                <div class="v-val" style="color:#38bdf8;">₹11,550.00</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">📈 Live P/L Amount</div>
+                <div class="v-val green">+₹1,980.30</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">🟢 Today's Profit</div>
+                <div class="v-val green">+₹2,450.00</div>
+            </div>
+        </div>
+        <div class="vault-item" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div class="v-label">🏆 Total Realized Profit</div>
+                <div style="font-size:11px; color:#64748b; margin-top:2px;">Cumulative Net Earnings</div>
+            </div>
+            <div class="v-val green" style="font-size:18px;">+₹8,720.00</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 4. Interactive Strategy Switch (Normal Stocks vs NIFTY Zero to Hero)
+    is_stocks = angel_sub != "zerohero"
+    st.markdown(f"""
+    <div style="display:flex; background:#111827; padding:4px; border-radius:16px; border:1px solid #1f2937; margin:14px 0 14px 0;">
+        <a href="?tab=angel&sub=stocks" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_stocks else 'transparent'}; color:{'#0f172a' if is_stocks else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_stocks else 'none'};">
+            📈 Normal Stocks Trade
+        </a>
+        <a href="?tab=angel&sub=zerohero" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_stocks else 'transparent'}; color:{'#0f172a' if not is_stocks else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_stocks else 'none'};">
+            🚀 NIFTY Zero to Hero
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ################################################################
+    # SUB-TAB 1: NORMAL STOCKS TRADE (EQUITY INTRADAY / CNC)
+    # ################################################################
+    if is_stocks:
+        st.markdown('<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Stock Holdings & Trades (3 Open)</div>', unsafe_allow_html=True)
+
+        stock_trades = [
+            {
+                "symbol": "RELIANCE",
+                "segment": "NSE EQ",
+                "type": "BUY / LONG",
+                "date": "Today 09:35 AM",
+                "buy_cost": "₹2,720.00",
+                "cmp": "₹2,754.50",
+                "qty": "2 Shares (₹5,440)",
+                "pnl": "+₹69.00 (+1.27%)",
+                "is_profit": True,
+                "target": "₹2,780.00",
+                "sl": "₹2,700.00",
+                "status": "🟢 IN PROFIT (EMA 9/21 TRAILING)"
+            },
+            {
+                "symbol": "TATA MOTORS",
+                "segment": "NSE EQ",
+                "type": "BUY / LONG",
+                "date": "Today 10:15 AM",
+                "buy_cost": "₹910.00",
+                "cmp": "₹928.40",
+                "qty": "4 Shares (₹3,640)",
+                "pnl": "+₹73.60 (+2.02%)",
+                "is_profit": True,
+                "target": "₹945.00",
+                "sl": "₹895.00",
+                "status": "🟢 TARGET APPROACHING"
+            },
+            {
+                "symbol": "INFOSYS",
+                "segment": "NSE EQ",
+                "type": "BUY / LONG",
+                "date": "Today 11:02 AM",
+                "buy_cost": "₹1,840.00",
+                "cmp": "₹1,858.20",
+                "qty": "1 Share (₹1,840)",
+                "pnl": "+₹18.20 (+0.99%)",
+                "is_profit": True,
+                "target": "₹1,890.00",
+                "sl": "₹1,815.00",
+                "status": "🟢 HOLDING MOMENTUM"
+            },
+        ]
+
+        for s in stock_trades:
+            st.markdown(f"""
+            <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+                <!-- Top Row: Symbol, Tag, Date/Time -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s['segment']}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s['symbol']}</span>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s['date']}</span>
+                </div>
+
+                <!-- Middle Row: Buy Cost vs Live CMP vs Qty -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY COST</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{s['buy_cost']}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{s['cmp']}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">QTY / VALUE</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{s['qty']}</div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Current L/P Amount + Target/SL -->
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
+                        <span style="color:{'#10b981' if s['is_profit'] else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{s['pnl']}</span>
+                    </div>
+                    <div style="font-size:11px;">
+                        <span style="color:#10b981; font-weight:700;">🎯 {s['target']}</span>
+                        <span style="color:#64748b; margin:0 3px;">|</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ {s['sl']}</span>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Closed Completed Trades
+        with st.expander("📁 Closed Completed Trades Today (1 Trade)", expanded=False):
+            st.markdown("""
+            <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-size:13px; font-weight:800; color:#ffffff;">HDFC BANK</span>
+                        <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Bought ₹1,675.00 → Sold ₹1,692.00</span>
+                    </div>
+                    <span style="color:#10b981; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">+₹34.00 🎯</span>
+                </div>
+                <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at 11:45 AM • Target Booked</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # ################################################################
+    # SUB-TAB 2: 🚀 NIFTY ZERO TO HERO (EXPIRY OPTIONS TRADES)
+    # ################################################################
+    else:
+        st.markdown('<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">🔥 NIFTY Zero to Hero Contracts (2 Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">EXPIRY SPECIAL</span></div>', unsafe_allow_html=True)
+
+        zero_hero_trades = [
+            {
+                "contract": "NIFTY 24800 CE",
+                "badge": "🚀 5X ZERO TO HERO",
+                "badge_bg": "#ccff00",
+                "badge_color": "#0f172a",
+                "date": "Today 01:25 PM",
+                "buy_premium": "₹14.50",
+                "live_premium": "₹38.20",
+                "lot": "1 Lot (75 Qty)",
+                "invested": "₹1,087.50",
+                "pnl": "+₹1,777.50 (+163.4% 🚀)",
+                "hero_target": "₹75.00 (5X)",
+                "sl": "₹6.00",
+                "status": "🔥 HERO SPIKE ACTIVE"
+            },
+            {
+                "contract": "BANKNIFTY 52100 CE",
+                "badge": "⚡ ZERO TO HERO",
+                "badge_bg": "#38bdf8",
+                "badge_color": "#0f172a",
+                "date": "Today 01:45 PM",
+                "buy_premium": "₹22.00",
+                "live_premium": "₹49.50",
+                "lot": "1 Lot (30 Qty)",
+                "invested": "₹660.00",
+                "pnl": "+₹825.00 (+125.0% 🚀)",
+                "hero_target": "₹110.00 (5X)",
+                "sl": "₹9.00",
+                "status": "⚡ IN HERO RUN"
+            },
+        ]
+
+        for z in zero_hero_trades:
+            st.markdown(f"""
+            <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
+                <!-- Top Row: Contract, Zero-to-Hero Badge, Date/Time -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="background:{z['badge_bg']}; color:{z['badge_color']}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{z['badge']}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{z['contract']}</span>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {z['date']}</span>
+                </div>
+
+                <!-- Middle Row: Buy Premium vs Live Premium vs Lot -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY PREMIUM</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{z['buy_premium']}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE PREMIUM</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{z['live_premium']}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LOT / CAPITAL</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{z['lot']}</div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Current L/P Amount + 5X Hero Target -->
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
+                        <span style="color:#10b981; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{z['pnl']}</span>
+                    </div>
+                    <div style="font-size:11px;">
+                        <span style="color:#10b981; font-weight:700;">🎯 {z['hero_target']}</span>
+                        <span style="color:#64748b; margin:0 3px;">|</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ {z['sl']}</span>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Scanning Upcoming Hero Trigger Card
+        st.markdown("""
+        <div style="background:#090d16; border:1px dashed #334155; border-radius:16px; padding:12px 14px; margin-top:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:14px;">👀</span>
+                    <span style="font-size:13px; font-weight:800; color:#ffffff;">NIFTY 24700 PE (Next Hero Radar)</span>
+                </div>
+                <span style="background:#1e293b; color:#eab308; font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px;">ARMED</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-top:6px;">
+                <span>Trigger Entry: <b style="color:#ffffff;">₹8.00</b> (CMP: ₹7.40)</span>
+                <span>🎯 Hero Target: <b style="color:#10b981;">₹45.00 (5.6X)</b></span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # 5. SmartAPI Protection Footer Card
+    st.markdown("""
+    <div style="background:#090d16; border:1px solid #1e293b; border-radius:14px; padding:12px; margin-top:14px; font-size:11px; color:#94a3b8;">
+        <div style="color:#ffffff; font-weight:700; margin-bottom:4px;">🛡️ Angel One SmartAPI Risk Protection</div>
+        <div>• 1:1.5 Risk-Reward Ratio enforced strictly on Equity & Options.</div>
+        <div>• Auto Square-off at 3:15 PM IST before market closes.</div>
+        <div>• TOTP session token automatically authenticated for Client: IIRA162977.</div>
     </div>
     """, unsafe_allow_html=True)
 
