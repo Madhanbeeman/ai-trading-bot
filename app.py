@@ -6,6 +6,11 @@ import time
 import urllib.request
 from datetime import datetime
 
+def render_html(html_str: str):
+    """Safely render HTML without Markdown indented-code-block interference."""
+    clean = "\n".join(line.strip() for line in html_str.splitlines() if line.strip() and not line.strip().startswith("<!--"))
+    st.markdown(clean, unsafe_allow_html=True)
+
 # ==========================================
 # 100% NATIVE MOBILE FINTECH APP CONFIG
 # ==========================================
@@ -602,9 +607,8 @@ elif active_tab == "angel":
         ]
 
         for s in stock_trades:
-            st.markdown(f"""
+            render_html(f"""
             <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
-                <!-- Top Row: Symbol, Tag, Date/Time -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s['segment']}</span>
@@ -612,8 +616,6 @@ elif active_tab == "angel":
                     </div>
                     <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s['date']}</span>
                 </div>
-
-                <!-- Middle Row: Buy Cost vs Live CMP vs Qty -->
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY COST</div>
@@ -628,8 +630,6 @@ elif active_tab == "angel":
                         <div style="font-size:12px; font-weight:800; color:#38bdf8;">{s['qty']}</div>
                     </div>
                 </div>
-
-                <!-- Bottom Row: Current L/P Amount + Target/SL -->
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
@@ -642,11 +642,11 @@ elif active_tab == "angel":
                     </div>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         # Closed Completed Trades
         with st.expander("📁 Closed Completed Trades Today (1 Trade)", expanded=False):
-            st.markdown("""
+            render_html("""
             <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
@@ -657,13 +657,13 @@ elif active_tab == "angel":
                 </div>
                 <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at 11:45 AM • Target Booked</div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
     # ################################################################
     # SUB-TAB 2: 🚀 NIFTY ZERO TO HERO (EXPIRY OPTIONS TRADES)
     # ################################################################
     else:
-        st.markdown('<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">🔥 NIFTY Zero to Hero Contracts (2 Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">EXPIRY SPECIAL</span></div>', unsafe_allow_html=True)
+        render_html('<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">🔥 NIFTY Zero to Hero Contracts (2 Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">EXPIRY SPECIAL</span></div>')
 
         zero_hero_trades = [
             {
@@ -699,9 +699,8 @@ elif active_tab == "angel":
         ]
 
         for z in zero_hero_trades:
-            st.markdown(f"""
+            render_html(f"""
             <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
-                <!-- Top Row: Contract, Zero-to-Hero Badge, Date/Time -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="background:{z['badge_bg']}; color:{z['badge_color']}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{z['badge']}</span>
@@ -709,8 +708,6 @@ elif active_tab == "angel":
                     </div>
                     <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {z['date']}</span>
                 </div>
-
-                <!-- Middle Row: Buy Premium vs Live Premium vs Lot -->
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY PREMIUM</div>
@@ -725,8 +722,6 @@ elif active_tab == "angel":
                         <div style="font-size:12px; font-weight:800; color:#38bdf8;">{z['lot']}</div>
                     </div>
                 </div>
-
-                <!-- Bottom Row: Current L/P Amount + 5X Hero Target -->
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
@@ -739,10 +734,10 @@ elif active_tab == "angel":
                     </div>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         # Scanning Upcoming Hero Trigger Card
-        st.markdown("""
+        render_html("""
         <div style="background:#090d16; border:1px dashed #334155; border-radius:16px; padding:12px 14px; margin-top:8px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:6px;">
@@ -756,7 +751,7 @@ elif active_tab == "angel":
                 <span>🎯 Hero Target: <b style="color:#10b981;">₹45.00 (5.6X)</b></span>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     # 5. SmartAPI Protection Footer Card
     st.markdown("""
