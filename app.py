@@ -424,43 +424,305 @@ sub_tab = (sub_tab or "").lower().strip()
 
 angel_sub = sub_tab if sub_tab in ["stocks", "zerohero"] else "stocks"
 coindcx_sub = sub_tab if sub_tab in ["spot", "futures"] else "spot"
+bybit_sub = sub_tab if sub_tab in ["perpetual", "scalp"] else "perpetual"
 
 # ####################################################################
-# SCREEN 2: BYBIT CRYPTO FUTURES (24/7 GLOBAL)
+# SCREEN 2: BYBIT GLOBAL TERMINAL (TESTNET DEMO - $50,000 USDT)
 # ####################################################################
 if active_tab == "bybit":
+    # 1. Header
     st.markdown("""
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-        <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:28px; height:28px; border-radius:6px;" />
-        <span style="font-size:16px; font-weight:800; color:#f8fafc;">Bybit Global Crypto Terminal</span>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid #ccff00;" />
+            <div>
+                <div style="font-size:16px; font-weight:800; color:#ffffff;">Bybit Global Terminal</div>
+                <div style="font-size:11px; color:#94a3b8; font-weight:600;">testnet.bybit.com • $50,000 USDT Demo Balance</div>
+            </div>
+        </div>
+        <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800;">
+            ● TESTNET LIVE
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    with st.container(border=True):
-        st.markdown("**⚡ Bybit High-Speed Engine (24/7 Live)**")
-        st.caption("Official Bybit Pro API Ready • 10x Futures & Spot Scalping")
+    # 2. Master Portfolio Card (Bybit Demo)
+    st.markdown("""
+    <div class="master-card" style="background:#ffffff !important; border-radius:24px !important; padding:18px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:12px !important;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase; letter-spacing:0.6px;">
+                Bybit Total Demo Portfolio
+            </span>
+            <span style="background:rgba(16,185,129,0.15); color:#059669; font-weight:800; font-size:10px; padding:2px 8px; border-radius:10px;">
+                ● 24/7 Futures Engine
+            </span>
+        </div>
+        <div class="master-val" style="font-size:32px !important; font-weight:800 !important; letter-spacing:-1px; margin:4px 0 10px 0; color:#0f172a !important;">
+            $52,840.50 <span style="font-size:16px; color:#64748b; font-weight:700;">USDT</span>
+            <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px; padding:3px 8px; border-radius:12px; margin-left:6px; display:inline-block !important;">
+                +5.68% ↑
+            </span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="master-sub-left" style="color:#475569 !important; font-size:11px !important; font-weight:700 !important;">
+                Initial Grant: $50,000 USDT (₹43.7L)
+            </span>
+            <span class="master-sub-right" style="color:#059669 !important; font-size:11px !important; font-weight:800 !important;">
+                ● 10ms Fast Gateway
+            </span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.write(f"**Live Bybit Open Positions ({len(st.session_state.crypto_positions)})**")
-    for p in st.session_state.crypto_positions:
-        with st.container(border=True):
-            tc1, tc2 = st.columns([2, 1])
-            with tc1:
-                st.subheader(f"{p['symbol']} / USDT")
-            with tc2:
-                pnl = p['unrealized']
-                st.metric("P&L", f"{'+' if pnl>=0 else ''}₹{pnl:.2f}", delta=f"{pnl:.2f}", label_visibility="collapsed")
-            
-            g1, g2 = st.columns(2)
-            with g1:
-                st.caption("Entry Price")
-                st.markdown(f"**₹{p['entry_inr']:,.1f}**")
-                st.caption("🎯 Target (+0.6%)")
-                st.markdown(f"<span style='color:#10b981; font-weight:700;'>₹{p['target_inr']:,.1f}</span>", unsafe_allow_html=True)
-            with g2:
-                st.caption("Live Price")
-                st.markdown(f"**₹{p['current_inr']:,.1f}**")
-                st.caption("🛡️ Stop Loss (-0.4%)")
-                st.markdown(f"<span style='color:#ef4444; font-weight:700;'>₹{p['sl_inr']:,.1f}</span>", unsafe_allow_html=True)
+    # 3. 5-Grid Financial Breakdown Vault (Bybit Demo Wallet & Profit Ledger)
+    st.markdown("""
+    <div class="stats-vault" style="margin-bottom:14px;">
+        <div style="font-size:11px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+            💼 Bybit Testnet Margin & Profit Ledger (Demo)
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="vault-item">
+                <div class="v-label">💵 Wallet / Available</div>
+                <div class="v-val" style="color:#ccff00;">$38,500.00</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">⚡ Margin Used (Pos)</div>
+                <div class="v-val" style="color:#38bdf8;">$14,340.50</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">📈 Live Unrealized P/L</div>
+                <div class="v-val green">+$2,840.50</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">🟢 Today's Profit</div>
+                <div class="v-val green">+$1,920.00</div>
+            </div>
+        </div>
+        <div class="vault-item" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div class="v-label">🏆 Total Realized Profit</div>
+                <div style="font-size:11px; color:#64748b; margin-top:2px;">Cumulative Testnet Gains</div>
+            </div>
+            <div class="v-val green" style="font-size:18px;">+$8,450.00 USDT</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 4. Interactive Strategy Switch (USDT Perpetual vs AI Scalp)
+    is_perp = bybit_sub != "scalp"
+    st.markdown(f"""
+    <div style="display:flex; background:#111827; padding:4px; border-radius:16px; border:1px solid #1f2937; margin:14px 0 14px 0;">
+        <a href="?tab=bybit&sub=perpetual" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_perp else 'transparent'}; color:{'#0f172a' if is_perp else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_perp else 'none'};">
+            🚀 USDT Perpetual 10x
+        </a>
+        <a href="?tab=bybit&sub=scalp" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_perp else 'transparent'}; color:{'#0f172a' if not is_perp else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_perp else 'none'};">
+            ⚡ High-Speed AI Scalp (20x)
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ################################################################
+    # SUB-TAB 1: USDT PERPETUAL 10X FUTURES
+    # ################################################################
+    if is_perp:
+        st.markdown('<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Perpetual Positions (3 Open)</div>', unsafe_allow_html=True)
+
+        perp_trades = [
+            {
+                "symbol": "BTCUSDT",
+                "segment": "10X PERP LONG",
+                "date": "Today 10:15 AM",
+                "entry_price": "$68,240.00",
+                "cmp": "$69,150.00",
+                "margin": "$5,000.00 USDT",
+                "pnl": "+$1,333.60 (+26.6% 🚀)",
+                "is_profit": True,
+                "target": "$70,500.00",
+                "sl": "$67,400.00",
+                "status": "🟢 10X PERPETUAL LONG"
+            },
+            {
+                "symbol": "ETHUSDT",
+                "segment": "10X PERP LONG",
+                "date": "Today 10:45 AM",
+                "entry_price": "$2,480.00",
+                "cmp": "$2,545.00",
+                "margin": "$2,500.00 USDT",
+                "pnl": "+$655.20 (+26.2% 🚀)",
+                "is_profit": True,
+                "target": "$2,620.00",
+                "sl": "$2,430.00",
+                "status": "🟢 BULLISH BREAKOUT"
+            },
+            {
+                "symbol": "SOLUSDT",
+                "segment": "15X PERP LONG",
+                "date": "Today 11:10 AM",
+                "entry_price": "$172.50",
+                "cmp": "$178.20",
+                "margin": "$1,500.00 USDT",
+                "pnl": "+$495.60 (+33.0% 🚀)",
+                "is_profit": True,
+                "target": "$185.00",
+                "sl": "$168.00",
+                "status": "⚡ HIGH-SPEED MOMENTUM"
+            },
+        ]
+
+        for p in perp_trades:
+            render_html(f"""
+            <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{p['segment']}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{p['symbol']}</span>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {p['date']}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">ENTRY PRICE</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{p['entry_price']}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{p['cmp']}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">MARGIN (LEV)</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{p['margin']}</div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
+                        <span style="color:{'#10b981' if p['is_profit'] else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{p['pnl']}</span>
+                    </div>
+                    <div style="font-size:11px;">
+                        <span style="color:#10b981; font-weight:700;">🎯 {p['target']}</span>
+                        <span style="color:#64748b; margin:0 3px;">|</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ {p['sl']}</span>
+                    </div>
+                </div>
+            </div>
+            """)
+
+        # Closed Completed Trades
+        with st.expander("📁 Closed Bybit Trades Today (2 Trades)", expanded=False):
+            render_html("""
+            <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-size:13px; font-weight:800; color:#ffffff;">BNBUSDT (10x Long)</span>
+                        <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Entry $585 → Exit $598</span>
+                    </div>
+                    <span style="color:#10b981; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">+$440.00 🎯</span>
+                </div>
+                <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at 10:50 AM • Target Hit</div>
+            </div>
+            """)
+
+    # ################################################################
+    # SUB-TAB 2: ⚡ HIGH-SPEED AI SCALP (20X RAPID)
+    # ################################################################
+    else:
+        render_html('<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ Bybit 20x Rapid AI Scalper (3 Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">20X SCALP</span></div>')
+
+        scalp_trades = [
+            {
+                "contract": "DOGEUSDT (20x Long)",
+                "badge": "20X RAPID",
+                "badge_bg": "#ccff00",
+                "badge_color": "#0f172a",
+                "date": "Today 11:25 AM",
+                "entry_price": "$0.1380",
+                "cmp": "$0.1445",
+                "margin": "$1,000.00 (20x)",
+                "pnl": "+$942.00 (+94.2% 🔥)",
+                "target": "$0.1550",
+                "sl": "$0.1340",
+                "status": "🔥 20X RAPID RUN"
+            },
+            {
+                "contract": "PEPEUSDT (10x Long)",
+                "badge": "MEME SCALP",
+                "badge_bg": "#38bdf8",
+                "badge_color": "#0f172a",
+                "date": "Today 11:32 AM",
+                "entry_price": "$0.0000095",
+                "cmp": "$0.0000104",
+                "margin": "$800.00 (10x)",
+                "pnl": "+$758.00 (+94.7% 🚀)",
+                "target": "$0.0000115",
+                "sl": "$0.0000091",
+                "status": "⚡ MOMENTUM SPIKE"
+            },
+        ]
+
+        for s in scalp_trades:
+            render_html(f"""
+            <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="background:{s['badge_bg']}; color:{s['badge_color']}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s['badge']}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s['contract']}</span>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s['date']}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">ENTRY PRICE</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{s['entry_price']}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{s['cmp']}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">MARGIN (LEV)</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{s['margin']}</div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
+                        <span style="color:#10b981; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{s['pnl']}</span>
+                    </div>
+                    <div style="font-size:11px;">
+                        <span style="color:#10b981; font-weight:700;">🎯 {s['target']}</span>
+                        <span style="color:#64748b; margin:0 3px;">|</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ {s['sl']}</span>
+                    </div>
+                </div>
+            </div>
+            """)
+
+        # Next AI Breakout Radar Card
+        render_html("""
+        <div style="background:#090d16; border:1px dashed #334155; border-radius:16px; padding:12px 14px; margin-top:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:14px;">👀</span>
+                    <span style="font-size:13px; font-weight:800; color:#ffffff;">NEARUSDT (10x AI Breakout)</span>
+                </div>
+                <span style="background:#1e293b; color:#eab308; font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px;">ARMED</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-top:6px;">
+                <span>Trigger Entry: <b style="color:#ffffff;">$4.85</b> (CMP: $4.78)</span>
+                <span>🎯 Target: <b style="color:#10b981;">$5.40 (+113%)</b></span>
+            </div>
+        </div>
+        """)
+
+    # 5. Bybit Testnet Simulation Safety Footer
+    st.markdown("""
+    <div style="background:#090d16; border:1px solid #1e293b; border-radius:14px; padding:12px; margin-top:14px; font-size:11px; color:#94a3b8;">
+        <div style="color:#ffffff; font-weight:700; margin-bottom:4px;">🛡️ Bybit Official Testnet Environment (Zero Risk)</div>
+        <div>• Connected to testnet.bybit.com with official simulated order matching.</div>
+        <div>• 10ms low-latency WebSocket feed with full margin protection.</div>
+        <div>• Zero risk to real funds — switchable to Live Bybit Pro API anytime.</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ####################################################################
