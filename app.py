@@ -165,11 +165,16 @@ st.markdown("""
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 2px;
-        color: #94a3b8;
+        gap: 3px;
+        color: #94a3b8 !important;
         font-size: 10px;
         font-weight: 700;
-        text-decoration: none;
+        text-decoration: none !important;
+        cursor: pointer;
+    }
+    .nav-btn:visited, .nav-btn:hover, .nav-btn:active {
+        text-decoration: none !important;
+        color: inherit !important;
     }
     .nav-icon-active {
         width: 38px;
@@ -184,6 +189,12 @@ st.markdown("""
         box-shadow: 0 0 12px rgba(204, 255, 0, 0.4);
     }
     .nav-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 18px;
         color: #64748b;
     }
@@ -361,18 +372,108 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Navigation Menu Selector (Tabs sync with Bottom Dock)
-menu_choice = st.radio(
-    "MenuNav",
-    ["🏠 Home", "Bybit Crypto", "Angel One", "CoinDCX"],
-    horizontal=True,
-    label_visibility="collapsed"
-)
+# ==========================================
+# SEAMLESS URL QUERY PARAMETER NAVIGATION (NO TOP RADIO BUTTONS)
+# ==========================================
+active_tab = "home"
+try:
+    if hasattr(st, "query_params"):
+        val = st.query_params.get("tab", "home")
+        active_tab = val[0] if isinstance(val, list) else str(val)
+    elif hasattr(st, "experimental_get_query_params"):
+        val = st.experimental_get_query_params().get("tab", ["home"])
+        active_tab = val[0] if isinstance(val, list) else str(val)
+except Exception:
+    active_tab = "home"
+
+active_tab = (active_tab or "home").lower().strip()
 
 # ####################################################################
-# SCREEN 1: 🏠 HOME DASHBOARD (REQUESTED FINANCIAL LEDGER)
+# SCREEN 2: BYBIT CRYPTO FUTURES (24/7 GLOBAL)
 # ####################################################################
-if menu_choice == "🏠 Home":
+if active_tab == "bybit":
+    st.markdown("""
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:28px; height:28px; border-radius:6px;" />
+        <span style="font-size:16px; font-weight:800; color:#f8fafc;">Bybit Global Crypto Terminal</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.container(border=True):
+        st.markdown("**⚡ Bybit High-Speed Engine (24/7 Live)**")
+        st.caption("Official Bybit Pro API Ready • 10x Futures & Spot Scalping")
+
+    st.write(f"**Live Bybit Open Positions ({len(st.session_state.crypto_positions)})**")
+    for p in st.session_state.crypto_positions:
+        with st.container(border=True):
+            tc1, tc2 = st.columns([2, 1])
+            with tc1:
+                st.subheader(f"{p['symbol']} / USDT")
+            with tc2:
+                pnl = p['unrealized']
+                st.metric("P&L", f"{'+' if pnl>=0 else ''}₹{pnl:.2f}", delta=f"{pnl:.2f}", label_visibility="collapsed")
+            
+            g1, g2 = st.columns(2)
+            with g1:
+                st.caption("Entry Price")
+                st.markdown(f"**₹{p['entry_inr']:,.1f}**")
+                st.caption("🎯 Target (+0.6%)")
+                st.markdown(f"<span style='color:#10b981; font-weight:700;'>₹{p['target_inr']:,.1f}</span>", unsafe_allow_html=True)
+            with g2:
+                st.caption("Live Price")
+                st.markdown(f"**₹{p['current_inr']:,.1f}**")
+                st.caption("🛡️ Stop Loss (-0.4%)")
+                st.markdown(f"<span style='color:#ef4444; font-weight:700;'>₹{p['sl_inr']:,.1f}</span>", unsafe_allow_html=True)
+
+
+# ####################################################################
+# SCREEN 3: ANGEL ONE
+# ####################################################################
+elif active_tab == "angel":
+    st.markdown("""
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:28px; height:28px; border-radius:6px;" />
+        <span style="font-size:16px; font-weight:800; color:#f8fafc;">Angel One SmartAPI</span>
+    </div>
+    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**Client ID: IIRA162977** (Connected & TOTP Verified)")
+        st.caption("Opens Mon-Fri 9:15 AM to 3:30 PM for NIFTY F&O")
+
+
+# ####################################################################
+# SCREEN 4: COINDCX (INDIA'S NO.1 CRYPTO EXCHANGE)
+# ####################################################################
+elif active_tab == "coindcx":
+    st.markdown("""
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <img src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/630.png" style="width:28px; height:28px; border-radius:6px;" />
+        <span style="font-size:16px; font-weight:800; color:#f8fafc;">CoinDCX India Terminal</span>
+    </div>
+    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**🇮🇳 CoinDCX FIU-Regulated Hub**")
+        st.caption("Direct Indian Bank IMPS / UPI INR Deposit & Instant Withdrawal Ready")
+
+    st.write(f"**CoinDCX Trade Ledger ({len(all_trades)} Executed Trades)**")
+    if len(all_trades) > 0:
+        for t in reversed(all_trades[-15:]):
+            with st.container(border=True):
+                h1, h2 = st.columns([2, 1])
+                with h1:
+                    st.markdown(f"**{t.get('symbol')}**")
+                    st.caption(f"{t.get('time')} • {t.get('status')}")
+                with h2:
+                    p = t.get('pnl', 0)
+                    st.metric("PnL", f"{'+' if p>=0 else ''}₹{p:.2f}", delta=f"{p:.2f}", label_visibility="collapsed")
+    else:
+        st.info("No closed trades recorded yet.")
+
+
+# ####################################################################
+# SCREEN 1: 🏠 HOME DASHBOARD (DEFAULT)
+# ####################################################################
+else:
     # Master Total Asset Value Card
     pct_gain = ((total_net_portfolio - initial_capital) / initial_capital) * 100
     st.markdown(f"""
@@ -451,115 +552,38 @@ if menu_choice == "🏠 Home":
             """, unsafe_allow_html=True)
 
 
-# ####################################################################
-# SCREEN 2: BYBIT CRYPTO FUTURES (24/7 GLOBAL)
-# ####################################################################
-elif menu_choice == "Bybit Crypto":
-    st.markdown("""
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-        <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:28px; height:28px; border-radius:6px;" />
-        <span style="font-size:16px; font-weight:800; color:#f8fafc;">Bybit Global Crypto Terminal</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    with st.container(border=True):
-        st.markdown("**⚡ Bybit High-Speed Engine (24/7 Live)**")
-        st.caption("Official Bybit Pro API Ready • 10x Futures & Spot Scalping")
-
-    st.write(f"**Live Bybit Open Positions ({len(st.session_state.crypto_positions)})**")
-    for p in st.session_state.crypto_positions:
-        with st.container(border=True):
-            tc1, tc2 = st.columns([2, 1])
-            with tc1:
-                st.subheader(f"{p['symbol']} / USDT")
-            with tc2:
-                pnl = p['unrealized']
-                st.metric("P&L", f"{'+' if pnl>=0 else ''}₹{pnl:.2f}", delta=f"{pnl:.2f}", label_visibility="collapsed")
-            
-            g1, g2 = st.columns(2)
-            with g1:
-                st.caption("Entry Price")
-                st.markdown(f"**₹{p['entry_inr']:,.1f}**")
-                st.caption("🎯 Target (+0.6%)")
-                st.markdown(f"<span style='color:#10b981; font-weight:700;'>₹{p['target_inr']:,.1f}</span>", unsafe_allow_html=True)
-            with g2:
-                st.caption("Live Price")
-                st.markdown(f"**₹{p['current_inr']:,.1f}**")
-                st.caption("🛡️ Stop Loss (-0.4%)")
-                st.markdown(f"<span style='color:#ef4444; font-weight:700;'>₹{p['sl_inr']:,.1f}</span>", unsafe_allow_html=True)
-
-
-# ####################################################################
-# SCREEN 3: ANGEL ONE
-# ####################################################################
-elif menu_choice == "Angel One":
-    st.markdown("""
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-        <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:28px; height:28px; border-radius:6px;" />
-        <span style="font-size:16px; font-weight:800; color:#f8fafc;">Angel One SmartAPI</span>
-    </div>
-    """, unsafe_allow_html=True)
-    with st.container(border=True):
-        st.markdown("**Client ID: IIRA162977** (Connected & TOTP Verified)")
-        st.caption("Opens Mon-Fri 9:15 AM to 3:30 PM for NIFTY F&O")
-
-
-# ####################################################################
-# SCREEN 4: COINDCX (INDIA'S NO.1 CRYPTO EXCHANGE)
-# ####################################################################
-else:
-    st.markdown("""
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-        <img src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/630.png" style="width:28px; height:28px; border-radius:6px;" />
-        <span style="font-size:16px; font-weight:800; color:#f8fafc;">CoinDCX India Terminal</span>
-    </div>
-    """, unsafe_allow_html=True)
-    with st.container(border=True):
-        st.markdown("**🇮🇳 CoinDCX FIU-Regulated Hub**")
-        st.caption("Direct Indian Bank IMPS / UPI INR Deposit & Instant Withdrawal Ready")
-
-    st.write(f"**CoinDCX Trade Ledger ({len(all_trades)} Executed Trades)**")
-    if len(all_trades) > 0:
-        for t in reversed(all_trades[-15:]):
-            with st.container(border=True):
-                h1, h2 = st.columns([2, 1])
-                with h1:
-                    st.markdown(f"**{t.get('symbol')}**")
-                    st.caption(f"{t.get('time')} • {t.get('status')}")
-                with h2:
-                    p = t.get('pnl', 0)
-                    st.metric("PnL", f"{'+' if p>=0 else ''}₹{p:.2f}", delta=f"{p:.2f}", label_visibility="collapsed")
-    else:
-        st.info("No closed trades recorded yet.")
-
-
 # ==========================================
 # FIXED MOBILE BOTTOM APP MENU BAR (Always Anchored)
 # ==========================================
+is_home = active_tab not in ["bybit", "angel", "coindcx"]
+is_bybit = active_tab == "bybit"
+is_angel = active_tab == "angel"
+is_coindcx = active_tab == "coindcx"
+
 st.markdown(f"""
 <div class="fixed-bottom-bar">
-    <div class="nav-btn">
-        <div class="{'nav-icon-active' if menu_choice=='🏠 Home' else 'nav-icon'}">🏠</div>
-        <span style="color:{'#ccff00' if menu_choice=='🏠 Home' else '#94a3b8'};">Home</span>
-    </div>
-    <div class="nav-btn">
-        <div class="{'nav-icon-active' if menu_choice=='Bybit Crypto' else 'nav-icon'}" style="padding:2px;">
+    <a href="?tab=home" target="_self" class="nav-btn">
+        <div class="{'nav-icon-active' if is_home else 'nav-icon'}">🏠</div>
+        <span style="color:{'#ccff00' if is_home else '#94a3b8'};">Home</span>
+    </a>
+    <a href="?tab=bybit" target="_self" class="nav-btn">
+        <div class="{'nav-icon-active' if is_bybit else 'nav-icon'}" style="padding:2px;">
             <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
-        <span style="color:{'#ccff00' if menu_choice=='Bybit Crypto' else '#94a3b8'};">Bybit</span>
-    </div>
-    <div class="nav-btn">
-        <div class="{'nav-icon-active' if menu_choice=='Angel One' else 'nav-icon'}" style="padding:2px;">
+        <span style="color:{'#ccff00' if is_bybit else '#94a3b8'};">Bybit</span>
+    </a>
+    <a href="?tab=angel" target="_self" class="nav-btn">
+        <div class="{'nav-icon-active' if is_angel else 'nav-icon'}" style="padding:2px;">
             <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
-        <span style="color:{'#ccff00' if menu_choice=='Angel One' else '#94a3b8'};">Angel One</span>
-    </div>
-    <div class="nav-btn">
-        <div class="{'nav-icon-active' if menu_choice=='CoinDCX' else 'nav-icon'}" style="padding:2px;">
+        <span style="color:{'#ccff00' if is_angel else '#94a3b8'};">Angel One</span>
+    </a>
+    <a href="?tab=coindcx" target="_self" class="nav-btn">
+        <div class="{'nav-icon-active' if is_coindcx else 'nav-icon'}" style="padding:2px;">
             <img src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/630.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
-        <span style="color:{'#ccff00' if menu_choice=='CoinDCX' else '#94a3b8'};">CoinDCX</span>
-    </div>
+        <span style="color:{'#ccff00' if is_coindcx else '#94a3b8'};">CoinDCX</span>
+    </a>
 </div>
 """, unsafe_allow_html=True)
 
