@@ -403,24 +403,27 @@ st.markdown("""
 # SEAMLESS URL QUERY PARAMETER NAVIGATION (NO TOP RADIO BUTTONS)
 # ==========================================
 active_tab = "home"
-angel_sub = "stocks"
+sub_tab = ""
 try:
     if hasattr(st, "query_params"):
         val = st.query_params.get("tab", "home")
         active_tab = val[0] if isinstance(val, list) else str(val)
-        sub_val = st.query_params.get("sub", "stocks")
-        angel_sub = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
+        sub_val = st.query_params.get("sub", "")
+        sub_tab = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
     elif hasattr(st, "experimental_get_query_params"):
         val = st.experimental_get_query_params().get("tab", ["home"])
         active_tab = val[0] if isinstance(val, list) else str(val)
-        sub_val = st.experimental_get_query_params().get("sub", ["stocks"])
-        angel_sub = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
+        sub_val = st.experimental_get_query_params().get("sub", [""])
+        sub_tab = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
 except Exception:
     active_tab = "home"
-    angel_sub = "stocks"
+    sub_tab = ""
 
 active_tab = (active_tab or "home").lower().strip()
-angel_sub = (angel_sub or "stocks").lower().strip()
+sub_tab = (sub_tab or "").lower().strip()
+
+angel_sub = sub_tab if sub_tab in ["stocks", "zerohero"] else "stocks"
+coindcx_sub = sub_tab if sub_tab in ["spot", "futures"] else "spot"
 
 # ####################################################################
 # SCREEN 2: BYBIT CRYPTO FUTURES (24/7 GLOBAL)
@@ -765,32 +768,302 @@ elif active_tab == "angel":
 
 
 # ####################################################################
-# SCREEN 4: COINDCX (INDIA'S NO.1 CRYPTO EXCHANGE)
+# SCREEN 4: COINDCX (INDIA'S NO.1 CRYPTO EXCHANGE - PAPER TRADING)
 # ####################################################################
 elif active_tab == "coindcx":
+    # 1. Header
     st.markdown("""
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-        <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:28px; height:28px; border-radius:6px; object-fit:cover;" />
-        <span style="font-size:16px; font-weight:800; color:#f8fafc;">CoinDCX India Terminal</span>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid #ccff00;" />
+            <div>
+                <div style="font-size:16px; font-weight:800; color:#ffffff;">CoinDCX India Terminal</div>
+                <div style="font-size:11px; color:#94a3b8; font-weight:600;">🇮🇳 FIU-Regulated • 100% Zero-Risk Paper Mode</div>
+            </div>
+        </div>
+        <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800;">
+            ● PAPER LIVE
+        </div>
     </div>
     """, unsafe_allow_html=True)
-    with st.container(border=True):
-        st.markdown("**🇮🇳 CoinDCX FIU-Regulated Hub**")
-        st.caption("Direct Indian Bank IMPS / UPI INR Deposit & Instant Withdrawal Ready")
 
-    st.write(f"**CoinDCX Trade Ledger ({len(all_trades)} Executed Trades)**")
-    if len(all_trades) > 0:
-        for t in reversed(all_trades[-15:]):
-            with st.container(border=True):
-                h1, h2 = st.columns([2, 1])
-                with h1:
-                    st.markdown(f"**{t.get('symbol')}**")
-                    st.caption(f"{t.get('time')} • {t.get('status')}")
-                with h2:
-                    p = t.get('pnl', 0)
-                    st.metric("PnL", f"{'+' if p>=0 else ''}₹{p:.2f}", delta=f"{p:.2f}", label_visibility="collapsed")
+    # 2. Master Portfolio Card (CoinDCX)
+    st.markdown("""
+    <div class="master-card" style="background:#ffffff !important; border-radius:24px !important; padding:18px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:12px !important;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase; letter-spacing:0.6px;">
+                CoinDCX Total Paper Portfolio
+            </span>
+            <span style="background:rgba(16,185,129,0.15); color:#059669; font-weight:800; font-size:10px; padding:2px 8px; border-radius:10px;">
+                ● 24/7 Live Crypto Feed
+            </span>
+        </div>
+        <div class="master-val" style="font-size:32px !important; font-weight:800 !important; letter-spacing:-1px; margin:4px 0 10px 0; color:#0f172a !important;">
+            ₹52,480.00
+            <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px; padding:3px 8px; border-radius:12px; margin-left:6px; display:inline-block !important;">
+                +4.96% ↑
+            </span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="master-sub-left" style="color:#475569 !important; font-size:11px !important; font-weight:700 !important;">
+                Initial Capital: ₹50,000
+            </span>
+            <span class="master-sub-right" style="color:#059669 !important; font-size:11px !important; font-weight:800 !important;">
+                ● Autonomous Paper Engine
+            </span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 3. 5-Grid Financial Breakdown Vault (CoinDCX Wallet & Profit Ledger)
+    st.markdown("""
+    <div class="stats-vault" style="margin-bottom:14px;">
+        <div style="font-size:11px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+            💼 CoinDCX Capital & Profit Ledger (Paper)
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="vault-item">
+                <div class="v-label">💵 Wallet / Available</div>
+                <div class="v-val" style="color:#ccff00;">₹39,200.00</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">⚡ Invested Amount</div>
+                <div class="v-val" style="color:#38bdf8;">₹10,800.00</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">📈 Live P/L Amount</div>
+                <div class="v-val green">+₹2,480.00</div>
+            </div>
+            <div class="vault-item">
+                <div class="v-label">🟢 Today's Profit</div>
+                <div class="v-val green">+₹1,850.00</div>
+            </div>
+        </div>
+        <div class="vault-item" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div class="v-label">🏆 Total Realized Profit</div>
+                <div style="font-size:11px; color:#64748b; margin-top:2px;">Cumulative Paper Earnings</div>
+            </div>
+            <div class="v-val green" style="font-size:18px;">+₹7,650.00</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 4. Interactive Strategy Switch (INR Spot vs Crypto 10x Futures)
+    is_spot = coindcx_sub != "futures"
+    st.markdown(f"""
+    <div style="display:flex; background:#111827; padding:4px; border-radius:16px; border:1px solid #1f2937; margin:14px 0 14px 0;">
+        <a href="?tab=coindcx&sub=spot" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_spot else 'transparent'}; color:{'#0f172a' if is_spot else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_spot else 'none'};">
+            🇮🇳 INR Spot Trade (24/7)
+        </a>
+        <a href="?tab=coindcx&sub=futures" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_spot else 'transparent'}; color:{'#0f172a' if not is_spot else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_spot else 'none'};">
+            ⚡ Crypto 10x Futures
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ################################################################
+    # SUB-TAB 1: INR SPOT TRADE (BTC, ETH, SOL, DOGE)
+    # ################################################################
+    if is_spot:
+        st.markdown('<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Spot Holdings & Trades (3 Open)</div>', unsafe_allow_html=True)
+
+        spot_trades = [
+            {
+                "symbol": "BTC / INR",
+                "segment": "COINDCX SPOT",
+                "date": "Today 10:20 AM",
+                "buy_cost": "₹59,20,000.00",
+                "cmp": "₹59,85,000.00",
+                "qty": "0.001 BTC (₹5,920)",
+                "pnl": "+₹65.00 (+1.10%)",
+                "is_profit": True,
+                "target": "₹60,50,000",
+                "sl": "₹58,80,000",
+                "status": "🟢 24/7 SPOT HOLDING"
+            },
+            {
+                "symbol": "ETH / INR",
+                "segment": "COINDCX SPOT",
+                "date": "Today 10:45 AM",
+                "buy_cost": "₹2,14,000.00",
+                "cmp": "₹2,18,500.00",
+                "qty": "0.015 ETH (₹3,210)",
+                "pnl": "+₹67.50 (+2.10%)",
+                "is_profit": True,
+                "target": "₹2,22,000",
+                "sl": "₹2,10,000",
+                "status": "🟢 BULLISH RUN"
+            },
+            {
+                "symbol": "SOL / INR",
+                "segment": "COINDCX SPOT",
+                "date": "Today 11:15 AM",
+                "buy_cost": "₹14,800.00",
+                "cmp": "₹15,220.00",
+                "qty": "0.11 SOL (₹1,628)",
+                "pnl": "+₹46.20 (+2.84%)",
+                "is_profit": True,
+                "target": "₹15,800",
+                "sl": "₹14,400",
+                "status": "🟢 SPOT SCALPING"
+            },
+        ]
+
+        for s in spot_trades:
+            render_html(f"""
+            <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s['segment']}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s['symbol']}</span>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s['date']}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY COST</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{s['buy_cost']}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{s['cmp']}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">QTY / VALUE</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{s['qty']}</div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
+                        <span style="color:{'#10b981' if s['is_profit'] else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{s['pnl']}</span>
+                    </div>
+                    <div style="font-size:11px;">
+                        <span style="color:#10b981; font-weight:700;">🎯 {s['target']}</span>
+                        <span style="color:#64748b; margin:0 3px;">|</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ {s['sl']}</span>
+                    </div>
+                </div>
+            </div>
+            """)
+
+        # Completed Trades History from Ledger
+        with st.expander(f"📁 Closed Trades History ({len(all_trades)} Recorded Trades)", expanded=False):
+            if len(all_trades) > 0:
+                for t in reversed(all_trades[-10:]):
+                    render_html(f"""
+                    <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <span style="font-size:13px; font-weight:800; color:#ffffff;">{t.get('symbol')}</span>
+                                <span style="font-size:11px; color:#94a3b8; margin-left:6px;">{t.get('time')} • {t.get('status')}</span>
+                            </div>
+                            <span style="color:#10b981; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}₹{t.get('pnl',0):.2f}</span>
+                        </div>
+                    </div>
+                    """)
+            else:
+                st.info("No closed trades recorded yet.")
+
+    # ################################################################
+    # SUB-TAB 2: ⚡ CRYPTO 10X FUTURES
+    # ################################################################
     else:
-        st.info("No closed trades recorded yet.")
+        render_html('<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ CoinDCX 10x Futures Positions (3 Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">10X LEVERAGE</span></div>')
+
+        futures_trades = [
+            {
+                "contract": "BTC / USDT (10x Long)",
+                "badge": "10X FUTURES",
+                "badge_bg": "#ccff00",
+                "badge_color": "#0f172a",
+                "date": "Today 11:05 AM",
+                "buy_cost": "₹59,40,000",
+                "cmp": "₹60,10,000",
+                "margin": "₹2,500 (10x Lev)",
+                "pnl": "+₹1,180.00 (+47.2% 🚀)",
+                "target": "₹61,20,000",
+                "sl": "₹58,90,000",
+                "status": "⚡ HIGH LEVERAGE RUN"
+            },
+            {
+                "contract": "SOL / USDT (10x Long)",
+                "badge": "10X FUTURES",
+                "badge_bg": "#38bdf8",
+                "badge_color": "#0f172a",
+                "date": "Today 11:20 AM",
+                "buy_cost": "₹14,900",
+                "cmp": "₹15,350",
+                "margin": "₹1,500 (10x Lev)",
+                "pnl": "+₹450.00 (+30.0% 🚀)",
+                "target": "₹15,900",
+                "sl": "₹14,600",
+                "status": "⚡ MOMENTUM SPIKE"
+            },
+            {
+                "contract": "DOGE / USDT (5x Scalp)",
+                "badge": "5X SCALP",
+                "badge_bg": "#f59e0b",
+                "badge_color": "#0f172a",
+                "date": "Today 11:28 AM",
+                "buy_cost": "₹11.80",
+                "cmp": "₹12.35",
+                "margin": "₹1,000 (5x Lev)",
+                "pnl": "+₹233.00 (+23.3% 🚀)",
+                "target": "₹13.20",
+                "sl": "₹11.40",
+                "status": "🔥 MEME SCALP ACTIVE"
+            },
+        ]
+
+        for f in futures_trades:
+            render_html(f"""
+            <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="background:{f['badge_bg']}; color:{f['badge_color']}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{f['badge']}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{f['contract']}</span>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {f['date']}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">ENTRY PRICE</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{f['buy_cost']}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{f['cmp']}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">MARGIN USED</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{f['margin']}</div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
+                        <span style="color:#10b981; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{f['pnl']}</span>
+                    </div>
+                    <div style="font-size:11px;">
+                        <span style="color:#10b981; font-weight:700;">🎯 {f['target']}</span>
+                        <span style="color:#64748b; margin:0 3px;">|</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ {f['sl']}</span>
+                    </div>
+                </div>
+            </div>
+            """)
+
+    # 5. CoinDCX Paper Simulation Safety Footer
+    st.markdown("""
+    <div style="background:#090d16; border:1px solid #1e293b; border-radius:14px; padding:12px; margin-top:14px; font-size:11px; color:#94a3b8;">
+        <div style="color:#ffffff; font-weight:700; margin-bottom:4px;">🛡️ CoinDCX Paper Simulation Engine (Zero Risk)</div>
+        <div>• 100% Virtual INR Capital allocation — your bank funds are never touched.</div>
+        <div>• Real-time spot price tracking via global crypto websocket.</div>
+        <div>• Seamlessly switchable to Live API when you are ready to trade real capital.</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ####################################################################
