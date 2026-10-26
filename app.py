@@ -26,26 +26,12 @@ st.markdown("""
         color: #f8fafc !important;
         font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
-    
-    [data-testid="stMarkdownContainer"] p, [data-testid="stMarkdownContainer"] span {
-        color: #f8fafc !important;
-    }
 
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: #111827 !important;
         border: 1px solid #1f2937 !important;
         border-radius: 18px !important;
         color: #f8fafc !important;
-    }
-
-    .master-card, .master-card * {
-        color: #0f172a !important;
-    }
-    .card-mint, .card-mint * {
-        color: #064e3b !important;
-    }
-    .card-lavender, .card-lavender * {
-        color: #3b0764 !important;
     }
     
     .block-container {
@@ -82,36 +68,47 @@ st.markdown("""
 
     /* Master Total Asset Card (Reference Image White Surface) */
     .master-card {
-        background: #ffffff;
-        border-radius: 26px;
-        padding: 22px 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        margin-bottom: 14px;
-        color: #0f172a;
+        background: #ffffff !important;
+        border-radius: 26px !important;
+        padding: 22px 20px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        margin-bottom: 14px !important;
+        color: #0f172a !important;
     }
-    .master-label {
-        font-size: 11px;
-        font-weight: 700;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
+    .master-card .master-label {
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        color: #64748b !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.6px !important;
     }
-    .master-val {
-        font-size: 34px;
-        font-weight: 800;
-        letter-spacing: -1px;
-        margin: 4px 0 12px 0;
-        color: #0f172a;
+    .master-card .master-val {
+        font-size: 34px !important;
+        font-weight: 800 !important;
+        letter-spacing: -1px !important;
+        margin: 4px 0 12px 0 !important;
+        color: #0f172a !important;
     }
-    .pill-lime {
-        background: #ccff00;
-        color: #0f172a;
-        font-weight: 800;
-        font-size: 11px;
-        padding: 3px 8px;
-        border-radius: 12px;
-        vertical-align: middle;
-        margin-left: 6px;
+    .master-card .pill-lime {
+        background: #ccff00 !important;
+        color: #0f172a !important;
+        font-weight: 800 !important;
+        font-size: 11px !important;
+        padding: 3px 8px !important;
+        border-radius: 12px !important;
+        vertical-align: middle !important;
+        margin-left: 6px !important;
+        display: inline-block !important;
+    }
+    .master-card .master-sub-left {
+        color: #475569 !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+    }
+    .master-card .master-sub-right {
+        color: #059669 !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
     }
 
     /* 6-Grid Financial Stats Card (Comprehensive Account Ledger) */
@@ -150,16 +147,20 @@ st.markdown("""
 
     /* Pastel Mini Cards */
     .card-mint {
-        background: #d1fae5;
-        color: #064e3b;
-        border-radius: 18px;
-        padding: 14px;
+        background: #d1fae5 !important;
+        border-radius: 18px !important;
+        padding: 14px !important;
+    }
+    .card-mint, .card-mint * {
+        color: #064e3b !important;
     }
     .card-lavender {
-        background: #ede9fe;
-        color: #3b0764;
-        border-radius: 18px;
-        padding: 14px;
+        background: #ede9fe !important;
+        border-radius: 18px !important;
+        padding: 14px !important;
+    }
+    .card-lavender, .card-lavender * {
+        color: #3b0764 !important;
     }
 
     /* FIXED MOBILE BOTTOM APP MENU BAR (Stick to bottom of screen permanently) */
@@ -610,15 +611,23 @@ else:
     # Master Total Asset Value Card
     pct_gain = ((total_net_portfolio - initial_capital) / initial_capital) * 100
     st.markdown(f"""
-    <div class="master-card">
-        <div class="master-label">Total Net Portfolio Value</div>
-        <div class="master-val">
-            ₹{total_net_portfolio:,.2f}
-            <span class="pill-lime">{'+' if pct_gain>=0 else ''}{pct_gain:.1f}% ↑</span>
+    <div class="master-card" style="background:#ffffff !important; border-radius:26px !important; padding:22px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:14px !important;">
+        <div class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.6px !important;">
+            Total Net Portfolio Value
         </div>
-        <div style="display:flex; justify-content:space-between; font-size:12px; color:#64748b; font-weight:600;">
-            <span>Initial Capital: ₹{initial_capital:,.0f}</span>
-            <span style="color:#10b981;">● 24/7 Engine Active</span>
+        <div class="master-val" style="font-size:34px !important; font-weight:800 !important; letter-spacing:-1px !important; margin:4px 0 12px 0 !important; color:#0f172a !important;">
+            ₹{total_net_portfolio:,.2f}
+            <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px !important; padding:3px 8px !important; border-radius:12px !important; margin-left:6px !important; display:inline-block !important;">
+                {'+' if pct_gain>=0 else ''}{pct_gain:.1f}% ↑
+            </span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="master-sub-left" style="color:#334155 !important; font-size:12px !important; font-weight:700 !important;">
+                Initial Capital: ₹{initial_capital:,.0f}
+            </span>
+            <span class="master-sub-right" style="color:#059669 !important; font-size:12px !important; font-weight:800 !important;">
+                ● 24/7 Engine Active
+            </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
