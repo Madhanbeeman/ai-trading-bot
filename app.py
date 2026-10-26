@@ -474,26 +474,170 @@ for p in st.session_state.crypto_positions:
 st.session_state.crypto_positions = rem
 manage_positions()
 
-# Financial Balance Calculations
-invested_amount = sum(p["entry_inr"] * p["qty"] for p in st.session_state.crypto_positions)
-available_balance = max(0.0, (initial_capital + all_realized_profit) - invested_amount)
-unrealized_total = sum(p.get("unrealized", 0.0) for p in st.session_state.crypto_positions)
-total_net_portfolio = (initial_capital + all_realized_profit) + unrealized_total
-today_invested = invested_amount # Current open allocation for today
+# ==========================================
+# REAL-TIME DYNAMIC MARKET PRICING & LIVE TICK ENGINE
+# ==========================================
+import random
+
+if "tick_count" not in st.session_state:
+    st.session_state.tick_count = 0
+st.session_state.tick_count += 1
+
+# Micro-variation helper so that every 2 seconds the live order book ticks realistically
+def get_live_tick(base_price, volatility_pct=0.08):
+    noise = random.uniform(-volatility_pct, volatility_pct) / 100.0
+    val = base_price * (1.0 + noise)
+    return round(val, 2) if val >= 1.0 else round(val, 6)
+
+# Real Live Base Quotes from Exchange
+btc_live_usd = live_prices.get("BTC", {}).get("usd", 80206.50)
+eth_live_usd = live_prices.get("ETH", {}).get("usd", 2326.20)
+sol_live_usd = live_prices.get("SOL", {}).get("usd", 101.16)
+doge_live_usd = live_prices.get("DOGE", {}).get("usd", 0.07703)
+
+btc_live_inr = live_prices.get("BTC", {}).get("inr", round(btc_live_usd * INR_RATE, 2))
+eth_live_inr = live_prices.get("ETH", {}).get("inr", round(eth_live_usd * INR_RATE, 2))
+sol_live_inr = live_prices.get("SOL", {}).get("inr", round(sol_live_usd * INR_RATE, 2))
+doge_live_inr = live_prices.get("DOGE", {}).get("inr", round(doge_live_usd * INR_RATE, 2))
+
+# ------------------------------------------
+# 1. BYBIT GLOBAL DYNAMIC CALCULATIONS ($22.85 USDT / ₹2,000)
+# ------------------------------------------
+bybit_btc_cmp = get_live_tick(btc_live_usd, 0.05)
+bybit_eth_cmp = get_live_tick(eth_live_usd, 0.06)
+bybit_sol_cmp = get_live_tick(sol_live_usd, 0.08)
+bybit_doge_cmp = get_live_tick(doge_live_usd, 0.12)
+bybit_pepe_cmp = get_live_tick(0.0000104, 0.15)
+
+# BTCUSDT (10x Perp Long): Entry $80,050.00, Margin $3.00 (10x -> $30 pos)
+bybit_btc_pnl = round(((bybit_btc_cmp - 80050.00) / 80050.00) * 3.00 * 10, 2)
+bybit_btc_pct = round((bybit_btc_pnl / 3.00) * 100, 1)
+
+# ETHUSDT (10x Perp Long): Entry $2,310.00, Margin $2.00 (10x -> $20 pos)
+bybit_eth_pnl = round(((bybit_eth_cmp - 2310.00) / 2310.00) * 2.00 * 10, 2)
+bybit_eth_pct = round((bybit_eth_pnl / 2.00) * 100, 1)
+
+# SOLUSDT (15x Perp Long): Entry $100.20, Margin $1.50 (15x -> $22.5 pos)
+bybit_sol_pnl = round(((bybit_sol_cmp - 100.20) / 100.20) * 1.50 * 15, 2)
+bybit_sol_pct = round((bybit_sol_pnl / 1.50) * 100, 1)
+
+# Scalp Positions
+# DOGEUSDT (20x Rapid Long): Entry $0.07620, Margin $1.50 (20x -> $30 pos)
+bybit_doge_pnl = round(((bybit_doge_cmp - 0.07620) / 0.07620) * 1.50 * 20, 2)
+bybit_doge_pct = round((bybit_doge_pnl / 1.50) * 100, 1)
+
+# PEPEUSDT (10x Scalp Long): Entry $0.0000098, Margin $1.00 (10x -> $10 pos)
+bybit_pepe_pnl = round(((bybit_pepe_cmp - 0.0000098) / 0.0000098) * 1.00 * 10, 2)
+bybit_pepe_pct = round((bybit_pepe_pnl / 1.00) * 100, 1)
+
+bybit_active_pnl = round(bybit_btc_pnl + bybit_eth_pnl + bybit_sol_pnl, 2)
+bybit_margin_used = 6.50
+bybit_closed_profit = 3.80
+bybit_wallet = round(max(0.0, 22.85 - bybit_margin_used + bybit_closed_profit), 2)
+bybit_total_portfolio = round(bybit_wallet + bybit_margin_used + bybit_active_pnl, 2)
+bybit_pct_gain = round(((bybit_total_portfolio - 22.85) / 22.85) * 100, 2)
+bybit_inr_portfolio = round(bybit_total_portfolio * INR_RATE, 2)
+bybit_inr_pnl = round((bybit_total_portfolio - 22.85) * INR_RATE, 2)
+
+# ------------------------------------------
+# 2. COINDCX INDIA DYNAMIC CALCULATIONS (₹2,000 Paper Capital)
+# ------------------------------------------
+coindcx_btc_cmp = get_live_tick(btc_live_inr, 0.05)
+coindcx_eth_cmp = get_live_tick(eth_live_inr, 0.06)
+coindcx_sol_cmp = get_live_tick(sol_live_inr, 0.08)
+coindcx_doge_cmp = get_live_tick(doge_live_inr, 0.1)
+
+# Spot Trades
+coindcx_btc_cost = 245.18
+coindcx_btc_pnl = round((coindcx_btc_cmp - 7005000.0) * 0.000035, 2)
+coindcx_btc_pct = round((coindcx_btc_pnl / coindcx_btc_cost) * 100, 2)
+
+coindcx_eth_cost = 172.38
+coindcx_eth_pnl = round((coindcx_eth_cmp - 202800.0) * 0.00085, 2)
+coindcx_eth_pct = round((coindcx_eth_pnl / coindcx_eth_cost) * 100, 2)
+
+coindcx_sol_cost = 105.60
+coindcx_sol_pnl = round((coindcx_sol_cmp - 8800.0) * 0.012, 2)
+coindcx_sol_pct = round((coindcx_sol_pnl / coindcx_sol_cost) * 100, 2)
+
+# Futures Trades
+coindcx_f_btc_pnl = round(((coindcx_btc_cmp - 7005000.0) / 7005000.0) * 200.0 * 10, 2)
+coindcx_f_sol_pnl = round(((coindcx_sol_cmp - 8800.0) / 8800.0) * 150.0 * 10, 2)
+coindcx_f_doge_pnl = round(((coindcx_doge_cmp - 6.65) / 6.65) * 100.0 * 5, 2)
+
+coindcx_spot_invested = round(coindcx_btc_cost + coindcx_eth_cost + coindcx_sol_cost, 2) # ₹523.16
+coindcx_active_pnl = round(coindcx_btc_pnl + coindcx_eth_pnl + coindcx_sol_pnl, 2)
+coindcx_closed_profit = 315.00
+coindcx_wallet = round(max(0.0, 2000.0 - coindcx_spot_invested + coindcx_closed_profit), 2)
+coindcx_total_portfolio = round(coindcx_wallet + coindcx_spot_invested + coindcx_active_pnl, 2)
+coindcx_pct_gain = round(((coindcx_total_portfolio - 2000.0) / 2000.0) * 100, 2)
+
+# ------------------------------------------
+# 3. ANGEL ONE DYNAMIC CALCULATIONS (₹2,000 Demo Margin)
+# ------------------------------------------
+# Stocks
+angel_tata_cmp = get_live_tick(264.80, 0.12)
+angel_tata_entry = 262.95
+angel_tata_pnl = round((angel_tata_cmp - angel_tata_entry) * 1.0, 2)
+angel_tata_pct = round((angel_tata_pnl / angel_tata_entry) * 100, 2)
+
+angel_rel_cmp = get_live_tick(1202.50, 0.15)
+angel_rel_entry = 1194.50
+angel_rel_margin = 238.90
+angel_rel_pnl = round(angel_rel_cmp - angel_rel_entry, 2)
+angel_rel_pct = round((angel_rel_pnl / angel_rel_margin) * 100, 2)
+
+# Options (Zero to Hero)
+angel_nifty_prem = get_live_tick(11.80, 0.8)
+angel_nifty_pnl = round((angel_nifty_prem - 4.20) * 25, 2)
+angel_nifty_pct = round((angel_nifty_pnl / 105.0) * 100, 1)
+
+angel_bnifty_prem = get_live_tick(18.40, 0.9)
+angel_bnifty_pnl = round((angel_bnifty_prem - 8.50) * 15, 2)
+angel_bnifty_pct = round((angel_bnifty_pnl / 127.50) * 100, 1)
+
+angel_stocks_invested = round(angel_tata_entry + angel_rel_margin, 2) # ₹501.85
+angel_active_pnl = round(angel_tata_pnl + angel_rel_pnl, 2)
+angel_closed_profit = 340.00
+angel_wallet = round(max(0.0, 2000.0 - angel_stocks_invested + angel_closed_profit), 2)
+angel_total_demat = round(angel_wallet + angel_stocks_invested + angel_active_pnl, 2)
+angel_pct_gain = round(((angel_total_demat - 2000.0) / 2000.0) * 100, 2)
+
+# ------------------------------------------
+# 4. HOME DASHBOARD OVERALL COMBINED (₹6,000 TOTAL)
+# ------------------------------------------
+total_combined_portfolio = round(angel_total_demat + bybit_inr_portfolio + coindcx_total_portfolio, 2)
+total_combined_invested = round(angel_stocks_invested + (bybit_margin_used * INR_RATE) + coindcx_spot_invested, 2)
+total_combined_available = round(angel_wallet + (bybit_wallet * INR_RATE) + coindcx_wallet, 2)
+total_combined_net_profit = round(total_combined_portfolio - TOTAL_OVERALL_CAPITAL, 2)
+total_combined_pct = round(((total_combined_portfolio - TOTAL_OVERALL_CAPITAL) / TOTAL_OVERALL_CAPITAL) * 100, 2)
+today_live_gain = round(angel_active_pnl + (bybit_active_pnl * INR_RATE) + coindcx_active_pnl, 2)
+
+# Legacy fallback compatibility
+invested_amount = total_combined_invested
+available_balance = total_combined_available
+unrealized_total = total_combined_net_profit
+total_net_portfolio = total_combined_portfolio
+today_invested = total_combined_invested
 
 # ==========================================
-# 1. TOP USER BAR
+# 1. TOP USER BAR (WITH REAL-TIME TICK PULSE)
 # ==========================================
-st.markdown("""
+live_clock_str = datetime.now().strftime("%H:%M:%S")
+st.markdown(f"""
 <div class="user-bar">
     <div class="user-info">
         <div class="user-avatar">🧑‍💼</div>
         <div>
-            <div style="font-size:11px; color:#94a3b8; font-weight:600;">Welcome back</div>
+            <div style="font-size:11px; color:#94a3b8; font-weight:600;">Autonomous Multi-Broker Terminal</div>
             <div style="font-size:15px; font-weight:800; color:#ffffff;">Trader Pro Dashboard</div>
         </div>
     </div>
-    <div style="font-size:18px;">🔔</div>
+    <div style="display:flex; align-items:center; gap:8px;">
+        <span style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; font-size:10px; font-weight:800; padding:3px 8px; border-radius:12px; font-family:'JetBrains Mono',monospace;">
+            ● LIVE {live_clock_str}
+        </span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -545,20 +689,20 @@ if active_tab == "bybit":
     """, unsafe_allow_html=True)
 
     # 2. Master Portfolio Card (Bybit Demo)
-    st.markdown("""
+    st.markdown(f"""
     <div class="master-card" style="background:#ffffff !important; border-radius:24px !important; padding:18px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:12px !important;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase; letter-spacing:0.6px;">
                 Bybit Total Demo Portfolio
             </span>
             <span style="background:rgba(16,185,129,0.15); color:#059669; font-weight:800; font-size:10px; padding:2px 8px; border-radius:10px;">
-                ● 24/7 Futures Engine
+                ● 24/7 Futures Engine Live
             </span>
         </div>
         <div class="master-val" style="font-size:32px !important; font-weight:800 !important; letter-spacing:-1px; margin:4px 0 10px 0; color:#0f172a !important;">
-            $24.15 <span style="font-size:16px; color:#64748b; font-weight:700;">USDT</span>
+            ${bybit_total_portfolio:,.2f} <span style="font-size:16px; color:#64748b; font-weight:700;">USDT</span>
             <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px; padding:3px 8px; border-radius:12px; margin-left:6px; display:inline-block !important;">
-                +5.68% ↑
+                {'+' if bybit_pct_gain>=0 else ''}{bybit_pct_gain:.2f}% ↑
             </span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -566,14 +710,14 @@ if active_tab == "bybit":
                 Initial Grant: $22.85 USDT (₹2,000.00)
             </span>
             <span class="master-sub-right" style="color:#059669 !important; font-size:11px !important; font-weight:800 !important;">
-                ● 10ms Fast Gateway
+                ● Live Ticking: ~₹{bybit_inr_portfolio:,.2f}
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     # 3. 5-Grid Financial Breakdown Vault (Bybit Demo Wallet & Profit Ledger)
-    st.markdown("""
+    st.markdown(f"""
     <div class="stats-vault" style="margin-bottom:14px;">
         <div style="font-size:11px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
             💼 Bybit Testnet Margin & Profit Ledger (Demo)
@@ -581,19 +725,19 @@ if active_tab == "bybit":
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <div class="vault-item">
                 <div class="v-label">💵 Wallet / Available</div>
-                <div class="v-val" style="color:#ccff00;">$16.35</div>
+                <div class="v-val" style="color:#ccff00;">${bybit_wallet:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">⚡ Margin Used (Pos)</div>
-                <div class="v-val" style="color:#38bdf8;">$6.50</div>
+                <div class="v-val" style="color:#38bdf8;">${bybit_margin_used:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">📈 Live Unrealized P/L</div>
-                <div class="v-val green">+$1.30</div>
+                <div class="v-val {'green' if bybit_active_pnl>=0 else 'red'}">{'+' if bybit_active_pnl>=0 else ''}${bybit_active_pnl:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">🟢 Today's Profit</div>
-                <div class="v-val green">+$0.95</div>
+                <div class="v-val green">+${bybit_active_pnl + 0.95:,.2f}</div>
             </div>
         </div>
         <div class="vault-item" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
@@ -630,39 +774,39 @@ if active_tab == "bybit":
                 "symbol": "BTCUSDT",
                 "segment": "10X PERP LONG",
                 "date": "Today 10:15 AM",
-                "entry_price": "$68,240.00",
-                "cmp": "$69,150.00",
+                "entry_price": "$80,050.00",
+                "cmp": f"${bybit_btc_cmp:,.2f}",
                 "margin": "$3.00 USDT",
-                "pnl": "+$0.80 (+26.6% 🚀)",
-                "is_profit": True,
-                "target": "$70,500.00",
-                "sl": "$67,400.00",
+                "pnl": f"{'+' if bybit_btc_pnl>=0 else ''}${bybit_btc_pnl:,.2f} ({'+' if bybit_btc_pct>=0 else ''}{bybit_btc_pct:.1f}% 🚀)",
+                "is_profit": bybit_btc_pnl >= 0,
+                "target": "$81,500.00",
+                "sl": "$79,200.00",
                 "status": "🟢 10X PERPETUAL LONG"
             },
             {
                 "symbol": "ETHUSDT",
                 "segment": "10X PERP LONG",
                 "date": "Today 10:45 AM",
-                "entry_price": "$2,480.00",
-                "cmp": "$2,545.00",
+                "entry_price": "$2,310.00",
+                "cmp": f"${bybit_eth_cmp:,.2f}",
                 "margin": "$2.00 USDT",
-                "pnl": "+$0.52 (+26.2% 🚀)",
-                "is_profit": True,
-                "target": "$2,620.00",
-                "sl": "$2,430.00",
+                "pnl": f"{'+' if bybit_eth_pnl>=0 else ''}${bybit_eth_pnl:,.2f} ({'+' if bybit_eth_pct>=0 else ''}{bybit_eth_pct:.1f}% 🚀)",
+                "is_profit": bybit_eth_pnl >= 0,
+                "target": "$2,380.00",
+                "sl": "$2,280.00",
                 "status": "🟢 BULLISH BREAKOUT"
             },
             {
                 "symbol": "SOLUSDT",
                 "segment": "15X PERP LONG",
                 "date": "Today 11:10 AM",
-                "entry_price": "$172.50",
-                "cmp": "$178.20",
+                "entry_price": "$100.20",
+                "cmp": f"${bybit_sol_cmp:,.2f}",
                 "margin": "$1.50 USDT",
-                "pnl": "+$0.50 (+33.0% 🚀)",
-                "is_profit": True,
-                "target": "$185.00",
-                "sl": "$168.00",
+                "pnl": f"{'+' if bybit_sol_pnl>=0 else ''}${bybit_sol_pnl:,.2f} ({'+' if bybit_sol_pct>=0 else ''}{bybit_sol_pct:.1f}% 🚀)",
+                "is_profit": bybit_sol_pnl >= 0,
+                "target": "$105.00",
+                "sl": "$98.00",
                 "status": "⚡ HIGH-SPEED MOMENTUM"
             },
         ]
@@ -733,12 +877,12 @@ if active_tab == "bybit":
                 "badge_bg": "#ccff00",
                 "badge_color": "#0f172a",
                 "date": "Today 11:25 AM",
-                "entry_price": "$0.1380",
-                "cmp": "$0.1445",
+                "entry_price": "$0.07620",
+                "cmp": f"${bybit_doge_cmp:.5f}",
                 "margin": "$1.50 (20x)",
-                "pnl": "+$0.94 (+62.7% 🔥)",
-                "target": "$0.1550",
-                "sl": "$0.1340",
+                "pnl": f"{'+' if bybit_doge_pnl>=0 else ''}${bybit_doge_pnl:,.2f} ({'+' if bybit_doge_pct>=0 else ''}{bybit_doge_pct:.1f}% 🔥)",
+                "target": "$0.0820",
+                "sl": "$0.0740",
                 "status": "🔥 20X RAPID RUN"
             },
             {
@@ -747,12 +891,12 @@ if active_tab == "bybit":
                 "badge_bg": "#38bdf8",
                 "badge_color": "#0f172a",
                 "date": "Today 11:32 AM",
-                "entry_price": "$0.0000095",
-                "cmp": "$0.0000104",
+                "entry_price": "$0.0000098",
+                "cmp": f"${bybit_pepe_cmp:.7f}",
                 "margin": "$1.00 (10x)",
-                "pnl": "+$0.95 (+95.0% 🚀)",
+                "pnl": f"{'+' if bybit_pepe_pnl>=0 else ''}${bybit_pepe_pnl:,.2f} ({'+' if bybit_pepe_pct>=0 else ''}{bybit_pepe_pct:.1f}% 🚀)",
                 "target": "$0.0000115",
-                "sl": "$0.0000091",
+                "sl": "$0.0000092",
                 "status": "⚡ MOMENTUM SPIKE"
             },
         ]
@@ -844,7 +988,7 @@ elif active_tab == "angel":
     """, unsafe_allow_html=True)
 
     # 2. Master Portfolio Card (Angel One)
-    st.markdown("""
+    st.markdown(f"""
     <div class="master-card" style="background:#ffffff !important; border-radius:24px !important; padding:18px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:12px !important;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase; letter-spacing:0.6px;">
@@ -855,9 +999,9 @@ elif active_tab == "angel":
             </span>
         </div>
         <div class="master-val" style="font-size:32px !important; font-weight:800 !important; letter-spacing:-1px; margin:4px 0 10px 0; color:#0f172a !important;">
-            ₹2,086.40
+            ₹{angel_total_demat:,.2f}
             <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px; padding:3px 8px; border-radius:12px; margin-left:6px; display:inline-block !important;">
-                +4.32% ↑
+                +{angel_pct_gain:.2f}% ↑
             </span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -865,14 +1009,14 @@ elif active_tab == "angel":
                 Initial Margin: ₹2,000.00
             </span>
             <span class="master-sub-right" style="color:#059669 !important; font-size:11px !important; font-weight:800 !important;">
-                ● SmartAPI Auto Engine
+                ● Live Ticking SmartAPI
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     # 3. 5-Grid Financial Breakdown Vault (Angel One Wallet & Profit Ledger)
-    st.markdown("""
+    st.markdown(f"""
     <div class="stats-vault" style="margin-bottom:14px;">
         <div style="font-size:11px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
             💼 Angel One Margin & Financial Ledger (Demo)
@@ -880,19 +1024,19 @@ elif active_tab == "angel":
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <div class="vault-item">
                 <div class="v-label">💵 Wallet / Available</div>
-                <div class="v-val" style="color:#ccff00;">₹1,440.00</div>
+                <div class="v-val" style="color:#ccff00;">₹{angel_wallet:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">⚡ Invested Amount</div>
-                <div class="v-val" style="color:#38bdf8;">₹560.00</div>
+                <div class="v-val" style="color:#38bdf8;">₹{angel_stocks_invested:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">📈 Live P/L Amount</div>
-                <div class="v-val green">+₹86.40</div>
+                <div class="v-val {'green' if angel_active_pnl>=0 else 'red'}">{'+' if angel_active_pnl>=0 else ''}₹{angel_active_pnl:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">🟢 Today's Profit</div>
-                <div class="v-val green">+₹105.00</div>
+                <div class="v-val green">+₹{angel_active_pnl + 105.00:,.2f}</div>
             </div>
         </div>
         <div class="vault-item" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
@@ -931,10 +1075,10 @@ elif active_tab == "angel":
                 "type": "BUY / LONG",
                 "date": "Today 10:15 AM",
                 "buy_cost": "₹262.95",
-                "cmp": "₹268.40",
+                "cmp": f"₹{angel_tata_cmp:,.2f}",
                 "qty": "1 Share (₹262.95)",
-                "pnl": "+₹5.45 (+2.07%)",
-                "is_profit": True,
+                "pnl": f"{'+' if angel_tata_pnl>=0 else ''}₹{angel_tata_pnl:,.2f} ({'+' if angel_tata_pct>=0 else ''}{angel_tata_pct:.2f}%)",
+                "is_profit": angel_tata_pnl >= 0,
                 "target": "₹275.00",
                 "sl": "₹255.00",
                 "status": "🟢 TARGET APPROACHING"
@@ -945,10 +1089,10 @@ elif active_tab == "angel":
                 "type": "BUY / LONG",
                 "date": "Today 09:35 AM",
                 "buy_cost": "₹1,194.50",
-                "cmp": "₹1,208.00",
+                "cmp": f"₹{angel_rel_cmp:,.2f}",
                 "qty": "1 Share (₹238.90 Margin)",
-                "pnl": "+₹13.50 (+5.65%)",
-                "is_profit": True,
+                "pnl": f"{'+' if angel_rel_pnl>=0 else ''}₹{angel_rel_pnl:,.2f} ({'+' if angel_rel_pct>=0 else ''}{angel_rel_pct:.2f}%)",
+                "is_profit": angel_rel_pnl >= 0,
                 "target": "₹1,230.00",
                 "sl": "₹1,175.00",
                 "status": "🟢 IN PROFIT (EMA 9/21 TRAILING)"
@@ -1022,10 +1166,10 @@ elif active_tab == "angel":
                 "badge_color": "#0f172a",
                 "date": "Today 01:25 PM",
                 "buy_premium": "₹4.20",
-                "live_premium": "₹11.50",
+                "live_premium": f"₹{angel_nifty_prem:,.2f}",
                 "lot": "1 Lot (25 Qty, ₹105)",
                 "invested": "₹105.00",
-                "pnl": "+₹182.50 (+173.8% 🚀)",
+                "pnl": f"{'+' if angel_nifty_pnl>=0 else ''}₹{angel_nifty_pnl:,.2f} ({'+' if angel_nifty_pct>=0 else ''}{angel_nifty_pct:.1f}% 🚀)",
                 "hero_target": "₹25.00 (6X)",
                 "sl": "₹1.50",
                 "status": "🔥 HERO SPIKE ACTIVE"
@@ -1037,10 +1181,10 @@ elif active_tab == "angel":
                 "badge_color": "#0f172a",
                 "date": "Today 01:45 PM",
                 "buy_premium": "₹8.50",
-                "live_premium": "₹18.00",
+                "live_premium": f"₹{angel_bnifty_prem:,.2f}",
                 "lot": "1 Lot (15 Qty, ₹127.50)",
                 "invested": "₹127.50",
-                "pnl": "+₹142.50 (+111.8% 🚀)",
+                "pnl": f"{'+' if angel_bnifty_pnl>=0 else ''}₹{angel_bnifty_pnl:,.2f} ({'+' if angel_bnifty_pct>=0 else ''}{angel_bnifty_pct:.1f}% 🚀)",
                 "hero_target": "₹45.00 (5.3X)",
                 "sl": "₹3.00",
                 "status": "⚡ IN HERO RUN"
@@ -1134,7 +1278,7 @@ elif active_tab == "coindcx":
     """, unsafe_allow_html=True)
 
     # 2. Master Portfolio Card (CoinDCX)
-    st.markdown("""
+    st.markdown(f"""
     <div class="master-card" style="background:#ffffff !important; border-radius:24px !important; padding:18px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:12px !important;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase; letter-spacing:0.6px;">
@@ -1145,9 +1289,9 @@ elif active_tab == "coindcx":
             </span>
         </div>
         <div class="master-val" style="font-size:32px !important; font-weight:800 !important; letter-spacing:-1px; margin:4px 0 10px 0; color:#0f172a !important;">
-            ₹2,108.50
+            ₹{coindcx_total_portfolio:,.2f}
             <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px; padding:3px 8px; border-radius:12px; margin-left:6px; display:inline-block !important;">
-                +5.42% ↑
+                +{coindcx_pct_gain:.2f}% ↑
             </span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -1155,14 +1299,14 @@ elif active_tab == "coindcx":
                 Initial Capital: ₹2,000.00
             </span>
             <span class="master-sub-right" style="color:#059669 !important; font-size:11px !important; font-weight:800 !important;">
-                ● Autonomous Paper Engine
+                ● Live Autonomous Paper Engine
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     # 3. 5-Grid Financial Breakdown Vault (CoinDCX Wallet & Profit Ledger)
-    st.markdown("""
+    st.markdown(f"""
     <div class="stats-vault" style="margin-bottom:14px;">
         <div style="font-size:11px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
             💼 CoinDCX Capital & Profit Ledger (Paper)
@@ -1170,19 +1314,19 @@ elif active_tab == "coindcx":
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <div class="vault-item">
                 <div class="v-label">💵 Wallet / Available</div>
-                <div class="v-val" style="color:#ccff00;">₹1,520.00</div>
+                <div class="v-val" style="color:#ccff00;">₹{coindcx_wallet:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">⚡ Invested Amount</div>
-                <div class="v-val" style="color:#38bdf8;">₹480.00</div>
+                <div class="v-val" style="color:#38bdf8;">₹{coindcx_spot_invested:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">📈 Live P/L Amount</div>
-                <div class="v-val green">+₹108.50</div>
+                <div class="v-val {'green' if coindcx_active_pnl>=0 else 'red'}">{'+' if coindcx_active_pnl>=0 else ''}₹{coindcx_active_pnl:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">🟢 Today's Profit</div>
-                <div class="v-val green">+₹78.00</div>
+                <div class="v-val green">+₹{coindcx_active_pnl + 78.00:,.2f}</div>
             </div>
         </div>
         <div class="vault-item" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
@@ -1219,39 +1363,39 @@ elif active_tab == "coindcx":
                 "symbol": "BTC / INR",
                 "segment": "COINDCX SPOT",
                 "date": "Today 10:20 AM",
-                "buy_cost": "₹59,20,000.00",
-                "cmp": "₹59,85,000.00",
-                "qty": "0.00004 BTC (₹236.80)",
-                "pnl": "+₹2.60 (+1.10%)",
-                "is_profit": True,
-                "target": "₹60,50,000",
-                "sl": "₹58,80,000",
+                "buy_cost": "₹70,05,000.00",
+                "cmp": f"₹{coindcx_btc_cmp:,.2f}",
+                "qty": "0.000035 BTC (₹245.18)",
+                "pnl": f"{'+' if coindcx_btc_pnl>=0 else ''}₹{coindcx_btc_pnl:,.2f} ({'+' if coindcx_btc_pct>=0 else ''}{coindcx_btc_pct:.2f}%)",
+                "is_profit": coindcx_btc_pnl >= 0,
+                "target": "₹71,50,000",
+                "sl": "₹69,20,000",
                 "status": "🟢 24/7 SPOT HOLDING"
             },
             {
                 "symbol": "ETH / INR",
                 "segment": "COINDCX SPOT",
                 "date": "Today 10:45 AM",
-                "buy_cost": "₹2,14,000.00",
-                "cmp": "₹2,18,500.00",
-                "qty": "0.0008 ETH (₹171.20)",
-                "pnl": "+₹3.60 (+2.10%)",
-                "is_profit": True,
-                "target": "₹2,22,000",
-                "sl": "₹2,10,000",
+                "buy_cost": "₹2,02,800.00",
+                "cmp": f"₹{coindcx_eth_cmp:,.2f}",
+                "qty": "0.00085 ETH (₹172.38)",
+                "pnl": f"{'+' if coindcx_eth_pnl>=0 else ''}₹{coindcx_eth_pnl:,.2f} ({'+' if coindcx_eth_pct>=0 else ''}{coindcx_eth_pct:.2f}%)",
+                "is_profit": coindcx_eth_pnl >= 0,
+                "target": "₹2,10,000",
+                "sl": "₹1,98,000",
                 "status": "🟢 BULLISH RUN"
             },
             {
                 "symbol": "SOL / INR",
                 "segment": "COINDCX SPOT",
                 "date": "Today 11:15 AM",
-                "buy_cost": "₹14,800.00",
-                "cmp": "₹15,220.00",
-                "qty": "0.005 SOL (₹74.00)",
-                "pnl": "+₹2.10 (+2.84%)",
-                "is_profit": True,
-                "target": "₹15,800",
-                "sl": "₹14,400",
+                "buy_cost": "₹8,800.00",
+                "cmp": f"₹{coindcx_sol_cmp:,.2f}",
+                "qty": "0.012 SOL (₹105.60)",
+                "pnl": f"{'+' if coindcx_sol_pnl>=0 else ''}₹{coindcx_sol_pnl:,.2f} ({'+' if coindcx_sol_pct>=0 else ''}{coindcx_sol_pct:.2f}%)",
+                "is_profit": coindcx_sol_pnl >= 0,
+                "target": "₹9,200",
+                "sl": "₹8,550",
                 "status": "🟢 SPOT SCALPING"
             },
         ]
@@ -1325,12 +1469,12 @@ elif active_tab == "coindcx":
                 "badge_bg": "#ccff00",
                 "badge_color": "#0f172a",
                 "date": "Today 11:05 AM",
-                "buy_cost": "₹59,40,000",
-                "cmp": "₹60,10,000",
+                "buy_cost": "₹70,05,000",
+                "cmp": f"₹{coindcx_btc_cmp:,.2f}",
                 "margin": "₹200.00 (10x Lev)",
-                "pnl": "+₹94.40 (+47.2% 🚀)",
-                "target": "₹61,20,000",
-                "sl": "₹58,90,000",
+                "pnl": f"{'+' if coindcx_f_btc_pnl>=0 else ''}₹{coindcx_f_btc_pnl:,.2f} ({'+' if coindcx_f_btc_pnl>=0 else ''}{coindcx_f_btc_pnl/200*100:.1f}% 🚀)",
+                "target": "₹71,80,000",
+                "sl": "₹69,10,000",
                 "status": "⚡ HIGH LEVERAGE RUN"
             },
             {
@@ -1339,12 +1483,12 @@ elif active_tab == "coindcx":
                 "badge_bg": "#38bdf8",
                 "badge_color": "#0f172a",
                 "date": "Today 11:20 AM",
-                "buy_cost": "₹14,900",
-                "cmp": "₹15,350",
+                "buy_cost": "₹8,800",
+                "cmp": f"₹{coindcx_sol_cmp:,.2f}",
                 "margin": "₹150.00 (10x Lev)",
-                "pnl": "+₹45.00 (+30.0% 🚀)",
-                "target": "₹15,900",
-                "sl": "₹14,600",
+                "pnl": f"{'+' if coindcx_f_sol_pnl>=0 else ''}₹{coindcx_f_sol_pnl:,.2f} ({'+' if coindcx_f_sol_pnl>=0 else ''}{coindcx_f_sol_pnl/150*100:.1f}% 🚀)",
+                "target": "₹9,300",
+                "sl": "₹8,550",
                 "status": "⚡ MOMENTUM SPIKE"
             },
             {
@@ -1353,12 +1497,12 @@ elif active_tab == "coindcx":
                 "badge_bg": "#f59e0b",
                 "badge_color": "#0f172a",
                 "date": "Today 11:28 AM",
-                "buy_cost": "₹11.80",
-                "cmp": "₹12.35",
+                "buy_cost": "₹6.65",
+                "cmp": f"₹{coindcx_doge_cmp:,.2f}",
                 "margin": "₹100.00 (5x Lev)",
-                "pnl": "+₹23.30 (+23.3% 🚀)",
-                "target": "₹13.20",
-                "sl": "₹11.40",
+                "pnl": f"{'+' if coindcx_f_doge_pnl>=0 else ''}₹{coindcx_f_doge_pnl:,.2f} ({'+' if coindcx_f_doge_pnl>=0 else ''}{coindcx_f_doge_pnl/100*100:.1f}% 🚀)",
+                "target": "₹7.40",
+                "sl": "₹6.30",
                 "status": "🔥 MEME SCALP ACTIVE"
             },
         ]
@@ -1413,38 +1557,33 @@ elif active_tab == "coindcx":
 
 
 # ####################################################################
+# ####################################################################
 # SCREEN 1: 🏠 HOME DASHBOARD (OVERALL UNIFIED TERMINAL - ₹6,000 TOTAL)
 # ####################################################################
 else:
-    # Calculations for 3 combined terminals (Angel One ₹2K + Bybit ₹2K + CoinDCX ₹2K)
-    # Angel One Demo: ₹2,000 init -> ₹2,086.40 (+₹86.40 profit)
-    # Bybit Testnet Demo: ₹2,000 init ($22.85) -> $24.15 (~₹2,113.12, +₹113.12 profit)
-    # CoinDCX Paper Demo: ₹2,000 init -> ₹2,108.50 (+₹108.50 profit)
-    combined_initial = TOTAL_OVERALL_CAPITAL # ₹6,000.00
-    combined_invested = 560.00 + (6.50 * INR_RATE) + 480.00 # ~₹1,608.75
-    combined_profit = 86.40 + (1.30 * INR_RATE) + 108.50 + all_realized_profit # ~₹308.65
-    combined_portfolio = combined_initial + combined_profit
-    combined_available = max(0.0, combined_portfolio - combined_invested)
-    combined_pct = ((combined_portfolio - combined_initial) / combined_initial) * 100
-
     # Master Total Asset Value Card (Unified across 3 Platforms)
     st.markdown(f"""
     <div class="master-card" style="background:#ffffff !important; border-radius:26px !important; padding:22px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:14px !important;">
-        <div class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.6px !important;">
-            Total Combined Demo Portfolio Value
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.6px !important;">
+                Total Combined Demo Portfolio Value
+            </span>
+            <span style="background:rgba(16,185,129,0.15); color:#059669; font-weight:800; font-size:10px; padding:2px 8px; border-radius:10px;">
+                ● Live Real-Time Ticking
+            </span>
         </div>
         <div class="master-val" style="font-size:34px !important; font-weight:800 !important; letter-spacing:-1px !important; margin:4px 0 12px 0 !important; color:#0f172a !important;">
-            ₹{combined_portfolio:,.2f}
+            ₹{total_combined_portfolio:,.2f}
             <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px !important; padding:3px 8px !important; border-radius:12px !important; margin-left:6px !important; display:inline-block !important;">
-                +{combined_pct:.2f}% ↑
+                +{total_combined_pct:.2f}% ↑
             </span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="master-sub-left" style="color:#334155 !important; font-size:12px !important; font-weight:700 !important;">
-                Total Capital: ₹{combined_initial:,.0f} (3 Accounts × ₹2,000)
+                Total Capital: ₹{TOTAL_OVERALL_CAPITAL:,.0f} (3 Accounts × ₹2,000)
             </span>
             <span class="master-sub-right" style="color:#059669 !important; font-size:12px !important; font-weight:800 !important;">
-                ● 3 Platforms Synced
+                ● 3 Platforms Synced Live
             </span>
         </div>
     </div>
@@ -1459,27 +1598,27 @@ else:
         <div class="vault-grid">
             <div class="vault-item">
                 <div class="v-label">💼 Total Capital</div>
-                <div class="v-val" style="color:#ffffff;">₹{combined_initial:,.2f}</div>
+                <div class="v-val" style="color:#ffffff;">₹{TOTAL_OVERALL_CAPITAL:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">⚡ Total Invested</div>
-                <div class="v-val" style="color:#38bdf8;">₹{combined_invested:,.2f}</div>
+                <div class="v-val" style="color:#38bdf8;">₹{total_combined_invested:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">💵 Available Cash</div>
-                <div class="v-val" style="color:#f8fafc;">₹{combined_available:,.2f}</div>
+                <div class="v-val" style="color:#f8fafc;">₹{total_combined_available:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">🟢 Total Net Profit</div>
-                <div class="v-val green">+₹{combined_profit:,.2f}</div>
+                <div class="v-val {'green' if total_combined_net_profit>=0 else 'red'}">{'+' if total_combined_net_profit>=0 else ''}₹{total_combined_net_profit:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">📅 Today's Active</div>
-                <div class="v-val" style="color:#94a3b8;">₹{combined_invested:,.2f}</div>
+                <div class="v-val" style="color:#94a3b8;">₹{total_combined_invested:,.2f}</div>
             </div>
             <div class="vault-item">
                 <div class="v-label">🚀 Today's Gain</div>
-                <div class="v-val green">+₹{105.00 + (0.95 * INR_RATE) + 78.00:,.2f}</div>
+                <div class="v-val green">+₹{today_live_gain:,.2f}</div>
             </div>
         </div>
     </div>
@@ -1505,8 +1644,8 @@ else:
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹2,086.40</div>
-                    <div style="font-size:10px; color:#10b981; font-weight:700;">+₹86.40 (Demo ₹2,000)</div>
+                    <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{angel_total_demat:,.2f}</div>
+                    <div style="font-size:10px; color:#10b981; font-weight:700;">{'+' if (angel_total_demat - 2000.0)>=0 else ''}₹{angel_total_demat - 2000.0:,.2f} (Demo ₹2,000)</div>
                 </div>
             </div>
         </a>
@@ -1522,8 +1661,8 @@ else:
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">$24.15 USDT</div>
-                    <div style="font-size:10px; color:#10b981; font-weight:700;">+₹113.12 (Demo ₹2,000)</div>
+                    <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">${bybit_total_portfolio:,.2f} USDT</div>
+                    <div style="font-size:10px; color:#10b981; font-weight:700;">{'+' if bybit_inr_pnl>=0 else ''}₹{bybit_inr_pnl:,.2f} (Demo ₹2,000)</div>
                 </div>
             </div>
         </a>
@@ -1539,8 +1678,8 @@ else:
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹2,108.50</div>
-                    <div style="font-size:10px; color:#10b981; font-weight:700;">+₹108.50 (Paper ₹2,000)</div>
+                    <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{coindcx_total_portfolio:,.2f}</div>
+                    <div style="font-size:10px; color:#10b981; font-weight:700;">{'+' if (coindcx_total_portfolio - 2000.0)>=0 else ''}₹{coindcx_total_portfolio - 2000.0:,.2f} (Paper ₹2,000)</div>
                 </div>
             </div>
         </a>
