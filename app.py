@@ -21,46 +21,187 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom Ultra-Modern Fintech Styling with Fixed Bottom Navigation Bar
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+# ==========================================
+# SEAMLESS THEME ENGINE (SUN ☀️ WHITE / MOON 🌙 DARK)
+# ==========================================
+active_tab = "home"
+sub_tab = ""
+current_theme = st.session_state.get("app_theme", "dark")
 
-    html, body, [class*="stApp"] {
-        background-color: #0b0f19 !important;
-        color: #f8fafc !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
+try:
+    if hasattr(st, "query_params"):
+        val = st.query_params.get("tab", "home")
+        active_tab = val[0] if isinstance(val, list) else str(val)
+        sub_val = st.query_params.get("sub", "")
+        sub_tab = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
+        q_theme = st.query_params.get("theme", None)
+        if q_theme:
+            q_theme_str = q_theme[0] if isinstance(q_theme, list) else str(q_theme)
+            if q_theme_str in ["light", "dark"]:
+                current_theme = q_theme_str
+    elif hasattr(st, "experimental_get_query_params"):
+        val = st.experimental_get_query_params().get("tab", ["home"])
+        active_tab = val[0] if isinstance(val, list) else str(val)
+        sub_val = st.experimental_get_query_params().get("sub", [""])
+        sub_tab = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
+        q_theme = st.experimental_get_query_params().get("theme", [None])[0]
+        if q_theme and q_theme in ["light", "dark"]:
+            current_theme = q_theme
+except Exception:
+    active_tab = "home"
+    sub_tab = ""
+
+active_tab = (active_tab or "home").lower().strip()
+sub_tab = (sub_tab or "").lower().strip()
+st.session_state.app_theme = current_theme
+is_dark = (current_theme == "dark")
+theme_suffix = f"&theme={current_theme}"
+
+# Custom Ultra-Modern Fintech Styling with Dynamic White / Dark Theme Support
+light_theme_css = """
+    /* ================================================== */
+    /* DYNAMIC WHITE THEME OVERRIDES (SUN ☀️ MODE)        */
+    /* ================================================== */
+    html, body, [class*="stApp"], .stApp {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
     }
 
     [data-testid="stVerticalBlockBorderWrapper"] {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.05) !important;
+        color: #0f172a !important;
+    }
+
+    .stats-vault {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.05) !important;
+    }
+    .vault-item {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    .v-label {
+        color: #64748b !important;
+    }
+    .v-val {
+        color: #0f172a !important;
+    }
+
+    .master-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.06) !important;
+    }
+
+    .fixed-bottom-bar {
+        background: rgba(255, 255, 255, 0.96) !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 -4px 25px rgba(0,0,0,0.08) !important;
+    }
+    .nav-icon-active {
+        background: #0f172a !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(15,23,42,0.25) !important;
+    }
+    .nav-btn span {
+        color: #64748b !important;
+    }
+
+    /* Override dark containers and nested cards */
+    [style*="background:#090d16"], [style*="background: #090d16"] {
+        background: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+    }
+    [style*="background:#111827"], [style*="background: #111827"] {
+        background: #ffffff !important;
+        border-color: #e2e8f0 !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+    }
+    [style*="background:#0b0f19"], [style*="background: #0b0f19"] {
+        background: #f1f5f9 !important;
+    }
+    [style*="background:#1e293b"], [style*="background: #1e293b"] {
+        background: #e2e8f0 !important;
+    }
+
+    /* Text overrides in Light Mode */
+    [style*="color:#ffffff"], [style*="color: #ffffff"], [style*="color:#fff"], [style*="color:#f8fafc"], [style*="color: #f8fafc"] {
+        color: #0f172a !important;
+    }
+    [style*="color:#94a3b8"], [style*="color: #94a3b8"], [style*="color:#cbd5e1"], [style*="color: #cbd5e1"] {
+        color: #64748b !important;
+    }
+    [style*="color:#ccff00"], [style*="color: #ccff00"], .lime {
+        color: #0d9488 !important;
+    }
+
+    /* Border overrides */
+    [style*="border:1px solid #1e293b"], [style*="border: 1px solid #1e293b"], 
+    [style*="border:1px solid #1f2937"], [style*="border: 1px solid #1f2937"] {
+        border-color: #e2e8f0 !important;
+    }
+    [style*="border:1px dashed #334155"], [style*="border: 1px dashed #334155"] {
+        border-color: #cbd5e1 !important;
+        background: #f8fafc !important;
+    }
+
+    .theme-switch-bar {
+        background: #e2e8f0 !important;
+        border-color: #cbd5e1 !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.06) !important;
+    }
+    .theme-btn-active-sun {
+        background: #ffffff !important;
+        border: 1.5px solid #f59e0b !important;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35) !important;
+    }
+    .theme-btn-inactive {
+        opacity: 0.45 !important;
+    }
+""" if not is_dark else ""
+
+st.markdown(f"""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+
+    html, body, [class*="stApp"] {{
+        background-color: #0b0f19 !important;
+        color: #f8fafc !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }}
+
+    [data-testid="stVerticalBlockBorderWrapper"] {{
         background: #111827 !important;
         border: 1px solid #1f2937 !important;
         border-radius: 18px !important;
         color: #f8fafc !important;
-    }
+    }}
     
-    .block-container {
+    .block-container {{
         padding-top: 0.5rem !important;
         padding-bottom: 95px !important; /* Space so fixed bottom bar never overlaps content */
         padding-left: 0.6rem !important;
         padding-right: 0.6rem !important;
         max-width: 440px !important;
         margin: auto !important;
-    }
+    }}
 
     /* User Profile Bar */
-    .user-bar {
+    .user-bar {{
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 6px 4px 12px 4px;
-    }
-    .user-info {
+    }}
+    .user-info {{
         display: flex;
         align-items: center;
         gap: 10px;
-    }
-    .user-avatar {
+    }}
+    .user-avatar {{
         width: 38px;
         height: 38px;
         background: #e2e8f0;
@@ -69,32 +210,32 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         font-size: 18px;
-    }
+    }}
 
     /* Master Total Asset Card (Reference Image White Surface) */
-    .master-card {
+    .master-card {{
         background: #ffffff !important;
         border-radius: 26px !important;
         padding: 22px 20px !important;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
         margin-bottom: 14px !important;
         color: #0f172a !important;
-    }
-    .master-card .master-label {
+    }}
+    .master-card .master-label {{
         font-size: 11px !important;
         font-weight: 700 !important;
         color: #64748b !important;
         text-transform: uppercase !important;
         letter-spacing: 0.6px !important;
-    }
-    .master-card .master-val {
+    }}
+    .master-card .master-val {{
         font-size: 34px !important;
         font-weight: 800 !important;
         letter-spacing: -1px !important;
         margin: 4px 0 12px 0 !important;
         color: #0f172a !important;
-    }
-    .master-card .pill-lime {
+    }}
+    .master-card .pill-lime {{
         background: #ccff00 !important;
         color: #0f172a !important;
         font-weight: 800 !important;
@@ -104,72 +245,117 @@ st.markdown("""
         vertical-align: middle !important;
         margin-left: 6px !important;
         display: inline-block !important;
-    }
-    .master-card .master-sub-left {
+    }}
+    .master-card .master-sub-left {{
         color: #475569 !important;
         font-size: 12px !important;
         font-weight: 700 !important;
-    }
-    .master-card .master-sub-right {
+    }}
+    .master-card .master-sub-right {{
         color: #059669 !important;
         font-size: 12px !important;
         font-weight: 800 !important;
-    }
+    }}
 
     /* 6-Grid Financial Stats Card (Comprehensive Account Ledger) */
-    .stats-vault {
+    .stats-vault {{
         background: #111827;
         border: 1px solid #1f2937;
         border-radius: 22px;
         padding: 16px;
         margin-bottom: 14px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    }
-    .vault-grid {
+    }}
+    .vault-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
-    }
-    .vault-item {
+    }}
+    .vault-item {{
         background: #090d16;
         border: 1px solid #1e293b;
         padding: 10px 12px;
         border-radius: 14px;
-    }
-    .v-label {
+    }}
+    .v-label {{
         font-size: 10px;
         color: #94a3b8;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.4px;
-    }
-    .v-val {
+    }}
+    .v-val {{
         font-size: 15px;
         font-weight: 800;
         margin-top: 3px;
         font-family: 'JetBrains Mono', monospace;
-    }
+    }}
 
     /* Pastel Mini Cards */
-    .card-mint {
+    .card-mint {{
         background: #d1fae5 !important;
         border-radius: 18px !important;
         padding: 14px !important;
-    }
-    .card-mint, .card-mint * {
+    }}
+    .card-mint, .card-mint * {{
         color: #064e3b !important;
-    }
-    .card-lavender {
+    }}
+    .card-lavender {{
         background: #ede9fe !important;
         border-radius: 18px !important;
         padding: 14px !important;
-    }
-    .card-lavender, .card-lavender * {
+    }}
+    .card-lavender, .card-lavender * {{
         color: #3b0764 !important;
-    }
+    }}
+
+    /* Sun / Moon Theme Switcher */
+    .theme-switch-bar {{
+        display: inline-flex;
+        align-items: center;
+        background: #090d16;
+        border: 1px solid #1e293b;
+        border-radius: 20px;
+        padding: 2px 3px;
+        gap: 3px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }}
+    .theme-btn {{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 14px;
+        font-size: 13px;
+        text-decoration: none !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        user-select: none;
+    }}
+    .theme-btn-active-sun {{
+        background: #ffffff !important;
+        border: 1.5px solid #f59e0b !important;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.45) !important;
+        transform: scale(1.08);
+    }}
+    .theme-btn-active-moon {{
+        background: #1e293b !important;
+        border: 1.5px solid #ccff00 !important;
+        box-shadow: 0 0 10px rgba(204, 255, 0, 0.4) !important;
+        transform: scale(1.08);
+    }}
+    .theme-btn-inactive {{
+        opacity: 0.4;
+        filter: grayscale(40%);
+    }}
+    .theme-btn-inactive:hover {{
+        opacity: 0.85;
+        filter: grayscale(0%);
+    }}
 
     /* FIXED MOBILE BOTTOM APP MENU BAR (Stick to bottom of screen permanently) */
-    .fixed-bottom-bar {
+    .fixed-bottom-bar {{
         position: fixed;
         bottom: 12px;
         left: 50%;
@@ -187,8 +373,8 @@ st.markdown("""
         align-items: center;
         box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         z-index: 9999;
-    }
-    .nav-btn {
+    }}
+    .nav-btn {{
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -198,12 +384,12 @@ st.markdown("""
         font-weight: 700;
         text-decoration: none !important;
         cursor: pointer;
-    }
-    .nav-btn:visited, .nav-btn:hover, .nav-btn:active {
+    }}
+    .nav-btn:visited, .nav-btn:hover, .nav-btn:active {{
         text-decoration: none !important;
         color: inherit !important;
-    }
-    .nav-icon-active {
+    }}
+    .nav-icon-active {{
         width: 38px;
         height: 38px;
         background: #ccff00;
@@ -214,8 +400,8 @@ st.markdown("""
         color: #0f172a;
         font-size: 18px;
         box-shadow: 0 0 12px rgba(204, 255, 0, 0.4);
-    }
-    .nav-icon {
+    }}
+    .nav-icon {{
         width: 38px;
         height: 38px;
         border-radius: 50%;
@@ -224,15 +410,17 @@ st.markdown("""
         justify-content: center;
         font-size: 18px;
         color: #64748b;
-    }
+    }}
 
     /* Utility Colors */
-    .green { color: #10b981 !important; }
-    .red { color: #ef4444 !important; }
-    .lime { color: #ccff00 !important; }
+    .green {{ color: #10b981 !important; }}
+    .red {{ color: #ef4444 !important; }}
+    .lime {{ color: #ccff00 !important; }}
 
     /* Hide Streamlit Clutter */
-    #MainMenu, footer, header { visibility: hidden !important; }
+    #MainMenu, footer, header {{ visibility: hidden !important; }}
+
+    {light_theme_css}
 </style>
 """, unsafe_allow_html=True)
 
@@ -621,52 +809,41 @@ total_net_portfolio = total_combined_portfolio
 today_invested = total_combined_invested
 
 # ==========================================
-# 1. TOP USER BAR (WITH REAL-TIME TICK PULSE)
+# 1. TOP USER BAR (WITH REAL-TIME TICK PULSE & SUN ☀️ / MOON 🌙 THEME TOGGLE)
 # ==========================================
 live_clock_str = datetime.now().strftime("%H:%M:%S")
+toggle_target_light = f"?tab={active_tab}{f'&sub={sub_tab}' if sub_tab else ''}&theme=light"
+toggle_target_dark = f"?tab={active_tab}{f'&sub={sub_tab}' if sub_tab else ''}&theme=dark"
+
+angel_sub = sub_tab if sub_tab in ["stocks", "zerohero"] else "stocks"
+coindcx_sub = sub_tab if sub_tab in ["spot", "futures"] else "spot"
+bybit_sub = sub_tab if sub_tab in ["perpetual", "scalp"] else "perpetual"
+
 st.markdown(f"""
 <div class="user-bar">
     <div class="user-info">
         <div class="user-avatar">🧑‍💼</div>
         <div>
-            <div style="font-size:11px; color:#94a3b8; font-weight:600;">Autonomous Multi-Broker Terminal</div>
-            <div style="font-size:15px; font-weight:800; color:#ffffff;">Trader Pro Dashboard</div>
+            <div style="font-size:11px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:600;">Autonomous Multi-Broker Terminal</div>
+            <div style="font-size:15px; font-weight:800; color:{'#ffffff' if is_dark else '#0f172a'};">Trader Pro Dashboard</div>
         </div>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-        <span style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; font-size:10px; font-weight:800; padding:3px 8px; border-radius:12px; font-family:'JetBrains Mono',monospace;">
+        <span style="background:{'rgba(16,185,129,0.15)' if is_dark else 'rgba(16,185,129,0.1)'}; border:1px solid #10b981; color:#10b981; font-size:10px; font-weight:800; padding:3px 7px; border-radius:12px; font-family:'JetBrains Mono',monospace;">
             ● LIVE {live_clock_str}
         </span>
+        <!-- Sun (White Theme) / Moon (Dark Theme) Switch Toggle -->
+        <div class="theme-switch-bar">
+            <a href="{toggle_target_light}" target="_self" class="theme-btn {'theme-btn-active-sun' if not is_dark else 'theme-btn-inactive'}" title="Light Theme (White Mode)">
+                ☀️
+            </a>
+            <a href="{toggle_target_dark}" target="_self" class="theme-btn {'theme-btn-active-moon' if is_dark else 'theme-btn-inactive'}" title="Dark Theme (Dark Mode)">
+                🌙
+            </a>
+        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-# ==========================================
-# SEAMLESS URL QUERY PARAMETER NAVIGATION (NO TOP RADIO BUTTONS)
-# ==========================================
-active_tab = "home"
-sub_tab = ""
-try:
-    if hasattr(st, "query_params"):
-        val = st.query_params.get("tab", "home")
-        active_tab = val[0] if isinstance(val, list) else str(val)
-        sub_val = st.query_params.get("sub", "")
-        sub_tab = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
-    elif hasattr(st, "experimental_get_query_params"):
-        val = st.experimental_get_query_params().get("tab", ["home"])
-        active_tab = val[0] if isinstance(val, list) else str(val)
-        sub_val = st.experimental_get_query_params().get("sub", [""])
-        sub_tab = sub_val[0] if isinstance(sub_val, list) else str(sub_val)
-except Exception:
-    active_tab = "home"
-    sub_tab = ""
-
-active_tab = (active_tab or "home").lower().strip()
-sub_tab = (sub_tab or "").lower().strip()
-
-angel_sub = sub_tab if sub_tab in ["stocks", "zerohero"] else "stocks"
-coindcx_sub = sub_tab if sub_tab in ["spot", "futures"] else "spot"
-bybit_sub = sub_tab if sub_tab in ["perpetual", "scalp"] else "perpetual"
 
 # ####################################################################
 # SCREEN 2: BYBIT GLOBAL TERMINAL (TESTNET DEMO - ₹2,000 / $22.85 USDT)
@@ -753,11 +930,11 @@ if active_tab == "bybit":
     # 4. Interactive Strategy Switch (USDT Perpetual vs AI Scalp)
     is_perp = bybit_sub != "scalp"
     st.markdown(f"""
-    <div style="display:flex; background:#111827; padding:4px; border-radius:16px; border:1px solid #1f2937; margin:14px 0 14px 0;">
-        <a href="?tab=bybit&sub=perpetual" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_perp else 'transparent'}; color:{'#0f172a' if is_perp else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_perp else 'none'};">
+    <div style="display:flex; background:{'#111827' if is_dark else '#e2e8f0'}; padding:4px; border-radius:16px; border:1px solid {'#1f2937' if is_dark else '#cbd5e1'}; margin:14px 0 14px 0;">
+        <a href="?tab=bybit&sub=perpetual{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_perp else 'transparent'}; color:{'#0f172a' if is_perp else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_perp else 'none'};">
             🚀 USDT Perpetual 10x
         </a>
-        <a href="?tab=bybit&sub=scalp" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_perp else 'transparent'}; color:{'#0f172a' if not is_perp else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_perp else 'none'};">
+        <a href="?tab=bybit&sub=scalp{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_perp else 'transparent'}; color:{'#0f172a' if not is_perp else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_perp else 'none'};">
             ⚡ High-Speed AI Scalp (20x)
         </a>
     </div>
@@ -1052,11 +1229,11 @@ elif active_tab == "angel":
     # 4. Interactive Strategy Switch (Normal Stocks vs NIFTY Zero to Hero)
     is_stocks = angel_sub != "zerohero"
     st.markdown(f"""
-    <div style="display:flex; background:#111827; padding:4px; border-radius:16px; border:1px solid #1f2937; margin:14px 0 14px 0;">
-        <a href="?tab=angel&sub=stocks" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_stocks else 'transparent'}; color:{'#0f172a' if is_stocks else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_stocks else 'none'};">
+    <div style="display:flex; background:{'#111827' if is_dark else '#e2e8f0'}; padding:4px; border-radius:16px; border:1px solid {'#1f2937' if is_dark else '#cbd5e1'}; margin:14px 0 14px 0;">
+        <a href="?tab=angel&sub=stocks{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_stocks else 'transparent'}; color:{'#0f172a' if is_stocks else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_stocks else 'none'};">
             📈 Normal Stocks Trade
         </a>
-        <a href="?tab=angel&sub=zerohero" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_stocks else 'transparent'}; color:{'#0f172a' if not is_stocks else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_stocks else 'none'};">
+        <a href="?tab=angel&sub=zerohero{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_stocks else 'transparent'}; color:{'#0f172a' if not is_stocks else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_stocks else 'none'};">
             🚀 NIFTY Zero to Hero
         </a>
     </div>
@@ -1342,11 +1519,11 @@ elif active_tab == "coindcx":
     # 4. Interactive Strategy Switch (INR Spot vs Crypto 10x Futures)
     is_spot = coindcx_sub != "futures"
     st.markdown(f"""
-    <div style="display:flex; background:#111827; padding:4px; border-radius:16px; border:1px solid #1f2937; margin:14px 0 14px 0;">
-        <a href="?tab=coindcx&sub=spot" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_spot else 'transparent'}; color:{'#0f172a' if is_spot else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_spot else 'none'};">
+    <div style="display:flex; background:{'#111827' if is_dark else '#e2e8f0'}; padding:4px; border-radius:16px; border:1px solid {'#1f2937' if is_dark else '#cbd5e1'}; margin:14px 0 14px 0;">
+        <a href="?tab=coindcx&sub=spot{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_spot else 'transparent'}; color:{'#0f172a' if is_spot else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_spot else 'none'};">
             🇮🇳 INR Spot Trade (24/7)
         </a>
-        <a href="?tab=coindcx&sub=futures" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_spot else 'transparent'}; color:{'#0f172a' if not is_spot else '#94a3b8'} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_spot else 'none'};">
+        <a href="?tab=coindcx&sub=futures{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_spot else 'transparent'}; color:{'#0f172a' if not is_spot else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_spot else 'none'};">
             ⚡ Crypto 10x Futures
         </a>
     </div>
@@ -1634,7 +1811,7 @@ else:
     render_html(f"""
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
         <!-- Card 1: Angel One -->
-        <a href="?tab=angel" target="_self" style="text-decoration:none !important; display:block; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
+        <a href="?tab=angel{theme_suffix}" target="_self" style="text-decoration:none !important; display:block; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #ccff00;" />
@@ -1651,7 +1828,7 @@ else:
         </a>
 
         <!-- Card 2: Bybit Global -->
-        <a href="?tab=bybit" target="_self" style="text-decoration:none !important; display:block; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
+        <a href="?tab=bybit{theme_suffix}" target="_self" style="text-decoration:none !important; display:block; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #ccff00;" />
@@ -1668,7 +1845,7 @@ else:
         </a>
 
         <!-- Card 3: CoinDCX India -->
-        <a href="?tab=coindcx" target="_self" style="text-decoration:none !important; display:block; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
+        <a href="?tab=coindcx{theme_suffix}" target="_self" style="text-decoration:none !important; display:block; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #ccff00;" />
@@ -1772,27 +1949,27 @@ is_coindcx = active_tab == "coindcx"
 
 st.markdown(f"""
 <div class="fixed-bottom-bar">
-    <a href="?tab=home" target="_self" class="nav-btn">
+    <a href="?tab=home{theme_suffix}" target="_self" class="nav-btn">
         <div class="{'nav-icon-active' if is_home else 'nav-icon'}">🏠</div>
-        <span style="color:{'#ccff00' if is_home else '#94a3b8'};">Home</span>
+        <span style="color:{'#0f172a' if (is_home and not is_dark) else ('#ccff00' if is_home else ('#94a3b8' if is_dark else '#64748b'))};">Home</span>
     </a>
-    <a href="?tab=bybit" target="_self" class="nav-btn">
+    <a href="?tab=bybit{theme_suffix}" target="_self" class="nav-btn">
         <div class="{'nav-icon-active' if is_bybit else 'nav-icon'}" style="padding:2px;">
             <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
-        <span style="color:{'#ccff00' if is_bybit else '#94a3b8'};">Bybit</span>
+        <span style="color:{'#0f172a' if (is_bybit and not is_dark) else ('#ccff00' if is_bybit else ('#94a3b8' if is_dark else '#64748b'))};">Bybit</span>
     </a>
-    <a href="?tab=angel" target="_self" class="nav-btn">
+    <a href="?tab=angel{theme_suffix}" target="_self" class="nav-btn">
         <div class="{'nav-icon-active' if is_angel else 'nav-icon'}" style="padding:2px;">
             <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
-        <span style="color:{'#ccff00' if is_angel else '#94a3b8'};">Angel One</span>
+        <span style="color:{'#0f172a' if (is_angel and not is_dark) else ('#ccff00' if is_angel else ('#94a3b8' if is_dark else '#64748b'))};">Angel One</span>
     </a>
-    <a href="?tab=coindcx" target="_self" class="nav-btn">
+    <a href="?tab=coindcx{theme_suffix}" target="_self" class="nav-btn">
         <div class="{'nav-icon-active' if is_coindcx else 'nav-icon'}" style="padding:2px;">
             <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
-        <span style="color:{'#ccff00' if is_coindcx else '#94a3b8'};">CoinDCX</span>
+        <span style="color:{'#0f172a' if (is_coindcx and not is_dark) else ('#ccff00' if is_coindcx else ('#94a3b8' if is_dark else '#64748b'))};">CoinDCX</span>
     </a>
 </div>
 """, unsafe_allow_html=True)
