@@ -21,12 +21,10 @@ import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
-    private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar progressBar;
     private ProgressBar centerSpinner;
     private LinearLayout errorLayout;
@@ -41,22 +39,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webView);
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         progressBar = findViewById(R.id.progressBar);
         centerSpinner = findViewById(R.id.centerSpinner);
         errorLayout = findViewById(R.id.errorLayout);
         btnRetry = findViewById(R.id.btnRetry);
-
-        // Configure SwipeRefreshLayout colors
-        swipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary);
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            if (isNetworkAvailable()) {
-                webView.reload();
-            } else {
-                swipeRefreshLayout.setRefreshing(false);
-                showError();
-            }
-        });
 
         btnRetry.setOnClickListener(v -> loadApp());
 
@@ -93,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     progressBar.setVisibility(View.GONE);
                     centerSpinner.setVisibility(View.GONE);
-                    swipeRefreshLayout.setRefreshing(false);
                 }
             }
         });
@@ -111,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 centerSpinner.setVisibility(View.GONE);
-                swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
@@ -147,7 +131,6 @@ public class MainActivity extends AppCompatActivity {
         webView.setVisibility(View.GONE);
         centerSpinner.setVisibility(View.GONE);
         progressBar.setVisibility(View.GONE);
-        swipeRefreshLayout.setRefreshing(false);
         errorLayout.setVisibility(View.VISIBLE);
     }
 

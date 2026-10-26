@@ -181,10 +181,10 @@ st.markdown(f"""
     }}
     
     .block-container {{
-        padding-top: 0.5rem !important;
-        padding-bottom: 95px !important; /* Space so fixed bottom bar never overlaps content */
-        padding-left: 0.6rem !important;
-        padding-right: 0.6rem !important;
+        padding-top: 26px !important; /* Proper margin below mobile camera notch & status bar */
+        padding-bottom: 115px !important; /* Space so fixed bottom bar never overlaps content */
+        padding-left: 10px !important;
+        padding-right: 10px !important;
         max-width: 440px !important;
         margin: auto !important;
     }}
@@ -194,22 +194,33 @@ st.markdown(f"""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 6px 4px 12px 4px;
+        padding: 4px 2px 14px 2px;
+        margin-bottom: 4px;
+        gap: 8px;
     }}
     .user-info {{
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
+        min-width: 0;
+        flex: 1;
     }}
     .user-avatar {{
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         background: #e2e8f0;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: 17px;
+        flex-shrink: 0;
+    }}
+    .top-controls {{
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
     }}
 
     /* Master Total Asset Card (Reference Image White Surface) */
@@ -357,17 +368,17 @@ st.markdown(f"""
     /* FIXED MOBILE BOTTOM APP MENU BAR (Stick to bottom of screen permanently) */
     .fixed-bottom-bar {{
         position: fixed;
-        bottom: 12px;
+        bottom: 16px;
         left: 50%;
         transform: translateX(-50%);
-        width: calc(100% - 24px);
+        width: calc(100% - 20px);
         max-width: 420px;
         background: rgba(10, 14, 23, 0.95);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         border: 1px solid #1f2937;
         border-radius: 35px;
-        padding: 8px 16px;
+        padding: 9px 16px;
         display: flex;
         justify-content: space-around;
         align-items: center;
@@ -823,13 +834,13 @@ st.markdown(f"""
 <div class="user-bar">
     <div class="user-info">
         <div class="user-avatar">🧑‍💼</div>
-        <div>
-            <div style="font-size:11px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:600;">Autonomous Multi-Broker Terminal</div>
-            <div style="font-size:15px; font-weight:800; color:{'#ffffff' if is_dark else '#0f172a'};">Trader Pro Dashboard</div>
+        <div style="min-width:0; overflow:hidden;">
+            <div style="font-size:10px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Trader Pro AI</div>
+            <div style="font-size:14px; font-weight:800; color:{'#ffffff' if is_dark else '#0f172a'}; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Terminal Dashboard</div>
         </div>
     </div>
-    <div style="display:flex; align-items:center; gap:8px;">
-        <span style="background:{'rgba(16,185,129,0.15)' if is_dark else 'rgba(16,185,129,0.1)'}; border:1px solid #10b981; color:#10b981; font-size:10px; font-weight:800; padding:3px 7px; border-radius:12px; font-family:'JetBrains Mono',monospace;">
+    <div class="top-controls">
+        <span style="background:{'rgba(16,185,129,0.15)' if is_dark else 'rgba(16,185,129,0.1)'}; border:1px solid #10b981; color:#10b981; font-size:10px; font-weight:800; padding:4px 7px; border-radius:12px; font-family:'JetBrains Mono',monospace; white-space:nowrap; flex-shrink:0;">
             ● LIVE {live_clock_str}
         </span>
         <!-- Sun (White Theme) / Moon (Dark Theme) Switch Toggle -->
