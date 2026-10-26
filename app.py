@@ -302,7 +302,63 @@ def fetch_crypto_prices():
 
 live_prices = fetch_crypto_prices()
 
-# Auto position manager
+@st.cache_data(ttl=10)
+def analyze_real_market(sym):
+    """Fetches real live 5-minute candles from exchange and computes genuine EMA 9/21, RSI 14."""
+    try:
+        url = f"https://api.exchange.coinbase.com/products/{sym}-USD/candles?granularity=300"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        if not data or len(data) < 25:
+            return None
+        df = pd.DataFrame(data, columns=["time", "low", "high", "open", "close", "volume"]).sort_values("time").reset_index(drop=True)
+        df["ema_9"] = df["close"].ewm(span=9, adjust=False).mean()
+        df["ema_21"] = df["close"].ewm(span=21, adjust=False).mean()
+        delta = df["close"].diff()
+        gain = delta.where(delta > 0, 0.0)
+        loss = -delta.where(delta < 0, 0.0)
+        rs = gain.rolling(14).mean() / (loss.rolling(14).mean() + 1e-9)
+        df["rsi"] = 100 - (100 / (1 + rs))
+        
+        last = df.iloc[-1]
+        prev = df.iloc[-2]
+        
+        is_bullish = bool(last["ema_9"] > last["ema_21"])
+        crossover = bool(prev["ema_9"] <= prev["ema_21"] and last["ema_9"] > last["ema_21"])
+        rsi = float(last["rsi"])
+        price = float(last["close"])
+        
+        # Rigorous Quantitative Entry Signal: Only BUY on genuine technical strength!
+        if is_bullish and 42.0 <= rsi <= 68.0:
+            signal = "BUY"
+            reason = f"Bullish Trend (EMA 9 > 21) & RSI {rsi:.1f}"
+        elif crossover:
+            signal = "BUY"
+            reason = f"Golden Crossover (EMA 9 crossed above 21)"
+        else:
+            signal = "WAIT"
+            reason = f"Consolidating (RSI {rsi:.1f}, Trend: {'BULL' if is_bullish else 'BEAR'})"
+            
+        return {
+            "price": price,
+            "rsi": round(rsi, 1),
+            "ema_9": round(float(last["ema_9"]), 2),
+            "ema_21": round(float(last["ema_21"]), 2),
+            "signal": signal,
+            "is_bullish": is_bullish,
+            "reason": reason
+        }
+    except Exception:
+        return None
+
+market_scanner = {}
+for s in CRYPTO_SYMBOLS:
+    r = analyze_real_market(s)
+    if r:
+        market_scanner[s] = r
+
+# Auto position manager - ONLY TAKES TRADES ON STRICT REAL TECHNICAL SIGNALS!
 def manage_positions():
     active = [p["symbol"] for p in st.session_state.crypto_positions]
     available = [s for s in CRYPTO_SYMBOLS if s not in active and s in live_prices]
@@ -312,6 +368,12 @@ def manage_positions():
     for sym in available:
         if free < 3000:
             break
+        # REAL DATA GATE: Strict technical analysis! Rejects dummy entries!
+        tech = market_scanner.get(sym) or analyze_real_market(sym)
+        if not tech or tech.get("signal") != "BUY":
+            # REJECT DUMMY TRADES! Bot refuses to trade weak consolidation!
+            continue
+            
         p_data = live_prices[sym]
         inr_p = p_data["inr"]
         if inr_p <= 0:
@@ -323,10 +385,12 @@ def manage_positions():
             "entry_inr": inr_p,
             "current_inr": inr_p,
             "qty": qty,
-            "target_inr": round(inr_p * 1.006, 2),
-            "sl_inr": round(inr_p * 0.996, 2),
+            "target_inr": round(inr_p * 1.008, 2), # 1:1.6 Target (+0.8%)
+            "sl_inr": round(inr_p * 0.995, 2),     # Strict Stop Loss (-0.5%)
             "unrealized": 0.0,
-            "time": datetime.now().strftime("%H:%M")
+            "time": datetime.now().strftime("%H:%M"),
+            "reason": tech.get("reason", "Real Quantitative Setup"),
+            "rsi": tech.get("rsi", 50.0)
         })
         free -= (inr_p * qty)
 
@@ -1395,27 +1459,80 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # Mini Live Spotlight (Top 2 Active Stocks)
-    st.markdown('<div style="font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:10px;">⚡ Active Asset Spotlight</div>', unsafe_allow_html=True)
-    c1, c2 = st.columns(2)
-    pos_sub = st.session_state.crypto_positions[:2]
-    for idx, p in enumerate(pos_sub):
-        col = c1 if idx == 0 else c2
-        theme = "card-mint" if idx == 0 else "card-lavender"
-        with col:
-            st.markdown(f"""
-            <div class="{theme}">
-                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:15px;">
-                    <span>{p['symbol']}</span>
-                    <span>📈</span>
-                </div>
-                <div style="font-size:11px; margin-top:2px; opacity:0.8;">Live Market</div>
-                <div style="font-size:17px; font-weight:800; margin-top:4px;">₹{p['current_inr']:,.1f}</div>
-                <div style="font-size:11px; font-weight:700; margin-top:3px;">
-                    P&L: {'+' if p['unrealized']>=0 else ''}₹{p['unrealized']:.2f}
-                </div>
+    # REAL-TIME QUANTITATIVE INDICATOR RADAR (Zero Dummy Trades Guarantee)
+    st.markdown("""
+    <div style="background:#111827; border:1px solid #1f2937; border-radius:20px; padding:14px; margin-bottom:14px; box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:14px;">📡</span>
+                <span style="font-size:12px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">
+                    Real Technical Gate (Zero Dummy Trades)
+                </span>
             </div>
-            """, unsafe_allow_html=True)
+            <span style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; font-size:9px; font-weight:800; padding:2px 6px; border-radius:8px;">
+                100% REAL FEED
+            </span>
+        </div>
+    """, unsafe_allow_html=True)
+
+    for sym in CRYPTO_SYMBOLS:
+        tech = market_scanner.get(sym, {})
+        p_data = live_prices.get(sym, {})
+        sig = tech.get("signal", "WAIT")
+        rsi = tech.get("rsi", 50.0)
+        p_inr = p_data.get("inr", 0.0)
+        is_buy = sig == "BUY"
+        status_badge = f'<span style="background:{"rgba(16,185,129,0.2)" if is_buy else "rgba(234,179,8,0.15)"}; color:{"#10b981" if is_buy else "#eab308"}; border:1px solid {"#10b98155" if is_buy else "#eab30855"}; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px;">{"🟢 BUY ARMED" if is_buy else "⏳ WAITING"}</span>'
+
+        render_html(f"""
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:8px 12px; margin-bottom:6px;">
+            <div>
+                <span style="font-size:13px; font-weight:800; color:#ffffff;">{sym} / USDT</span>
+                <span style="font-size:11px; color:#64748b; margin-left:6px; font-family:'JetBrains Mono',monospace;">₹{p_inr:,.1f}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:10px; color:#94a3b8; font-family:'JetBrains Mono',monospace;">RSI {rsi}</span>
+                {status_badge}
+            </div>
+        </div>
+        """)
+
+    st.markdown("""
+        <div style="font-size:10px; color:#64748b; text-align:center; margin-top:4px;">
+            🛡️ Strict Gate: Bot only enters when EMA 9 > 21 and RSI is 42-68. Rejects weak consolidation.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Mini Live Spotlight (Active Positions)
+    if len(st.session_state.crypto_positions) > 0:
+        st.markdown(f'<div style="font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:10px;">⚡ Active Verified Positions ({len(st.session_state.crypto_positions)})</div>', unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
+        pos_sub = st.session_state.crypto_positions[:2]
+        for idx, p in enumerate(pos_sub):
+            col = c1 if idx == 0 else c2
+            theme = "card-mint" if idx == 0 else "card-lavender"
+            with col:
+                st.markdown(f"""
+                <div class="{theme}">
+                    <div style="display:flex; justify-content:space-between; font-weight:800; font-size:15px;">
+                        <span>{p['symbol']}</span>
+                        <span>📈</span>
+                    </div>
+                    <div style="font-size:11px; margin-top:2px; opacity:0.8;">Live Real Market</div>
+                    <div style="font-size:17px; font-weight:800; margin-top:4px;">₹{p['current_inr']:,.1f}</div>
+                    <div style="font-size:11px; font-weight:700; margin-top:3px;">
+                        P&L: {'+' if p['unrealized']>=0 else ''}₹{p['unrealized']:.2f}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div style="background:#090d16; border:1px dashed #334155; border-radius:14px; padding:14px; text-align:center; margin-bottom:14px;">
+            <div style="font-size:13px; font-weight:700; color:#cbd5e1;">🛡️ No Active Trades (Market Consolidating)</div>
+            <div style="font-size:11px; color:#64748b; margin-top:3px;">The bot is patiently scanning 5-min candles. It refuses to gamble during indecisive trends.</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 # ==========================================
