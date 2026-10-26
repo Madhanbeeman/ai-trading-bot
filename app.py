@@ -581,7 +581,7 @@ elif active_tab == "angel":
 elif active_tab == "coindcx":
     st.markdown("""
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-        <img src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/630.png" style="width:28px; height:28px; border-radius:6px;" />
+        <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:28px; height:28px; border-radius:6px; object-fit:cover;" />
         <span style="font-size:16px; font-weight:800; color:#f8fafc;">CoinDCX India Terminal</span>
     </div>
     """, unsafe_allow_html=True)
@@ -722,7 +722,7 @@ st.markdown(f"""
     </a>
     <a href="?tab=coindcx" target="_self" class="nav-btn">
         <div class="{'nav-icon-active' if is_coindcx else 'nav-icon'}" style="padding:2px;">
-            <img src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/630.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
+            <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
         <span style="color:{'#ccff00' if is_coindcx else '#94a3b8'};">CoinDCX</span>
     </a>
