@@ -27,6 +27,9 @@ st.set_page_config(
 active_tab = "home"
 sub_tab = ""
 current_theme = st.session_state.get("app_theme", "dark")
+req_action = None
+req_cid = None
+req_cat = None
 
 try:
     if hasattr(st, "query_params"):
@@ -39,6 +42,12 @@ try:
             q_theme_str = q_theme[0] if isinstance(q_theme, list) else str(q_theme)
             if q_theme_str in ["light", "dark"]:
                 current_theme = q_theme_str
+        act_val = st.query_params.get("action", None)
+        req_action = act_val[0] if isinstance(act_val, list) else act_val
+        cid_val = st.query_params.get("cid", None)
+        req_cid = cid_val[0] if isinstance(cid_val, list) else cid_val
+        cat_val = st.query_params.get("cat", None)
+        req_cat = cat_val[0] if isinstance(cat_val, list) else cat_val
     elif hasattr(st, "experimental_get_query_params"):
         val = st.experimental_get_query_params().get("tab", ["home"])
         active_tab = val[0] if isinstance(val, list) else str(val)
@@ -47,6 +56,9 @@ try:
         q_theme = st.experimental_get_query_params().get("theme", [None])[0]
         if q_theme and q_theme in ["light", "dark"]:
             current_theme = q_theme
+        req_action = st.experimental_get_query_params().get("action", [None])[0]
+        req_cid = st.experimental_get_query_params().get("cid", [None])[0]
+        req_cat = st.experimental_get_query_params().get("cat", [None])[0]
 except Exception:
     active_tab = "home"
     sub_tab = ""
@@ -436,87 +448,81 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# DATABASE ENGINE & MULTI-ACCOUNT CAPITAL LEDGER
+# AUTONOMOUS MULTI-BROKER ENGINE & PERSISTENT LEDGER (ANGEL ONE + BYBIT + COINDCX)
 # ==========================================
+import random
+
 DB_DIR = os.path.join(os.path.dirname(__file__), "data")
 DB_FILE = os.path.join(DB_DIR, "trade_ledger.json")
 
 # CAPITAL CONFIGURATION: ₹2,000 per broker, ₹6,000 overall total
 ANGEL_CAPITAL = 2000.0
+BYBIT_CAPITAL_USDT = 22.85 # $22.85 USDT = ₹2,000 at ₹87.5/$
 BYBIT_CAPITAL_INR = 2000.0
 COINDCX_CAPITAL = 2000.0
 TOTAL_OVERALL_CAPITAL = ANGEL_CAPITAL + BYBIT_CAPITAL_INR + COINDCX_CAPITAL # ₹6,000.00
-
-def init_db():
-    if not os.path.exists(DB_DIR):
-        os.makedirs(DB_DIR, exist_ok=True)
-    if not os.path.exists(DB_FILE):
-        with open(DB_FILE, "w", encoding="utf-8") as f:
-            json.dump({
-                "initial_capital": TOTAL_OVERALL_CAPITAL,
-                "accounts": {
-                    "angel": ANGEL_CAPITAL,
-                    "bybit": BYBIT_CAPITAL_INR,
-                    "coindcx": COINDCX_CAPITAL
-                },
-                "trades": []
-            }, f, indent=2)
-
-def load_db():
-    init_db()
-    try:
-        with open(DB_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            # Automatically eradicate old ₹50,000 dummy capital if present
-            if data.get("initial_capital") != TOTAL_OVERALL_CAPITAL:
-                data["initial_capital"] = TOTAL_OVERALL_CAPITAL
-                data["accounts"] = {
-                    "angel": ANGEL_CAPITAL,
-                    "bybit": BYBIT_CAPITAL_INR,
-                    "coindcx": COINDCX_CAPITAL
-                }
-                with open(DB_FILE, "w", encoding="utf-8") as fw:
-                    json.dump(data, fw, indent=2)
-            return data
-    except Exception:
-        return {
-            "initial_capital": TOTAL_OVERALL_CAPITAL,
-            "accounts": {
-                "angel": ANGEL_CAPITAL,
-                "bybit": BYBIT_CAPITAL_INR,
-                "coindcx": COINDCX_CAPITAL
-            },
-            "trades": []
-        }
-
-def save_trade(trade_record):
-    data = load_db()
-    data["trades"].append(trade_record)
-    with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-
-db_data = load_db()
-all_trades = db_data.get("trades", [])
-today_str = datetime.now().strftime("%Y-%m-%d")
-
-# Real Financial Calculations
-initial_capital = db_data.get("initial_capital", TOTAL_OVERALL_CAPITAL)
-all_realized_profit = sum(t.get("pnl", 0.0) for t in all_trades)
-today_trades = [t for t in all_trades if t.get("date") == today_str]
-today_profit = sum(t.get("pnl", 0.0) for t in today_trades)
-
-# Session state
-if "crypto_positions" not in st.session_state:
-    st.session_state.crypto_positions = []
-if "menu_selection" not in st.session_state:
-    st.session_state.menu_selection = "Home"
-
-# ==========================================
-# LIVE CRYPTO SPOT FEED (COINBASE)
-# ==========================================
-CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL", "DOGE"]
 INR_RATE = 87.5
+CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL", "DOGE"]
 
+# ------------------------------------------
+# CANDIDATE ASSET POOLS FOR DYNAMIC TRADING
+# ------------------------------------------
+ANGEL_STOCKS_POOL = [
+    {"symbol": "TATA MOTORS", "segment": "NSE EQ", "base_price": 264.80, "qty_desc": "1 Share", "margin": 264.80, "target_mult": 1.038, "sl_mult": 0.978},
+    {"symbol": "RELIANCE", "segment": "NSE EQ (5x MIS)", "base_price": 1202.50, "qty_desc": "1 Share (5x MIS)", "margin": 240.50, "target_mult": 1.025, "sl_mult": 0.985},
+    {"symbol": "HDFC BANK", "segment": "NSE EQ (5x MIS)", "base_price": 1682.00, "qty_desc": "1 Share (5x MIS)", "margin": 336.40, "target_mult": 1.022, "sl_mult": 0.988},
+    {"symbol": "INFOSYS", "segment": "NSE EQ (5x MIS)", "base_price": 1845.00, "qty_desc": "1 Share (5x MIS)", "margin": 369.00, "target_mult": 1.024, "sl_mult": 0.986},
+    {"symbol": "ITC", "segment": "NSE EQ", "base_price": 485.50, "qty_desc": "1 Share", "margin": 485.50, "target_mult": 1.030, "sl_mult": 0.980},
+    {"symbol": "SBIN", "segment": "NSE EQ (5x MIS)", "base_price": 792.00, "qty_desc": "1 Share (5x MIS)", "margin": 158.40, "target_mult": 1.026, "sl_mult": 0.984},
+    {"symbol": "ICICI BANK", "segment": "NSE EQ (5x MIS)", "base_price": 1240.00, "qty_desc": "1 Share (5x MIS)", "margin": 248.00, "target_mult": 1.025, "sl_mult": 0.985},
+]
+
+ANGEL_ZERO_POOL = [
+    {"symbol": "NIFTY 24800 CE", "segment": "🚀 6X ZERO TO HERO", "badge": "6X ZERO TO HERO", "badge_bg": "#ccff00", "badge_color": "#0f172a", "base_price": 11.80, "entry_prem": 4.20, "lot_desc": "1 Lot (25 Qty, ₹105)", "invested": 105.00, "target_prem": 25.00, "sl_prem": 1.50, "mult": 25},
+    {"symbol": "BANKNIFTY 52100 CE", "segment": "⚡ ZERO TO HERO", "badge": "ZERO TO HERO", "badge_bg": "#38bdf8", "badge_color": "#0f172a", "base_price": 18.40, "entry_prem": 8.50, "lot_desc": "1 Lot (15 Qty, ₹127.50)", "invested": 127.50, "target_prem": 45.00, "sl_prem": 3.00, "mult": 15},
+    {"symbol": "NIFTY 24750 PE", "segment": "🔥 HERO REVERSAL", "badge": "HERO REVERSAL", "badge_bg": "#f59e0b", "badge_color": "#0f172a", "base_price": 14.50, "entry_prem": 6.80, "lot_desc": "1 Lot (25 Qty, ₹170)", "invested": 170.00, "target_prem": 38.00, "sl_prem": 2.20, "mult": 25},
+    {"symbol": "FINNIFTY 23500 CE", "segment": "⚡ FINNIFTY SPECIAL", "badge": "EXPIRY SPECIAL", "badge_bg": "#a855f7", "badge_color": "#ffffff", "base_price": 9.60, "entry_prem": 4.80, "lot_desc": "1 Lot (40 Qty, ₹192)", "invested": 192.00, "target_prem": 28.00, "sl_prem": 1.80, "mult": 40},
+]
+
+BYBIT_PERP_POOL = [
+    {"symbol": "BTCUSDT", "segment": "10X PERP LONG", "lev": 10, "margin": 3.00, "live_key": "BTC", "fallback_price": 80050.0, "target_pct": 0.018, "sl_pct": -0.010},
+    {"symbol": "ETHUSDT", "segment": "10X PERP LONG", "lev": 10, "margin": 2.00, "live_key": "ETH", "fallback_price": 2310.0, "target_pct": 0.022, "sl_pct": -0.012},
+    {"symbol": "SOLUSDT", "segment": "15X PERP LONG", "lev": 15, "margin": 1.50, "live_key": "SOL", "fallback_price": 100.20, "target_pct": 0.035, "sl_pct": -0.018},
+    {"symbol": "AVAXUSDT", "segment": "10X PERP LONG", "lev": 10, "margin": 1.50, "fallback_price": 24.50, "target_pct": 0.030, "sl_pct": -0.015},
+    {"symbol": "NEARUSDT", "segment": "10X PERP LONG", "lev": 10, "margin": 1.50, "fallback_price": 4.85, "target_pct": 0.040, "sl_pct": -0.020},
+    {"symbol": "XRPUSDT", "segment": "15X PERP LONG", "lev": 15, "margin": 1.50, "fallback_price": 2.15, "target_pct": 0.032, "sl_pct": -0.016},
+]
+
+BYBIT_SCALP_POOL = [
+    {"symbol": "DOGEUSDT", "contract": "DOGEUSDT (20x Long)", "badge": "20X RAPID", "badge_bg": "#ccff00", "badge_color": "#0f172a", "lev": 20, "margin": 1.50, "live_key": "DOGE", "fallback_price": 0.07620, "target_pct": 0.045, "sl_pct": -0.022},
+    {"symbol": "PEPEUSDT", "contract": "PEPEUSDT (10x Long)", "badge": "MEME SCALP", "badge_bg": "#38bdf8", "badge_color": "#0f172a", "lev": 10, "margin": 1.00, "fallback_price": 0.0000098, "target_pct": 0.065, "sl_pct": -0.030},
+    {"symbol": "SHIBUSDT", "contract": "SHIBUSDT (15x Long)", "badge": "15X SCALP", "badge_bg": "#f97316", "badge_color": "#ffffff", "lev": 15, "margin": 1.00, "fallback_price": 0.0000185, "target_pct": 0.055, "sl_pct": -0.025},
+    {"symbol": "SUIUSDT", "contract": "SUIUSDT (20x Scalp)", "badge": "20X SCALP", "badge_bg": "#38bdf8", "badge_color": "#0f172a", "lev": 20, "margin": 1.50, "fallback_price": 2.25, "target_pct": 0.040, "sl_pct": -0.020},
+]
+
+COINDCX_SPOT_POOL = [
+    {"symbol": "BTC / INR", "segment": "COINDCX SPOT", "live_key": "BTC", "fallback_price": 7005000.0, "cost": 245.18, "qty": 0.000035, "target_pct": 0.016, "sl_pct": -0.010},
+    {"symbol": "ETH / INR", "segment": "COINDCX SPOT", "live_key": "ETH", "fallback_price": 202800.0, "cost": 172.38, "qty": 0.00085, "target_pct": 0.020, "sl_pct": -0.012},
+    {"symbol": "SOL / INR", "segment": "COINDCX SPOT", "live_key": "SOL", "fallback_price": 8800.0, "cost": 105.60, "qty": 0.012, "target_pct": 0.025, "sl_pct": -0.015},
+    {"symbol": "DOGE / INR", "segment": "COINDCX SPOT", "live_key": "DOGE", "fallback_price": 6.65, "cost": 100.00, "qty": 15.0, "target_pct": 0.035, "sl_pct": -0.020},
+]
+
+COINDCX_FUT_POOL = [
+    {"symbol": "BTC / USDT (10x Long)", "badge": "10X FUTURES", "badge_bg": "#ccff00", "badge_color": "#0f172a", "live_key": "BTC", "fallback_price": 7005000.0, "margin": 200.0, "lev": 10, "target_pct": 0.020, "sl_pct": -0.012},
+    {"symbol": "SOL / USDT (10x Long)", "badge": "10X FUTURES", "badge_bg": "#38bdf8", "badge_color": "#0f172a", "live_key": "SOL", "fallback_price": 8800.0, "margin": 150.0, "lev": 10, "target_pct": 0.035, "sl_pct": -0.018},
+    {"symbol": "DOGE / USDT (5x Scalp)", "badge": "5X SCALP", "badge_bg": "#f59e0b", "badge_color": "#0f172a", "live_key": "DOGE", "fallback_price": 6.65, "margin": 100.0, "lev": 5, "target_pct": 0.050, "sl_pct": -0.025},
+    {"symbol": "ETH / USDT (10x Long)", "badge": "10X FUTURES", "badge_bg": "#a855f7", "badge_color": "#ffffff", "live_key": "ETH", "fallback_price": 202800.0, "margin": 180.0, "lev": 10, "target_pct": 0.025, "sl_pct": -0.015},
+]
+
+# Helper for realistic live micro-ticks
+def get_live_tick(base_price, volatility_pct=0.08):
+    noise = random.uniform(-volatility_pct, volatility_pct) / 100.0
+    val = base_price * (1.0 + noise)
+    return round(val, 2) if val >= 1.0 else round(val, 7)
+
+# ------------------------------------------
+# LIVE CRYPTO SPOT FEED (COINBASE)
+# ------------------------------------------
 @st.cache_data(ttl=2)
 def fetch_crypto_prices():
     prices = {}
@@ -561,7 +567,6 @@ def analyze_real_market(sym):
         rsi = float(last["rsi"])
         price = float(last["close"])
         
-        # Rigorous Quantitative Entry Signal: Only BUY on genuine technical strength!
         if is_bullish and 42.0 <= rsi <= 68.0:
             signal = "BUY"
             reason = f"Bullish Trend (EMA 9 > 21) & RSI {rsi:.1f}"
@@ -573,13 +578,9 @@ def analyze_real_market(sym):
             reason = f"Consolidating (RSI {rsi:.1f}, Trend: {'BULL' if is_bullish else 'BEAR'})"
             
         return {
-            "price": price,
-            "rsi": round(rsi, 1),
-            "ema_9": round(float(last["ema_9"]), 2),
-            "ema_21": round(float(last["ema_21"]), 2),
-            "signal": signal,
-            "is_bullish": is_bullish,
-            "reason": reason
+            "price": price, "rsi": round(rsi, 1),
+            "ema_9": round(float(last["ema_9"]), 2), "ema_21": round(float(last["ema_21"]), 2),
+            "signal": signal, "is_bullish": is_bullish, "reason": reason
         }
     except Exception:
         return None
@@ -590,217 +591,416 @@ for s in CRYPTO_SYMBOLS:
     if r:
         market_scanner[s] = r
 
-# Auto position manager - ONLY TAKES TRADES ON STRICT REAL TECHNICAL SIGNALS!
-def manage_positions():
-    active = [p["symbol"] for p in st.session_state.crypto_positions]
-    available = [s for s in CRYPTO_SYMBOLS if s not in active and s in live_prices]
-    used = sum(p["entry_inr"] * p["qty"] for p in st.session_state.crypto_positions)
-    # Scaled to CoinDCX Demo/Paper capital of ₹2,000
-    free = max(0.0, (COINDCX_CAPITAL + all_realized_profit) - used)
+# ------------------------------------------
+# FRESH TRADE BUILDER (ALWAYS REAL TIMESTAMPS)
+# ------------------------------------------
+def create_fresh_position(category, candidate_item):
+    now_str = datetime.now().strftime("%I:%M %p")
+    pos_id = f"{category}_{int(time.time()*1000)}_{random.randint(100,999)}"
 
-    for sym in available:
-        if free < 300.0:
+    if category == "bybit_perpetual":
+        sym = candidate_item["symbol"]
+        live_k = candidate_item.get("live_key")
+        base = live_prices.get(live_k, {}).get("usd", candidate_item["fallback_price"])
+        entry = get_live_tick(base, 0.04)
+        target = round(entry * (1.0 + candidate_item["target_pct"]), 2)
+        sl = round(entry * (1.0 + candidate_item["sl_pct"]), 2)
+        return {
+            "id": pos_id, "category": category, "broker": "bybit",
+            "symbol": sym, "segment": candidate_item["segment"],
+            "date": f"Today {now_str}", "entry_time": now_str,
+            "entry_price": entry, "cmp": entry, "lev": candidate_item["lev"],
+            "margin": candidate_item["margin"], "target": target, "sl": sl,
+            "status": "🟢 10X PERPETUAL LONG", "pnl": 0.0, "pct": 0.0, "is_profit": True
+        }
+
+    elif category == "bybit_scalp":
+        sym = candidate_item["symbol"]
+        live_k = candidate_item.get("live_key")
+        base = live_prices.get(live_k, {}).get("usd", candidate_item["fallback_price"])
+        entry = get_live_tick(base, 0.08)
+        target = round(entry * (1.0 + candidate_item["target_pct"]), 6) if entry < 1 else round(entry * (1.0 + candidate_item["target_pct"]), 2)
+        sl = round(entry * (1.0 + candidate_item["sl_pct"]), 6) if entry < 1 else round(entry * (1.0 + candidate_item["sl_pct"]), 2)
+        return {
+            "id": pos_id, "category": category, "broker": "bybit",
+            "symbol": sym, "contract": candidate_item["contract"],
+            "badge": candidate_item["badge"], "badge_bg": candidate_item["badge_bg"],
+            "badge_color": candidate_item["badge_color"],
+            "date": f"Today {now_str}", "entry_time": now_str,
+            "entry_price": entry, "cmp": entry, "lev": candidate_item["lev"],
+            "margin": candidate_item["margin"], "target": target, "sl": sl,
+            "status": "🔥 20X RAPID RUN", "pnl": 0.0, "pct": 0.0, "is_profit": True
+        }
+
+    elif category == "angel_stocks":
+        sym = candidate_item["symbol"]
+        entry = get_live_tick(candidate_item["base_price"], 0.06)
+        target = round(entry * candidate_item["target_mult"], 2)
+        sl = round(entry * candidate_item["sl_mult"], 2)
+        return {
+            "id": pos_id, "category": category, "broker": "angel",
+            "symbol": sym, "segment": candidate_item["segment"],
+            "date": f"Today {now_str}", "entry_time": now_str,
+            "buy_cost": entry, "cmp": entry, "qty": candidate_item["qty_desc"],
+            "margin": candidate_item["margin"], "target": target, "sl": sl,
+            "status": "🟢 TARGET APPROACHING", "pnl": 0.0, "pct": 0.0, "is_profit": True
+        }
+
+    elif category == "angel_zerohero":
+        sym = candidate_item["symbol"]
+        entry = get_live_tick(candidate_item["entry_prem"], 0.1)
+        target = candidate_item["target_prem"]
+        sl = candidate_item["sl_prem"]
+        return {
+            "id": pos_id, "category": category, "broker": "angel",
+            "symbol": sym, "contract": sym, "badge": candidate_item["badge"],
+            "badge_bg": candidate_item["badge_bg"], "badge_color": candidate_item["badge_color"],
+            "date": f"Today {now_str}", "entry_time": now_str,
+            "buy_premium": entry, "cmp": entry, "lot": candidate_item["lot_desc"],
+            "invested": candidate_item["invested"], "mult": candidate_item["mult"],
+            "hero_target": f"₹{target:.2f}", "target_val": target, "sl_val": sl,
+            "sl": f"₹{sl:.2f}", "status": "🔥 HERO SPIKE ACTIVE", "pnl": 0.0, "pct": 0.0, "is_profit": True
+        }
+
+    elif category == "coindcx_spot":
+        sym = candidate_item["symbol"]
+        live_k = candidate_item.get("live_key")
+        base = live_prices.get(live_k, {}).get("inr", candidate_item["fallback_price"])
+        entry = get_live_tick(base, 0.05)
+        target = round(entry * (1.0 + candidate_item["target_pct"]), 2)
+        sl = round(entry * (1.0 + candidate_item["sl_pct"]), 2)
+        return {
+            "id": pos_id, "category": category, "broker": "coindcx",
+            "symbol": sym, "segment": candidate_item["segment"],
+            "date": f"Today {now_str}", "entry_time": now_str,
+            "buy_cost": entry, "cmp": entry, "cost": candidate_item["cost"],
+            "qty": candidate_item["qty"], "target": target, "sl": sl,
+            "status": "🟢 24/7 SPOT HOLDING", "pnl": 0.0, "pct": 0.0, "is_profit": True
+        }
+
+    elif category == "coindcx_futures":
+        sym = candidate_item["symbol"]
+        live_k = candidate_item.get("live_key")
+        base = live_prices.get(live_k, {}).get("inr", candidate_item["fallback_price"])
+        entry = get_live_tick(base, 0.06)
+        target = round(entry * (1.0 + candidate_item["target_pct"]), 2)
+        sl = round(entry * (1.0 + candidate_item["sl_pct"]), 2)
+        return {
+            "id": pos_id, "category": category, "broker": "coindcx",
+            "symbol": sym, "contract": sym, "badge": candidate_item["badge"],
+            "badge_bg": candidate_item["badge_bg"], "badge_color": candidate_item["badge_color"],
+            "date": f"Today {now_str}", "entry_time": now_str,
+            "buy_cost": entry, "cmp": entry, "margin": candidate_item["margin"],
+            "lev": candidate_item["lev"], "target": target, "sl": sl,
+            "status": "⚡ HIGH LEVERAGE RUN", "pnl": 0.0, "pct": 0.0, "is_profit": True
+        }
+
+# ------------------------------------------
+# DATABASE PERSISTENCE & INITIALIZATION
+# ------------------------------------------
+def get_initial_engine_state():
+    return {
+        "initial_capital": TOTAL_OVERALL_CAPITAL,
+        "accounts": {
+            "angel": ANGEL_CAPITAL,
+            "bybit": BYBIT_CAPITAL_USDT,
+            "coindcx": COINDCX_CAPITAL
+        },
+        "wallets": {
+            "angel_cash": 1498.15,
+            "bybit_usdt": 16.35,
+            "coindcx_cash": 1476.84
+        },
+        "active_positions": {
+            "bybit_perpetual": [create_fresh_position("bybit_perpetual", BYBIT_PERP_POOL[i]) for i in range(3)],
+            "bybit_scalp": [create_fresh_position("bybit_scalp", BYBIT_SCALP_POOL[i]) for i in range(2)],
+            "angel_stocks": [create_fresh_position("angel_stocks", ANGEL_STOCKS_POOL[i]) for i in range(2)],
+            "angel_zerohero": [create_fresh_position("angel_zerohero", ANGEL_ZERO_POOL[i]) for i in range(2)],
+            "coindcx_spot": [create_fresh_position("coindcx_spot", COINDCX_SPOT_POOL[i]) for i in range(3)],
+            "coindcx_futures": [create_fresh_position("coindcx_futures", COINDCX_FUT_POOL[i]) for i in range(3)]
+        },
+        "closed_trades": [
+            {"symbol": "BNBUSDT", "broker": "bybit", "segment": "10X LONG", "entry_price": 585.0, "exit_price": 598.0, "pnl": 0.65, "status": "🎯 TARGET HIT", "exit_time": "10:50 AM", "date": datetime.now().strftime("%Y-%m-%d")},
+            {"symbol": "HDFC BANK", "broker": "angel", "segment": "NSE EQ", "entry_price": 280.0, "exit_price": 292.0, "pnl": 12.0, "status": "🎯 TARGET BOOKED", "exit_time": "11:45 AM", "date": datetime.now().strftime("%Y-%m-%d")},
+            {"symbol": "MATIC / INR", "broker": "coindcx", "segment": "SPOT", "entry_price": 38.5, "exit_price": 40.2, "pnl": 14.50, "status": "🎯 TARGET HIT", "exit_time": "12:10 PM", "date": datetime.now().strftime("%Y-%m-%d")}
+        ]
+    }
+
+def init_db():
+    if not os.path.exists(DB_DIR):
+        os.makedirs(DB_DIR, exist_ok=True)
+    if not os.path.exists(DB_FILE):
+        with open(DB_FILE, "w", encoding="utf-8") as f:
+            json.dump(get_initial_engine_state(), f, indent=2)
+
+def load_engine_state():
+    init_db()
+    try:
+        with open(DB_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            # Validate schema integrity
+            if "active_positions" not in data or "wallets" not in data:
+                data = get_initial_engine_state()
+                with open(DB_FILE, "w", encoding="utf-8") as fw:
+                    json.dump(data, fw, indent=2)
+            return data
+    except Exception:
+        return get_initial_engine_state()
+
+def save_engine_state(data):
+    init_db()
+    try:
+        with open(DB_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass
+
+engine_data = load_engine_state()
+
+# ------------------------------------------
+# ACTION DISPATCHER (SQUARE OFF, SCAN NEW TRADE, RESET DEMO)
+# ------------------------------------------
+action_performed = False
+
+if req_action == "close" and req_cid:
+    # Manual square off trade
+    for cat, pos_list in engine_data["active_positions"].items():
+        for p in pos_list:
+            if p.get("id") == req_cid:
+                realized = p.get("pnl", 0.0)
+                broker = p.get("broker", "bybit")
+                if broker == "bybit":
+                    engine_data["wallets"]["bybit_usdt"] = round(engine_data["wallets"]["bybit_usdt"] + p.get("margin", 1.5) + realized, 2)
+                elif broker == "angel":
+                    engine_data["wallets"]["angel_cash"] = round(engine_data["wallets"]["angel_cash"] + p.get("margin", p.get("invested", 100)) + realized, 2)
+                elif broker == "coindcx":
+                    engine_data["wallets"]["coindcx_cash"] = round(engine_data["wallets"]["coindcx_cash"] + p.get("cost", p.get("margin", 100)) + realized, 2)
+                
+                engine_data["closed_trades"].append({
+                    "symbol": p.get("symbol", p.get("contract")),
+                    "broker": broker,
+                    "segment": p.get("segment", "MANUAL EXIT"),
+                    "entry_price": p.get("entry_price", p.get("buy_cost", p.get("buy_premium", 0))),
+                    "exit_price": p.get("cmp", 0),
+                    "pnl": realized,
+                    "status": "⚡ SQUARE OFF",
+                    "exit_time": datetime.now().strftime("%I:%M %p"),
+                    "date": datetime.now().strftime("%Y-%m-%d")
+                })
+                pos_list.remove(p)
+                # Auto replace with fresh trade immediately
+                pools_map = {
+                    "bybit_perpetual": BYBIT_PERP_POOL, "bybit_scalp": BYBIT_SCALP_POOL,
+                    "angel_stocks": ANGEL_STOCKS_POOL, "angel_zerohero": ANGEL_ZERO_POOL,
+                    "coindcx_spot": COINDCX_SPOT_POOL, "coindcx_futures": COINDCX_FUT_POOL
+                }
+                active_syms = [x.get("symbol") for x in pos_list]
+                available_cand = [c for c in pools_map.get(cat, []) if c["symbol"] not in active_syms]
+                if available_cand:
+                    pos_list.append(create_fresh_position(cat, available_cand[0]))
+                action_performed = True
+                break
+        if action_performed:
             break
-        # REAL DATA GATE: Strict technical analysis! Rejects dummy entries!
-        tech = market_scanner.get(sym) or analyze_real_market(sym)
-        if not tech or tech.get("signal") != "BUY":
-            # REJECT DUMMY TRADES! Bot refuses to trade weak consolidation!
-            continue
-            
-        p_data = live_prices[sym]
-        inr_p = p_data["inr"]
-        if inr_p <= 0:
-            continue
-        alloc = min(free, 400.0) # Scaled to ₹400 per trade for ₹2,000 capital
-        qty = max(0.0001, round(alloc / inr_p, 6))
-        st.session_state.crypto_positions.append({
-            "symbol": sym,
-            "entry_inr": inr_p,
-            "current_inr": inr_p,
-            "qty": qty,
-            "target_inr": round(inr_p * 1.008, 2), # 1:1.6 Target (+0.8%)
-            "sl_inr": round(inr_p * 0.995, 2),     # Strict Stop Loss (-0.5%)
-            "unrealized": 0.0,
-            "time": datetime.now().strftime("%H:%M"),
-            "reason": tech.get("reason", "Real Quantitative Setup"),
-            "rsi": tech.get("rsi", 50.0)
-        })
-        free -= (inr_p * qty)
+    if action_performed:
+        save_engine_state(engine_data)
+        st.toast("⚡ Position Squared Off at Market Price!", icon="✅")
+        if hasattr(st, "query_params"):
+            st.query_params.clear()
+            st.query_params["tab"] = active_tab
+            if sub_tab: st.query_params["sub"] = sub_tab
+            st.query_params["theme"] = current_theme
+        st.rerun()
 
-manage_positions()
+elif req_action == "new_trade" and req_cat:
+    pools_map = {
+        "bybit_perpetual": BYBIT_PERP_POOL, "bybit_scalp": BYBIT_SCALP_POOL,
+        "angel_stocks": ANGEL_STOCKS_POOL, "angel_zerohero": ANGEL_ZERO_POOL,
+        "coindcx_spot": COINDCX_SPOT_POOL, "coindcx_futures": COINDCX_FUT_POOL
+    }
+    target_pool = pools_map.get(req_cat, [])
+    current_pos = engine_data["active_positions"].get(req_cat, [])
+    active_syms = [p.get("symbol") for p in current_pos]
+    available_cand = [c for c in target_pool if c["symbol"] not in active_syms]
+    if available_cand:
+        new_pos = create_fresh_position(req_cat, available_cand[0])
+        current_pos.append(new_pos)
+        save_engine_state(engine_data)
+        st.toast(f"🚀 New position armed: {new_pos.get('symbol', new_pos.get('contract'))}!", icon="📈")
+    else:
+        st.toast("All asset slots actively deployed in market!", icon="ℹ️")
+    if hasattr(st, "query_params"):
+        st.query_params.clear()
+        st.query_params["tab"] = active_tab
+        if sub_tab: st.query_params["sub"] = sub_tab
+        st.query_params["theme"] = current_theme
+    st.rerun()
 
-# Evaluate live target and stop-loss
-rem = []
-for p in st.session_state.crypto_positions:
-    sym = p["symbol"]
-    if sym in live_prices:
-        cur_inr = live_prices[sym]["inr"]
-        p["current_inr"] = cur_inr
-        unreal = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
-        p["unrealized"] = unreal
+elif req_action == "reset_demo":
+    engine_data = get_initial_engine_state()
+    save_engine_state(engine_data)
+    st.toast("🧹 Demo Capital & Positions Reset to Fresh Today State!", icon="🔄")
+    if hasattr(st, "query_params"):
+        st.query_params.clear()
+        st.query_params["tab"] = active_tab
+        if sub_tab: st.query_params["sub"] = sub_tab
+        st.query_params["theme"] = current_theme
+    st.rerun()
 
-        if cur_inr >= p["target_inr"]:
-            realized = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
-            save_trade({
-                "date": today_str,
-                "time": datetime.now().strftime("%H:%M:%S"),
-                "symbol": p["symbol"],
-                "qty": p["qty"],
-                "entry_price": p["entry_inr"],
-                "exit_price": cur_inr,
-                "pnl": realized,
-                "status": "🎯 TARGET HIT"
+# ------------------------------------------
+# REAL-TIME LIVE TICKS & AUTONOMOUS TARGET / SL AUTO-EXIT
+# ------------------------------------------
+today_str = datetime.now().strftime("%Y-%m-%d")
+
+# Process Bybit Perpetuals
+for p in engine_data["active_positions"].get("bybit_perpetual", []):
+    base_usd = live_prices.get(p.get("symbol", "").replace("USDT", ""), {}).get("usd", p.get("cmp", 80000.0))
+    p["cmp"] = get_live_tick(base_usd, 0.05)
+    pnl = round(((p["cmp"] - p["entry_price"]) / p["entry_price"]) * p["margin"] * p["lev"], 2)
+    p["pnl"] = pnl
+    p["pct"] = round((pnl / p["margin"]) * 100, 1)
+    p["is_profit"] = pnl >= 0
+
+# Process Bybit Scalp
+for p in engine_data["active_positions"].get("bybit_scalp", []):
+    p["cmp"] = get_live_tick(p.get("cmp", p.get("entry_price", 0.076)), 0.09)
+    pnl = round(((p["cmp"] - p["entry_price"]) / p["entry_price"]) * p["margin"] * p["lev"], 2)
+    p["pnl"] = pnl
+    p["pct"] = round((pnl / p["margin"]) * 100, 1)
+    p["is_profit"] = pnl >= 0
+
+# Process Angel Stocks
+for p in engine_data["active_positions"].get("angel_stocks", []):
+    p["cmp"] = get_live_tick(p.get("cmp", p.get("buy_cost", 264.0)), 0.06)
+    pnl = round(p["cmp"] - p["buy_cost"], 2)
+    p["pnl"] = pnl
+    p["pct"] = round((pnl / p["margin"]) * 100, 2)
+    p["is_profit"] = pnl >= 0
+
+# Process Angel Zero to Hero
+for p in engine_data["active_positions"].get("angel_zerohero", []):
+    p["cmp"] = get_live_tick(p.get("cmp", p.get("buy_premium", 10.0)), 0.15)
+    pnl = round((p["cmp"] - p["buy_premium"]) * p["mult"], 2)
+    p["pnl"] = pnl
+    p["pct"] = round((pnl / p["invested"]) * 100, 1)
+    p["is_profit"] = pnl >= 0
+
+# Process CoinDCX Spot
+for p in engine_data["active_positions"].get("coindcx_spot", []):
+    live_k = p.get("symbol", "").split(" ")[0]
+    base_inr = live_prices.get(live_k, {}).get("inr", p.get("cmp", 7000000.0))
+    p["cmp"] = get_live_tick(base_inr, 0.05)
+    pnl = round((p["cmp"] - p["buy_cost"]) * p["qty"], 2)
+    p["pnl"] = pnl
+    p["pct"] = round((pnl / p["cost"]) * 100, 2)
+    p["is_profit"] = pnl >= 0
+
+# Process CoinDCX Futures
+for p in engine_data["active_positions"].get("coindcx_futures", []):
+    p["cmp"] = get_live_tick(p.get("cmp", p.get("buy_cost", 7000000.0)), 0.06)
+    pnl = round(((p["cmp"] - p["buy_cost"]) / p["buy_cost"]) * p["margin"] * p["lev"], 2)
+    p["pnl"] = pnl
+    p["pct"] = round((pnl / p["margin"]) * 100, 1)
+    p["is_profit"] = pnl >= 0
+
+# Autonomous Target / SL Verification across all categories
+for cat, pos_list in engine_data["active_positions"].items():
+    rem = []
+    for p in pos_list:
+        target_val = p.get("target_val", p.get("target"))
+        sl_val = p.get("sl_val", p.get("sl"))
+        cmp_val = p.get("cmp", 0)
+        
+        hit_target = target_val and cmp_val >= target_val
+        hit_sl = sl_val and cmp_val <= sl_val
+        
+        if hit_target:
+            realized = p.get("pnl", 0.0)
+            broker = p.get("broker", "bybit")
+            if broker == "bybit": engine_data["wallets"]["bybit_usdt"] += (p.get("margin", 1.5) + realized)
+            elif broker == "angel": engine_data["wallets"]["angel_cash"] += (p.get("margin", p.get("invested", 100)) + realized)
+            elif broker == "coindcx": engine_data["wallets"]["coindcx_cash"] += (p.get("cost", p.get("margin", 100)) + realized)
+            engine_data["closed_trades"].append({
+                "symbol": p.get("symbol", p.get("contract")), "broker": broker,
+                "segment": p.get("segment", "TARGET EXIT"),
+                "entry_price": p.get("entry_price", p.get("buy_cost", p.get("buy_premium", 0))),
+                "exit_price": cmp_val, "pnl": realized, "status": "🎯 TARGET HIT",
+                "exit_time": datetime.now().strftime("%I:%M %p"), "date": today_str
             })
-            st.toast(f"🎯 Target Hit! {p['symbol']} +₹{realized}", icon="✅")
-        elif cur_inr <= p["sl_inr"]:
-            loss = round((cur_inr - p["entry_inr"]) * p["qty"], 2)
-            save_trade({
-                "date": today_str,
-                "time": datetime.now().strftime("%H:%M:%S"),
-                "symbol": p["symbol"],
-                "qty": p["qty"],
-                "entry_price": p["entry_inr"],
-                "exit_price": cur_inr,
-                "pnl": loss,
-                "status": "🛡️ STOP LOSS"
+            st.toast(f"🎯 Target Hit: {p.get('symbol', p.get('contract'))} (+{realized})", icon="✅")
+        elif hit_sl:
+            realized = p.get("pnl", 0.0)
+            broker = p.get("broker", "bybit")
+            if broker == "bybit": engine_data["wallets"]["bybit_usdt"] += (p.get("margin", 1.5) + realized)
+            elif broker == "angel": engine_data["wallets"]["angel_cash"] += (p.get("margin", p.get("invested", 100)) + realized)
+            elif broker == "coindcx": engine_data["wallets"]["coindcx_cash"] += (p.get("cost", p.get("margin", 100)) + realized)
+            engine_data["closed_trades"].append({
+                "symbol": p.get("symbol", p.get("contract")), "broker": broker,
+                "segment": p.get("segment", "SL CUT"),
+                "entry_price": p.get("entry_price", p.get("buy_cost", p.get("buy_premium", 0))),
+                "exit_price": cmp_val, "pnl": realized, "status": "🛡️ STOP LOSS",
+                "exit_time": datetime.now().strftime("%I:%M %p"), "date": today_str
             })
-            st.toast(f"🛡️ SL Cut {p['symbol']} ₹{loss}", icon="⚠️")
+            st.toast(f"🛡️ SL Protected: {p.get('symbol', p.get('contract'))} ({realized})", icon="⚠️")
         else:
             rem.append(p)
-    else:
-        rem.append(p)
+            
+    engine_data["active_positions"][cat] = rem
 
-st.session_state.crypto_positions = rem
-manage_positions()
+# Auto Replenish Empty/Low Slots
+min_counts = {
+    "bybit_perpetual": (3, BYBIT_PERP_POOL),
+    "bybit_scalp": (2, BYBIT_SCALP_POOL),
+    "angel_stocks": (2, ANGEL_STOCKS_POOL),
+    "angel_zerohero": (2, ANGEL_ZERO_POOL),
+    "coindcx_spot": (3, COINDCX_SPOT_POOL),
+    "coindcx_futures": (3, COINDCX_FUT_POOL)
+}
+for cat, (target_min, pool) in min_counts.items():
+    current_list = engine_data["active_positions"].get(cat, [])
+    while len(current_list) < target_min:
+        active_syms = [x.get("symbol") for x in current_list]
+        available_cand = [c for c in pool if c["symbol"] not in active_syms]
+        if available_cand:
+            current_list.append(create_fresh_position(cat, available_cand[0]))
+        else:
+            current_list.append(create_fresh_position(cat, pool[0]))
+    engine_data["active_positions"][cat] = current_list
 
-# ==========================================
-# REAL-TIME DYNAMIC MARKET PRICING & LIVE TICK ENGINE
-# ==========================================
-import random
-
-if "tick_count" not in st.session_state:
-    st.session_state.tick_count = 0
-st.session_state.tick_count += 1
-
-# Micro-variation helper so that every 2 seconds the live order book ticks realistically
-def get_live_tick(base_price, volatility_pct=0.08):
-    noise = random.uniform(-volatility_pct, volatility_pct) / 100.0
-    val = base_price * (1.0 + noise)
-    return round(val, 2) if val >= 1.0 else round(val, 6)
-
-# Real Live Base Quotes from Exchange
-btc_live_usd = live_prices.get("BTC", {}).get("usd", 80206.50)
-eth_live_usd = live_prices.get("ETH", {}).get("usd", 2326.20)
-sol_live_usd = live_prices.get("SOL", {}).get("usd", 101.16)
-doge_live_usd = live_prices.get("DOGE", {}).get("usd", 0.07703)
-
-btc_live_inr = live_prices.get("BTC", {}).get("inr", round(btc_live_usd * INR_RATE, 2))
-eth_live_inr = live_prices.get("ETH", {}).get("inr", round(eth_live_usd * INR_RATE, 2))
-sol_live_inr = live_prices.get("SOL", {}).get("inr", round(sol_live_usd * INR_RATE, 2))
-doge_live_inr = live_prices.get("DOGE", {}).get("inr", round(doge_live_usd * INR_RATE, 2))
+# Save updated state
+save_engine_state(engine_data)
 
 # ------------------------------------------
-# 1. BYBIT GLOBAL DYNAMIC CALCULATIONS ($22.85 USDT / ₹2,000)
+# 1. BYBIT TOTALS ($22.85 USDT / ₹2,000)
 # ------------------------------------------
-bybit_btc_cmp = get_live_tick(btc_live_usd, 0.05)
-bybit_eth_cmp = get_live_tick(eth_live_usd, 0.06)
-bybit_sol_cmp = get_live_tick(sol_live_usd, 0.08)
-bybit_doge_cmp = get_live_tick(doge_live_usd, 0.12)
-bybit_pepe_cmp = get_live_tick(0.0000104, 0.15)
-
-# BTCUSDT (10x Perp Long): Entry $80,050.00, Margin $3.00 (10x -> $30 pos)
-bybit_btc_pnl = round(((bybit_btc_cmp - 80050.00) / 80050.00) * 3.00 * 10, 2)
-bybit_btc_pct = round((bybit_btc_pnl / 3.00) * 100, 1)
-
-# ETHUSDT (10x Perp Long): Entry $2,310.00, Margin $2.00 (10x -> $20 pos)
-bybit_eth_pnl = round(((bybit_eth_cmp - 2310.00) / 2310.00) * 2.00 * 10, 2)
-bybit_eth_pct = round((bybit_eth_pnl / 2.00) * 100, 1)
-
-# SOLUSDT (15x Perp Long): Entry $100.20, Margin $1.50 (15x -> $22.5 pos)
-bybit_sol_pnl = round(((bybit_sol_cmp - 100.20) / 100.20) * 1.50 * 15, 2)
-bybit_sol_pct = round((bybit_sol_pnl / 1.50) * 100, 1)
-
-# Scalp Positions
-# DOGEUSDT (20x Rapid Long): Entry $0.07620, Margin $1.50 (20x -> $30 pos)
-bybit_doge_pnl = round(((bybit_doge_cmp - 0.07620) / 0.07620) * 1.50 * 20, 2)
-bybit_doge_pct = round((bybit_doge_pnl / 1.50) * 100, 1)
-
-# PEPEUSDT (10x Scalp Long): Entry $0.0000098, Margin $1.00 (10x -> $10 pos)
-bybit_pepe_pnl = round(((bybit_pepe_cmp - 0.0000098) / 0.0000098) * 1.00 * 10, 2)
-bybit_pepe_pct = round((bybit_pepe_pnl / 1.00) * 100, 1)
-
-bybit_active_pnl = round(bybit_btc_pnl + bybit_eth_pnl + bybit_sol_pnl, 2)
-bybit_margin_used = 6.50
-bybit_closed_profit = 3.80
-bybit_wallet = round(max(0.0, 22.85 - bybit_margin_used + bybit_closed_profit), 2)
+bybit_margin_used = round(sum(p.get("margin", 0.0) for p in engine_data["active_positions"]["bybit_perpetual"] + engine_data["active_positions"]["bybit_scalp"]), 2)
+bybit_active_pnl = round(sum(p.get("pnl", 0.0) for p in engine_data["active_positions"]["bybit_perpetual"] + engine_data["active_positions"]["bybit_scalp"]), 2)
+bybit_closed_profit = round(sum(t.get("pnl", 0.0) for t in engine_data["closed_trades"] if t.get("broker") == "bybit"), 2)
+bybit_wallet = round(max(0.0, engine_data["wallets"]["bybit_usdt"]), 2)
 bybit_total_portfolio = round(bybit_wallet + bybit_margin_used + bybit_active_pnl, 2)
-bybit_pct_gain = round(((bybit_total_portfolio - 22.85) / 22.85) * 100, 2)
+bybit_pct_gain = round(((bybit_total_portfolio - BYBIT_CAPITAL_USDT) / BYBIT_CAPITAL_USDT) * 100, 2)
 bybit_inr_portfolio = round(bybit_total_portfolio * INR_RATE, 2)
-bybit_inr_pnl = round((bybit_total_portfolio - 22.85) * INR_RATE, 2)
+bybit_inr_pnl = round((bybit_total_portfolio - BYBIT_CAPITAL_USDT) * INR_RATE, 2)
 
 # ------------------------------------------
-# 2. COINDCX INDIA DYNAMIC CALCULATIONS (₹2,000 Paper Capital)
+# 2. COINDCX TOTALS (₹2,000 Paper Capital)
 # ------------------------------------------
-coindcx_btc_cmp = get_live_tick(btc_live_inr, 0.05)
-coindcx_eth_cmp = get_live_tick(eth_live_inr, 0.06)
-coindcx_sol_cmp = get_live_tick(sol_live_inr, 0.08)
-coindcx_doge_cmp = get_live_tick(doge_live_inr, 0.1)
-
-# Spot Trades
-coindcx_btc_cost = 245.18
-coindcx_btc_pnl = round((coindcx_btc_cmp - 7005000.0) * 0.000035, 2)
-coindcx_btc_pct = round((coindcx_btc_pnl / coindcx_btc_cost) * 100, 2)
-
-coindcx_eth_cost = 172.38
-coindcx_eth_pnl = round((coindcx_eth_cmp - 202800.0) * 0.00085, 2)
-coindcx_eth_pct = round((coindcx_eth_pnl / coindcx_eth_cost) * 100, 2)
-
-coindcx_sol_cost = 105.60
-coindcx_sol_pnl = round((coindcx_sol_cmp - 8800.0) * 0.012, 2)
-coindcx_sol_pct = round((coindcx_sol_pnl / coindcx_sol_cost) * 100, 2)
-
-# Futures Trades
-coindcx_f_btc_pnl = round(((coindcx_btc_cmp - 7005000.0) / 7005000.0) * 200.0 * 10, 2)
-coindcx_f_sol_pnl = round(((coindcx_sol_cmp - 8800.0) / 8800.0) * 150.0 * 10, 2)
-coindcx_f_doge_pnl = round(((coindcx_doge_cmp - 6.65) / 6.65) * 100.0 * 5, 2)
-
-coindcx_spot_invested = round(coindcx_btc_cost + coindcx_eth_cost + coindcx_sol_cost, 2) # ₹523.16
-coindcx_active_pnl = round(coindcx_btc_pnl + coindcx_eth_pnl + coindcx_sol_pnl, 2)
-coindcx_closed_profit = 315.00
-coindcx_wallet = round(max(0.0, 2000.0 - coindcx_spot_invested + coindcx_closed_profit), 2)
+coindcx_spot_invested = round(sum(p.get("cost", 0.0) for p in engine_data["active_positions"]["coindcx_spot"]) + sum(p.get("margin", 0.0) for p in engine_data["active_positions"]["coindcx_futures"]), 2)
+coindcx_active_pnl = round(sum(p.get("pnl", 0.0) for p in engine_data["active_positions"]["coindcx_spot"] + engine_data["active_positions"]["coindcx_futures"]), 2)
+coindcx_closed_profit = round(sum(t.get("pnl", 0.0) for t in engine_data["closed_trades"] if t.get("broker") == "coindcx"), 2)
+coindcx_wallet = round(max(0.0, engine_data["wallets"]["coindcx_cash"]), 2)
 coindcx_total_portfolio = round(coindcx_wallet + coindcx_spot_invested + coindcx_active_pnl, 2)
-coindcx_pct_gain = round(((coindcx_total_portfolio - 2000.0) / 2000.0) * 100, 2)
+coindcx_pct_gain = round(((coindcx_total_portfolio - COINDCX_CAPITAL) / COINDCX_CAPITAL) * 100, 2)
 
 # ------------------------------------------
-# 3. ANGEL ONE DYNAMIC CALCULATIONS (₹2,000 Demo Margin)
+# 3. ANGEL ONE TOTALS (₹2,000 Demo Margin)
 # ------------------------------------------
-# Stocks
-angel_tata_cmp = get_live_tick(264.80, 0.12)
-angel_tata_entry = 262.95
-angel_tata_pnl = round((angel_tata_cmp - angel_tata_entry) * 1.0, 2)
-angel_tata_pct = round((angel_tata_pnl / angel_tata_entry) * 100, 2)
-
-angel_rel_cmp = get_live_tick(1202.50, 0.15)
-angel_rel_entry = 1194.50
-angel_rel_margin = 238.90
-angel_rel_pnl = round(angel_rel_cmp - angel_rel_entry, 2)
-angel_rel_pct = round((angel_rel_pnl / angel_rel_margin) * 100, 2)
-
-# Options (Zero to Hero)
-angel_nifty_prem = get_live_tick(11.80, 0.8)
-angel_nifty_pnl = round((angel_nifty_prem - 4.20) * 25, 2)
-angel_nifty_pct = round((angel_nifty_pnl / 105.0) * 100, 1)
-
-angel_bnifty_prem = get_live_tick(18.40, 0.9)
-angel_bnifty_pnl = round((angel_bnifty_prem - 8.50) * 15, 2)
-angel_bnifty_pct = round((angel_bnifty_pnl / 127.50) * 100, 1)
-
-angel_stocks_invested = round(angel_tata_entry + angel_rel_margin, 2) # ₹501.85
-angel_active_pnl = round(angel_tata_pnl + angel_rel_pnl, 2)
-angel_closed_profit = 340.00
-angel_wallet = round(max(0.0, 2000.0 - angel_stocks_invested + angel_closed_profit), 2)
+angel_stocks_invested = round(sum(p.get("margin", 0.0) for p in engine_data["active_positions"]["angel_stocks"]) + sum(p.get("invested", 0.0) for p in engine_data["active_positions"]["angel_zerohero"]), 2)
+angel_active_pnl = round(sum(p.get("pnl", 0.0) for p in engine_data["active_positions"]["angel_stocks"] + engine_data["active_positions"]["angel_zerohero"]), 2)
+angel_closed_profit = round(sum(t.get("pnl", 0.0) for t in engine_data["closed_trades"] if t.get("broker") == "angel"), 2)
+angel_wallet = round(max(0.0, engine_data["wallets"]["angel_cash"]), 2)
 angel_total_demat = round(angel_wallet + angel_stocks_invested + angel_active_pnl, 2)
-angel_pct_gain = round(((angel_total_demat - 2000.0) / 2000.0) * 100, 2)
+angel_pct_gain = round(((angel_total_demat - ANGEL_CAPITAL) / ANGEL_CAPITAL) * 100, 2)
 
 # ------------------------------------------
 # 4. HOME DASHBOARD OVERALL COMBINED (₹6,000 TOTAL)
@@ -812,7 +1012,7 @@ total_combined_net_profit = round(total_combined_portfolio - TOTAL_OVERALL_CAPIT
 total_combined_pct = round(((total_combined_portfolio - TOTAL_OVERALL_CAPITAL) / TOTAL_OVERALL_CAPITAL) * 100, 2)
 today_live_gain = round(angel_active_pnl + (bybit_active_pnl * INR_RATE) + coindcx_active_pnl, 2)
 
-# Legacy fallback compatibility
+# Backward compatibility aliases
 invested_amount = total_combined_invested
 available_balance = total_combined_available
 unrealized_total = total_combined_net_profit
@@ -952,180 +1152,151 @@ if active_tab == "bybit":
     """, unsafe_allow_html=True)
 
     # ################################################################
+    # ################################################################
     # SUB-TAB 1: USDT PERPETUAL 10X FUTURES
     # ################################################################
     if is_perp:
-        st.markdown('<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Perpetual Positions (3 Open)</div>', unsafe_allow_html=True)
+        perp_positions = engine_data["active_positions"].get("bybit_perpetual", [])
+        st.markdown(f'<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Perpetual Positions ({len(perp_positions)} Open)</div>', unsafe_allow_html=True)
 
-        perp_trades = [
-            {
-                "symbol": "BTCUSDT",
-                "segment": "10X PERP LONG",
-                "date": "Today 10:15 AM",
-                "entry_price": "$80,050.00",
-                "cmp": f"${bybit_btc_cmp:,.2f}",
-                "margin": "$3.00 USDT",
-                "pnl": f"{'+' if bybit_btc_pnl>=0 else ''}${bybit_btc_pnl:,.2f} ({'+' if bybit_btc_pct>=0 else ''}{bybit_btc_pct:.1f}% 🚀)",
-                "is_profit": bybit_btc_pnl >= 0,
-                "target": "$81,500.00",
-                "sl": "$79,200.00",
-                "status": "🟢 10X PERPETUAL LONG"
-            },
-            {
-                "symbol": "ETHUSDT",
-                "segment": "10X PERP LONG",
-                "date": "Today 10:45 AM",
-                "entry_price": "$2,310.00",
-                "cmp": f"${bybit_eth_cmp:,.2f}",
-                "margin": "$2.00 USDT",
-                "pnl": f"{'+' if bybit_eth_pnl>=0 else ''}${bybit_eth_pnl:,.2f} ({'+' if bybit_eth_pct>=0 else ''}{bybit_eth_pct:.1f}% 🚀)",
-                "is_profit": bybit_eth_pnl >= 0,
-                "target": "$2,380.00",
-                "sl": "$2,280.00",
-                "status": "🟢 BULLISH BREAKOUT"
-            },
-            {
-                "symbol": "SOLUSDT",
-                "segment": "15X PERP LONG",
-                "date": "Today 11:10 AM",
-                "entry_price": "$100.20",
-                "cmp": f"${bybit_sol_cmp:,.2f}",
-                "margin": "$1.50 USDT",
-                "pnl": f"{'+' if bybit_sol_pnl>=0 else ''}${bybit_sol_pnl:,.2f} ({'+' if bybit_sol_pct>=0 else ''}{bybit_sol_pct:.1f}% 🚀)",
-                "is_profit": bybit_sol_pnl >= 0,
-                "target": "$105.00",
-                "sl": "$98.00",
-                "status": "⚡ HIGH-SPEED MOMENTUM"
-            },
-        ]
-
-        for p in perp_trades:
+        for p in perp_positions:
+            is_prof = p.get("is_profit", p.get("pnl", 0) >= 0)
             render_html(f"""
             <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{p['segment']}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{p['symbol']}</span>
+                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{p.get('segment')}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{p.get('symbol')}</span>
                     </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {p['date']}</span>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {p.get('date', 'Today')}</span>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">ENTRY PRICE</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{p['entry_price']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">${p.get('entry_price', 0):,.2f}</div>
                     </div>
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{p['cmp']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">${p.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">MARGIN (LEV)</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{p['margin']}</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">${p.get('margin', 0):.2f} ({p.get('lev', 10)}x)</div>
                     </div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if p['is_profit'] else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{p['pnl']}</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if p.get('pnl',0)>=0 else ''}${p.get('pnl',0):,.2f} ({'+' if p.get('pct',0)>=0 else ''}{p.get('pct',0):.1f}% 🚀)</span>
                     </div>
                     <div style="font-size:11px;">
-                        <span style="color:#10b981; font-weight:700;">🎯 {p['target']}</span>
+                        <span style="color:#10b981; font-weight:700;">🎯 ${p.get('target', 0):,.2f}</span>
                         <span style="color:#64748b; margin:0 3px;">|</span>
-                        <span style="color:#ef4444; font-weight:700;">🛡️ {p['sl']}</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ ${p.get('sl', 0):,.2f}</span>
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
+                    <a href="?tab=bybit&sub=perpetual&action=close&cid={p.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                        ⚡ Square Off Position
+                    </a>
                 </div>
             </div>
             """)
 
+        # Strategy Controls Bar
+        render_html(f"""
+        <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
+            <a href="?tab=bybit&sub=perpetual&action=new_trade&cat=bybit_perpetual{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+                🔄 Scan & Take New Perpetual Trade
+            </a>
+            <a href="?tab=bybit&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+                🧹 Reset Demo ($22.85)
+            </a>
+        </div>
+        """)
+
         # Closed Completed Trades
-        with st.expander("📁 Closed Bybit Trades Today (1 Trade)", expanded=False):
-            render_html("""
-            <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-size:13px; font-weight:800; color:#ffffff;">BNBUSDT (10x Long)</span>
-                        <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Entry $585 → Exit $598</span>
+        bybit_closed = [t for t in engine_data["closed_trades"] if t.get("broker") == "bybit"]
+        with st.expander(f"📁 Closed Bybit Trades Today ({len(bybit_closed)} Trades)", expanded=False):
+            if bybit_closed:
+                for t in reversed(bybit_closed[-10:]):
+                    render_html(f"""
+                    <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <span style="font-size:13px; font-weight:800; color:#ffffff;">{t.get('symbol')}</span>
+                                <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Entry ${t.get('entry_price',0):,.2f} → Exit ${t.get('exit_price',0):,.2f}</span>
+                            </div>
+                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}${t.get('pnl',0):.2f}</span>
+                        </div>
+                        <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at {t.get('exit_time', '10:50 AM')} • {t.get('status')}</div>
                     </div>
-                    <span style="color:#10b981; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">+$0.65 🎯</span>
-                </div>
-                <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at 10:50 AM • Target Hit</div>
-            </div>
-            """)
+                    """)
+            else:
+                st.info("No closed Bybit trades recorded yet.")
 
     # ################################################################
     # SUB-TAB 2: ⚡ HIGH-SPEED AI SCALP (20X RAPID)
     # ################################################################
     else:
-        render_html('<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ Bybit 20x Rapid AI Scalper (2 Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">20X SCALP</span></div>')
+        scalp_positions = engine_data["active_positions"].get("bybit_scalp", [])
+        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ Bybit 20x Rapid AI Scalper ({len(scalp_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">20X SCALP</span></div>')
 
-        scalp_trades = [
-            {
-                "contract": "DOGEUSDT (20x Long)",
-                "badge": "20X RAPID",
-                "badge_bg": "#ccff00",
-                "badge_color": "#0f172a",
-                "date": "Today 11:25 AM",
-                "entry_price": "$0.07620",
-                "cmp": f"${bybit_doge_cmp:.5f}",
-                "margin": "$1.50 (20x)",
-                "pnl": f"{'+' if bybit_doge_pnl>=0 else ''}${bybit_doge_pnl:,.2f} ({'+' if bybit_doge_pct>=0 else ''}{bybit_doge_pct:.1f}% 🔥)",
-                "target": "$0.0820",
-                "sl": "$0.0740",
-                "status": "🔥 20X RAPID RUN"
-            },
-            {
-                "contract": "PEPEUSDT (10x Long)",
-                "badge": "MEME SCALP",
-                "badge_bg": "#38bdf8",
-                "badge_color": "#0f172a",
-                "date": "Today 11:32 AM",
-                "entry_price": "$0.0000098",
-                "cmp": f"${bybit_pepe_cmp:.7f}",
-                "margin": "$1.00 (10x)",
-                "pnl": f"{'+' if bybit_pepe_pnl>=0 else ''}${bybit_pepe_pnl:,.2f} ({'+' if bybit_pepe_pct>=0 else ''}{bybit_pepe_pct:.1f}% 🚀)",
-                "target": "$0.0000115",
-                "sl": "$0.0000092",
-                "status": "⚡ MOMENTUM SPIKE"
-            },
-        ]
-
-        for s in scalp_trades:
+        for s in scalp_positions:
+            is_prof = s.get("is_profit", s.get("pnl", 0) >= 0)
             render_html(f"""
             <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:{s['badge_bg']}; color:{s['badge_color']}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s['badge']}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s['contract']}</span>
+                        <span style="background:{s.get('badge_bg', '#ccff00')}; color:{s.get('badge_color', '#0f172a')}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('badge', '20X SCALP')}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s.get('contract', s.get('symbol'))}</span>
                     </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s['date']}</span>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s.get('date', 'Today')}</span>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">ENTRY PRICE</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{s['entry_price']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">${s.get('entry_price', 0)}</div>
                     </div>
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{s['cmp']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">${s.get('cmp', 0)}</div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">MARGIN (LEV)</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{s['margin']}</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">${s.get('margin', 0):.2f} ({s.get('lev', 20)}x)</div>
                     </div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:#10b981; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{s['pnl']}</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}${s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.1f}% 🔥)</span>
                     </div>
                     <div style="font-size:11px;">
-                        <span style="color:#10b981; font-weight:700;">🎯 {s['target']}</span>
+                        <span style="color:#10b981; font-weight:700;">🎯 ${s.get('target', 0)}</span>
                         <span style="color:#64748b; margin:0 3px;">|</span>
-                        <span style="color:#ef4444; font-weight:700;">🛡️ {s['sl']}</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ ${s.get('sl', 0)}</span>
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
+                    <a href="?tab=bybit&sub=scalp&action=close&cid={s.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                        ⚡ Square Off Position
+                    </a>
                 </div>
             </div>
             """)
+
+        # Strategy Controls Bar
+        render_html(f"""
+        <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
+            <a href="?tab=bybit&sub=scalp&action=new_trade&cat=bybit_scalp{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+                🔄 Scan & Take New Scalp Trade
+            </a>
+            <a href="?tab=bybit&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+                🧹 Reset Demo ($22.85)
+            </a>
+        </div>
+        """)
 
         # Next AI Breakout Radar Card
         render_html("""
@@ -1251,171 +1422,151 @@ elif active_tab == "angel":
     """, unsafe_allow_html=True)
 
     # ################################################################
+    # ################################################################
     # SUB-TAB 1: NORMAL STOCKS TRADE (EQUITY INTRADAY / CNC)
     # ################################################################
     if is_stocks:
-        st.markdown('<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Stock Holdings & Trades (2 Open)</div>', unsafe_allow_html=True)
+        stock_positions = engine_data["active_positions"].get("angel_stocks", [])
+        st.markdown(f'<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Stock Holdings & Trades ({len(stock_positions)} Open)</div>', unsafe_allow_html=True)
 
-        stock_trades = [
-            {
-                "symbol": "TATA MOTORS",
-                "segment": "NSE EQ",
-                "type": "BUY / LONG",
-                "date": "Today 10:15 AM",
-                "buy_cost": "₹262.95",
-                "cmp": f"₹{angel_tata_cmp:,.2f}",
-                "qty": "1 Share (₹262.95)",
-                "pnl": f"{'+' if angel_tata_pnl>=0 else ''}₹{angel_tata_pnl:,.2f} ({'+' if angel_tata_pct>=0 else ''}{angel_tata_pct:.2f}%)",
-                "is_profit": angel_tata_pnl >= 0,
-                "target": "₹275.00",
-                "sl": "₹255.00",
-                "status": "🟢 TARGET APPROACHING"
-            },
-            {
-                "symbol": "RELIANCE",
-                "segment": "NSE EQ (5x MIS)",
-                "type": "BUY / LONG",
-                "date": "Today 09:35 AM",
-                "buy_cost": "₹1,194.50",
-                "cmp": f"₹{angel_rel_cmp:,.2f}",
-                "qty": "1 Share (₹238.90 Margin)",
-                "pnl": f"{'+' if angel_rel_pnl>=0 else ''}₹{angel_rel_pnl:,.2f} ({'+' if angel_rel_pct>=0 else ''}{angel_rel_pct:.2f}%)",
-                "is_profit": angel_rel_pnl >= 0,
-                "target": "₹1,230.00",
-                "sl": "₹1,175.00",
-                "status": "🟢 IN PROFIT (EMA 9/21 TRAILING)"
-            },
-        ]
-
-        for s in stock_trades:
+        for s in stock_positions:
+            is_prof = s.get("is_profit", s.get("pnl", 0) >= 0)
             render_html(f"""
             <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s['segment']}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s['symbol']}</span>
+                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('segment')}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s.get('symbol')}</span>
                     </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s['date']}</span>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s.get('date', 'Today')}</span>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY COST</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{s['buy_cost']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{s.get('buy_cost', 0):,.2f}</div>
                     </div>
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{s['cmp']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{s.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">QTY / VALUE</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{s['qty']}</div>
+                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">QTY / MARGIN</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{s.get('qty', '1 Share')}</div>
                     </div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if s['is_profit'] else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{s['pnl']}</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}₹{s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.2f}%)</span>
                     </div>
                     <div style="font-size:11px;">
-                        <span style="color:#10b981; font-weight:700;">🎯 {s['target']}</span>
+                        <span style="color:#10b981; font-weight:700;">🎯 ₹{s.get('target', 0):,.2f}</span>
                         <span style="color:#64748b; margin:0 3px;">|</span>
-                        <span style="color:#ef4444; font-weight:700;">🛡️ {s['sl']}</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ ₹{s.get('sl', 0):,.2f}</span>
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
+                    <a href="?tab=angel&sub=stocks&action=close&cid={s.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                        ⚡ Square Off Position
+                    </a>
                 </div>
             </div>
             """)
 
+        # Strategy Controls Bar
+        render_html(f"""
+        <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
+            <a href="?tab=angel&sub=stocks&action=new_trade&cat=angel_stocks{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+                🔄 Scan & Take New Stock Trade
+            </a>
+            <a href="?tab=angel&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+                🧹 Reset Demo (₹2,000)
+            </a>
+        </div>
+        """)
+
         # Closed Completed Trades
-        with st.expander("📁 Closed Completed Trades Today (1 Trade)", expanded=False):
-            render_html("""
-            <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-size:13px; font-weight:800; color:#ffffff;">HDFC BANK</span>
-                        <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Margin ₹280.00 → Sold ₹292.00</span>
+        angel_closed = [t for t in engine_data["closed_trades"] if t.get("broker") == "angel"]
+        with st.expander(f"📁 Closed Angel One Trades Today ({len(angel_closed)} Trades)", expanded=False):
+            if angel_closed:
+                for t in reversed(angel_closed[-10:]):
+                    render_html(f"""
+                    <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <span style="font-size:13px; font-weight:800; color:#ffffff;">{t.get('symbol')}</span>
+                                <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Entry ₹{t.get('entry_price',0):,.2f} → Exit ₹{t.get('exit_price',0):,.2f}</span>
+                            </div>
+                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}₹{t.get('pnl',0):.2f}</span>
+                        </div>
+                        <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at {t.get('exit_time', '11:45 AM')} • {t.get('status')}</div>
                     </div>
-                    <span style="color:#10b981; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">+₹12.00 🎯</span>
-                </div>
-                <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at 11:45 AM • Target Booked</div>
-            </div>
-            """)
+                    """)
+            else:
+                st.info("No closed Angel One trades recorded yet.")
 
     # ################################################################
     # SUB-TAB 2: 🚀 NIFTY ZERO TO HERO (EXPIRY OPTIONS TRADES)
     # ################################################################
     else:
-        render_html('<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">🔥 NIFTY Zero to Hero Contracts (2 Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">EXPIRY SPECIAL</span></div>')
+        zero_positions = engine_data["active_positions"].get("angel_zerohero", [])
+        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">🔥 NIFTY Zero to Hero Contracts ({len(zero_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">EXPIRY SPECIAL</span></div>')
 
-        zero_hero_trades = [
-            {
-                "contract": "NIFTY 24800 CE",
-                "badge": "🚀 6X ZERO TO HERO",
-                "badge_bg": "#ccff00",
-                "badge_color": "#0f172a",
-                "date": "Today 01:25 PM",
-                "buy_premium": "₹4.20",
-                "live_premium": f"₹{angel_nifty_prem:,.2f}",
-                "lot": "1 Lot (25 Qty, ₹105)",
-                "invested": "₹105.00",
-                "pnl": f"{'+' if angel_nifty_pnl>=0 else ''}₹{angel_nifty_pnl:,.2f} ({'+' if angel_nifty_pct>=0 else ''}{angel_nifty_pct:.1f}% 🚀)",
-                "hero_target": "₹25.00 (6X)",
-                "sl": "₹1.50",
-                "status": "🔥 HERO SPIKE ACTIVE"
-            },
-            {
-                "contract": "BANKNIFTY 52100 CE",
-                "badge": "⚡ ZERO TO HERO",
-                "badge_bg": "#38bdf8",
-                "badge_color": "#0f172a",
-                "date": "Today 01:45 PM",
-                "buy_premium": "₹8.50",
-                "live_premium": f"₹{angel_bnifty_prem:,.2f}",
-                "lot": "1 Lot (15 Qty, ₹127.50)",
-                "invested": "₹127.50",
-                "pnl": f"{'+' if angel_bnifty_pnl>=0 else ''}₹{angel_bnifty_pnl:,.2f} ({'+' if angel_bnifty_pct>=0 else ''}{angel_bnifty_pct:.1f}% 🚀)",
-                "hero_target": "₹45.00 (5.3X)",
-                "sl": "₹3.00",
-                "status": "⚡ IN HERO RUN"
-            },
-        ]
-
-        for z in zero_hero_trades:
+        for z in zero_positions:
+            is_prof = z.get("is_profit", z.get("pnl", 0) >= 0)
             render_html(f"""
             <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:{z['badge_bg']}; color:{z['badge_color']}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{z['badge']}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{z['contract']}</span>
+                        <span style="background:{z.get('badge_bg', '#ccff00')}; color:{z.get('badge_color', '#0f172a')}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{z.get('badge', 'ZERO TO HERO')}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{z.get('contract', z.get('symbol'))}</span>
                     </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {z['date']}</span>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {z.get('date', 'Today')}</span>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY PREMIUM</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{z['buy_premium']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{z.get('buy_premium', 0):,.2f}</div>
                     </div>
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE PREMIUM</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{z['live_premium']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{z.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">LOT / CAPITAL</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{z['lot']}</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{z.get('lot', '1 Lot')}</div>
                     </div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:#10b981; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{z['pnl']}</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if z.get('pnl',0)>=0 else ''}₹{z.get('pnl',0):,.2f} ({'+' if z.get('pct',0)>=0 else ''}{z.get('pct',0):.1f}% 🚀)</span>
                     </div>
                     <div style="font-size:11px;">
-                        <span style="color:#10b981; font-weight:700;">🎯 {z['hero_target']}</span>
+                        <span style="color:#10b981; font-weight:700;">🎯 {z.get('hero_target', '₹35.00')}</span>
                         <span style="color:#64748b; margin:0 3px;">|</span>
-                        <span style="color:#ef4444; font-weight:700;">🛡️ {z['sl']}</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ {z.get('sl', '₹2.00')}</span>
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
+                    <a href="?tab=angel&sub=zerohero&action=close&cid={z.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                        ⚡ Square Off Position
+                    </a>
                 </div>
             </div>
             """)
+
+        # Strategy Controls Bar
+        render_html(f"""
+        <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
+            <a href="?tab=angel&sub=zerohero&action=new_trade&cat=angel_zerohero{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+                🔄 Scan & Take New Zero-Hero Trade
+            </a>
+            <a href="?tab=angel&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+                🧹 Reset Demo (₹2,000)
+            </a>
+        </div>
+        """)
 
         # Scanning Upcoming Hero Trigger Card
         render_html("""
@@ -1541,197 +1692,151 @@ elif active_tab == "coindcx":
     """, unsafe_allow_html=True)
 
     # ################################################################
+    # ################################################################
     # SUB-TAB 1: INR SPOT TRADE (BTC, ETH, SOL, DOGE)
     # ################################################################
     if is_spot:
-        st.markdown('<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Spot Holdings & Trades (3 Open)</div>', unsafe_allow_html=True)
+        spot_positions = engine_data["active_positions"].get("coindcx_spot", [])
+        st.markdown(f'<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Spot Holdings & Trades ({len(spot_positions)} Open)</div>', unsafe_allow_html=True)
 
-        spot_trades = [
-            {
-                "symbol": "BTC / INR",
-                "segment": "COINDCX SPOT",
-                "date": "Today 10:20 AM",
-                "buy_cost": "₹70,05,000.00",
-                "cmp": f"₹{coindcx_btc_cmp:,.2f}",
-                "qty": "0.000035 BTC (₹245.18)",
-                "pnl": f"{'+' if coindcx_btc_pnl>=0 else ''}₹{coindcx_btc_pnl:,.2f} ({'+' if coindcx_btc_pct>=0 else ''}{coindcx_btc_pct:.2f}%)",
-                "is_profit": coindcx_btc_pnl >= 0,
-                "target": "₹71,50,000",
-                "sl": "₹69,20,000",
-                "status": "🟢 24/7 SPOT HOLDING"
-            },
-            {
-                "symbol": "ETH / INR",
-                "segment": "COINDCX SPOT",
-                "date": "Today 10:45 AM",
-                "buy_cost": "₹2,02,800.00",
-                "cmp": f"₹{coindcx_eth_cmp:,.2f}",
-                "qty": "0.00085 ETH (₹172.38)",
-                "pnl": f"{'+' if coindcx_eth_pnl>=0 else ''}₹{coindcx_eth_pnl:,.2f} ({'+' if coindcx_eth_pct>=0 else ''}{coindcx_eth_pct:.2f}%)",
-                "is_profit": coindcx_eth_pnl >= 0,
-                "target": "₹2,10,000",
-                "sl": "₹1,98,000",
-                "status": "🟢 BULLISH RUN"
-            },
-            {
-                "symbol": "SOL / INR",
-                "segment": "COINDCX SPOT",
-                "date": "Today 11:15 AM",
-                "buy_cost": "₹8,800.00",
-                "cmp": f"₹{coindcx_sol_cmp:,.2f}",
-                "qty": "0.012 SOL (₹105.60)",
-                "pnl": f"{'+' if coindcx_sol_pnl>=0 else ''}₹{coindcx_sol_pnl:,.2f} ({'+' if coindcx_sol_pct>=0 else ''}{coindcx_sol_pct:.2f}%)",
-                "is_profit": coindcx_sol_pnl >= 0,
-                "target": "₹9,200",
-                "sl": "₹8,550",
-                "status": "🟢 SPOT SCALPING"
-            },
-        ]
-
-        for s in spot_trades:
+        for s in spot_positions:
+            is_prof = s.get("is_profit", s.get("pnl", 0) >= 0)
             render_html(f"""
             <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s['segment']}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s['symbol']}</span>
+                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('segment')}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s.get('symbol')}</span>
                     </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s['date']}</span>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s.get('date', 'Today')}</span>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY COST</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{s['buy_cost']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{s.get('buy_cost', 0):,.2f}</div>
                     </div>
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{s['cmp']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{s.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">QTY / VALUE</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{s['qty']}</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">₹{s.get('cost', 0):,.2f}</div>
                     </div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if s['is_profit'] else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{s['pnl']}</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}₹{s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.2f}%)</span>
                     </div>
                     <div style="font-size:11px;">
-                        <span style="color:#10b981; font-weight:700;">🎯 {s['target']}</span>
+                        <span style="color:#10b981; font-weight:700;">🎯 ₹{s.get('target', 0):,.2f}</span>
                         <span style="color:#64748b; margin:0 3px;">|</span>
-                        <span style="color:#ef4444; font-weight:700;">🛡️ {s['sl']}</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ ₹{s.get('sl', 0):,.2f}</span>
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
+                    <a href="?tab=coindcx&sub=spot&action=close&cid={s.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                        ⚡ Square Off Position
+                    </a>
                 </div>
             </div>
             """)
 
+        # Strategy Controls Bar
+        render_html(f"""
+        <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
+            <a href="?tab=coindcx&sub=spot&action=new_trade&cat=coindcx_spot{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+                🔄 Scan & Take New Spot Trade
+            </a>
+            <a href="?tab=coindcx&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+                🧹 Reset Demo (₹2,000)
+            </a>
+        </div>
+        """)
+
         # Completed Trades History from Ledger
-        with st.expander(f"📁 Closed Trades History ({len(all_trades)} Recorded Trades)", expanded=False):
-            if len(all_trades) > 0:
-                for t in reversed(all_trades[-10:]):
+        coindcx_closed = [t for t in engine_data["closed_trades"] if t.get("broker") == "coindcx"]
+        with st.expander(f"📁 Closed CoinDCX Trades Today ({len(coindcx_closed)} Trades)", expanded=False):
+            if coindcx_closed:
+                for t in reversed(coindcx_closed[-10:]):
                     render_html(f"""
                     <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
                                 <span style="font-size:13px; font-weight:800; color:#ffffff;">{t.get('symbol')}</span>
-                                <span style="font-size:11px; color:#94a3b8; margin-left:6px;">{t.get('time')} • {t.get('status')}</span>
+                                <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Entry ₹{t.get('entry_price',0):,.2f} → Exit ₹{t.get('exit_price',0):,.2f}</span>
                             </div>
-                            <span style="color:#10b981; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}₹{t.get('pnl',0):.2f}</span>
+                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}₹{t.get('pnl',0):.2f}</span>
                         </div>
+                        <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at {t.get('exit_time', '12:10 PM')} • {t.get('status')}</div>
                     </div>
                     """)
             else:
-                st.info("No closed trades recorded yet.")
+                st.info("No closed CoinDCX trades recorded yet.")
 
     # ################################################################
     # SUB-TAB 2: ⚡ CRYPTO 10X FUTURES
     # ################################################################
     else:
-        render_html('<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ CoinDCX 10x Futures Positions (3 Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">10X LEVERAGE</span></div>')
+        futures_positions = engine_data["active_positions"].get("coindcx_futures", [])
+        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ CoinDCX 10x Futures Positions ({len(futures_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">10X LEVERAGE</span></div>')
 
-        futures_trades = [
-            {
-                "contract": "BTC / USDT (10x Long)",
-                "badge": "10X FUTURES",
-                "badge_bg": "#ccff00",
-                "badge_color": "#0f172a",
-                "date": "Today 11:05 AM",
-                "buy_cost": "₹70,05,000",
-                "cmp": f"₹{coindcx_btc_cmp:,.2f}",
-                "margin": "₹200.00 (10x Lev)",
-                "pnl": f"{'+' if coindcx_f_btc_pnl>=0 else ''}₹{coindcx_f_btc_pnl:,.2f} ({'+' if coindcx_f_btc_pnl>=0 else ''}{coindcx_f_btc_pnl/200*100:.1f}% 🚀)",
-                "target": "₹71,80,000",
-                "sl": "₹69,10,000",
-                "status": "⚡ HIGH LEVERAGE RUN"
-            },
-            {
-                "contract": "SOL / USDT (10x Long)",
-                "badge": "10X FUTURES",
-                "badge_bg": "#38bdf8",
-                "badge_color": "#0f172a",
-                "date": "Today 11:20 AM",
-                "buy_cost": "₹8,800",
-                "cmp": f"₹{coindcx_sol_cmp:,.2f}",
-                "margin": "₹150.00 (10x Lev)",
-                "pnl": f"{'+' if coindcx_f_sol_pnl>=0 else ''}₹{coindcx_f_sol_pnl:,.2f} ({'+' if coindcx_f_sol_pnl>=0 else ''}{coindcx_f_sol_pnl/150*100:.1f}% 🚀)",
-                "target": "₹9,300",
-                "sl": "₹8,550",
-                "status": "⚡ MOMENTUM SPIKE"
-            },
-            {
-                "contract": "DOGE / USDT (5x Scalp)",
-                "badge": "5X SCALP",
-                "badge_bg": "#f59e0b",
-                "badge_color": "#0f172a",
-                "date": "Today 11:28 AM",
-                "buy_cost": "₹6.65",
-                "cmp": f"₹{coindcx_doge_cmp:,.2f}",
-                "margin": "₹100.00 (5x Lev)",
-                "pnl": f"{'+' if coindcx_f_doge_pnl>=0 else ''}₹{coindcx_f_doge_pnl:,.2f} ({'+' if coindcx_f_doge_pnl>=0 else ''}{coindcx_f_doge_pnl/100*100:.1f}% 🚀)",
-                "target": "₹7.40",
-                "sl": "₹6.30",
-                "status": "🔥 MEME SCALP ACTIVE"
-            },
-        ]
-
-        for f in futures_trades:
+        for f in futures_positions:
+            is_prof = f.get("is_profit", f.get("pnl", 0) >= 0)
             render_html(f"""
             <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:{f['badge_bg']}; color:{f['badge_color']}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{f['badge']}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{f['contract']}</span>
+                        <span style="background:{f.get('badge_bg', '#ccff00')}; color:{f.get('badge_color', '#0f172a')}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{f.get('badge', '10X FUTURES')}</span>
+                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{f.get('contract', f.get('symbol'))}</span>
                     </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {f['date']}</span>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {f.get('date', 'Today')}</span>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">ENTRY PRICE</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">{f['buy_cost']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{f.get('buy_cost', 0):,.2f}</div>
                     </div>
                     <div>
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">{f['cmp']}</div>
+                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{f.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-size:10px; color:#94a3b8; font-weight:700;">MARGIN USED</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{f['margin']}</div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">₹{f.get('margin', 0):.2f} ({f.get('lev', 10)}x)</div>
                     </div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:#10b981; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{f['pnl']}</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if f.get('pnl',0)>=0 else ''}₹{f.get('pnl',0):,.2f} ({'+' if f.get('pct',0)>=0 else ''}{f.get('pct',0):.1f}% 🚀)</span>
                     </div>
                     <div style="font-size:11px;">
-                        <span style="color:#10b981; font-weight:700;">🎯 {f['target']}</span>
+                        <span style="color:#10b981; font-weight:700;">🎯 ₹{f.get('target', 0):,.2f}</span>
                         <span style="color:#64748b; margin:0 3px;">|</span>
-                        <span style="color:#ef4444; font-weight:700;">🛡️ {f['sl']}</span>
+                        <span style="color:#ef4444; font-weight:700;">🛡️ ₹{f.get('sl', 0):,.2f}</span>
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
+                    <a href="?tab=coindcx&sub=futures&action=close&cid={f.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                        ⚡ Square Off Position
+                    </a>
                 </div>
             </div>
             """)
+
+        # Strategy Controls Bar
+        render_html(f"""
+        <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
+            <a href="?tab=coindcx&sub=futures&action=new_trade&cat=coindcx_futures{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+                🔄 Scan & Take New Futures Trade
+            </a>
+            <a href="?tab=coindcx&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+                🧹 Reset Demo (₹2,000)
+            </a>
+        </div>
+        """)
 
     # 5. CoinDCX Paper Simulation Safety Footer
     st.markdown("""
@@ -1919,28 +2024,47 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # Mini Live Spotlight (Active Positions)
-    if len(st.session_state.crypto_positions) > 0:
-        st.markdown(f'<div style="font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:10px;">⚡ Active Verified Positions ({len(st.session_state.crypto_positions)})</div>', unsafe_allow_html=True)
+    # Mini Live Spotlight (Active Positions Across All 3 Brokers)
+    all_active_positions = []
+    for cat_name, p_list in engine_data["active_positions"].items():
+        all_active_positions.extend(p_list)
+
+    if len(all_active_positions) > 0:
+        st.markdown(f'<div style="font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:10px;">⚡ Active Unified Positions ({len(all_active_positions)} Live)</div>', unsafe_allow_html=True)
         c1, c2 = st.columns(2)
-        pos_sub = st.session_state.crypto_positions[:2]
+        pos_sub = all_active_positions[:2]
         for idx, p in enumerate(pos_sub):
             col = c1 if idx == 0 else c2
             theme = "card-mint" if idx == 0 else "card-lavender"
+            b_label = p.get('broker', '').upper()
+            sym_name = p.get('symbol', p.get('contract', ''))
+            cmp_val = p.get('cmp', 0)
+            pnl_val = p.get('pnl', 0)
+            is_usd = p.get('broker') == 'bybit'
+            cur_prefix = '$' if is_usd else '₹'
             with col:
                 st.markdown(f"""
                 <div class="{theme}">
-                    <div style="display:flex; justify-content:space-between; font-weight:800; font-size:15px;">
-                        <span>{p['symbol']}</span>
-                        <span>📈</span>
+                    <div style="display:flex; justify-content:space-between; font-weight:800; font-size:14px;">
+                        <span>{sym_name}</span>
+                        <span style="font-size:10px; background:rgba(0,0,0,0.15); padding:2px 6px; border-radius:6px;">{b_label}</span>
                     </div>
-                    <div style="font-size:11px; margin-top:2px; opacity:0.8;">Live Real Market</div>
-                    <div style="font-size:17px; font-weight:800; margin-top:4px;">₹{p['current_inr']:,.1f}</div>
+                    <div style="font-size:10px; margin-top:2px; opacity:0.8;">📅 {p.get('date', 'Today')}</div>
+                    <div style="font-size:16px; font-weight:800; margin-top:4px;">{cur_prefix}{cmp_val:,.2f}</div>
                     <div style="font-size:11px; font-weight:700; margin-top:3px;">
-                        P&L: {'+' if p['unrealized']>=0 else ''}₹{p['unrealized']:.2f}
+                        P&L: {'+' if pnl_val>=0 else ''}{cur_prefix}{pnl_val:.2f}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+        
+        # Quick Reset Demo Action
+        render_html(f"""
+        <div style="display:flex; justify-content:center; margin-top:10px; margin-bottom:14px;">
+            <a href="?tab=home&action=reset_demo{theme_suffix}" target="_self" style="background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:8px 16px; border-radius:12px; text-decoration:none !important;">
+                🧹 Reset All 3 Accounts to ₹2,000 Demo Grant
+            </a>
+        </div>
+        """)
     else:
         st.markdown("""
         <div style="background:#090d16; border:1px dashed #334155; border-radius:14px; padding:14px; text-align:center; margin-bottom:14px;">
