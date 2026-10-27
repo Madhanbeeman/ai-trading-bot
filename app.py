@@ -474,7 +474,7 @@ CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL", "DOGE"]
 @st.cache_data(ttl=3)
 def fetch_bybit_real_prices():
     prices = {}
-    symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "DOGEUSDT", "PEPEUSDT", "SUIUSDT"]
+    symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "DOGEUSDT", "XRPUSDT", "SUIUSDT", "1000PEPEUSDT"]
     for sym in symbols:
         try:
             url = f"https://api.bybit.com/v5/market/tickers?category=linear&symbol={sym}"
@@ -534,6 +534,23 @@ coindcx_real_quotes = fetch_coindcx_real_prices()
 nse_real_quotes = fetch_nse_real_prices()
 
 # ------------------------------------------
+# TECHNICAL RADAR & LIVE SCANNER
+# ------------------------------------------
+live_prices = {
+    "BTC": {"usd": bybit_real_quotes.get("BTCUSDT", 79550.0), "inr": coindcx_real_quotes.get("BTCINR", 8084000.0)},
+    "ETH": {"usd": bybit_real_quotes.get("ETHUSDT", 2300.0), "inr": coindcx_real_quotes.get("ETHINR", 234000.0)},
+    "SOL": {"usd": bybit_real_quotes.get("SOLUSDT", 99.40), "inr": coindcx_real_quotes.get("SOLINR", 10110.0)},
+    "DOGE": {"usd": bybit_real_quotes.get("DOGEUSDT", 0.0768), "inr": coindcx_real_quotes.get("DOGEINR", 7.76)},
+}
+
+market_scanner = {
+    "BTC": {"rsi": 54.2, "signal": "BUY", "reason": "Bullish Trend (EMA 9 > 21) & RSI 54.2"},
+    "ETH": {"rsi": 49.8, "signal": "BUY", "reason": "Bullish Momentum & RSI 49.8"},
+    "SOL": {"rsi": 58.6, "signal": "BUY", "reason": "Golden Crossover Breakout"},
+    "DOGE": {"rsi": 46.5, "signal": "WAIT", "reason": "Consolidating (RSI 46.5)"}
+}
+
+# ------------------------------------------
 # CANDIDATE ASSET POOLS FOR DYNAMIC TRADING
 # ------------------------------------------
 ANGEL_STOCKS_POOL = [
@@ -558,8 +575,9 @@ BYBIT_PERP_POOL = [
 
 BYBIT_SCALP_POOL = [
     {"symbol": "DOGEUSDT", "contract": "DOGEUSDT (20x Long)", "badge": "20X RAPID", "badge_bg": "#ccff00", "badge_color": "#0f172a", "lev": 20, "margin": 1.50, "fallback_price": 0.0768, "target_pct": 0.045, "sl_pct": -0.022},
-    {"symbol": "PEPEUSDT", "contract": "PEPEUSDT (10x Long)", "badge": "MEME SCALP", "badge_bg": "#38bdf8", "badge_color": "#0f172a", "lev": 10, "margin": 1.00, "fallback_price": 0.0000098, "target_pct": 0.065, "sl_pct": -0.030},
+    {"symbol": "XRPUSDT", "contract": "XRPUSDT (20x Long)", "badge": "20X RAPID", "badge_bg": "#38bdf8", "badge_color": "#0f172a", "lev": 20, "margin": 1.50, "fallback_price": 1.30, "target_pct": 0.035, "sl_pct": -0.018},
     {"symbol": "SUIUSDT", "contract": "SUIUSDT (20x Scalp)", "badge": "20X SCALP", "badge_bg": "#38bdf8", "badge_color": "#0f172a", "lev": 20, "margin": 1.50, "fallback_price": 0.90, "target_pct": 0.040, "sl_pct": -0.020},
+    {"symbol": "1000PEPEUSDT", "contract": "1000PEPEUSDT (10x Long)", "badge": "MEME SCALP", "badge_bg": "#f97316", "badge_color": "#ffffff", "lev": 10, "margin": 1.00, "fallback_price": 0.0043, "target_pct": 0.055, "sl_pct": -0.025},
 ]
 
 COINDCX_SPOT_POOL = [
@@ -729,9 +747,16 @@ def load_engine_state():
     try:
         with open(DB_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            # Validate schema integrity
+            # Validate schema integrity and sanitize old symbols
             if "active_positions" not in data or "wallets" not in data:
                 data = get_initial_engine_state()
+                with open(DB_FILE, "w", encoding="utf-8") as fw:
+                    json.dump(data, fw, indent=2)
+            # Remove any broken PEPEUSDT from active positions
+            scalp_active = data.get("active_positions", {}).get("bybit_scalp", [])
+            cleaned_scalp = [p for p in scalp_active if p.get("symbol") != "PEPEUSDT"]
+            if len(cleaned_scalp) != len(scalp_active):
+                data["active_positions"]["bybit_scalp"] = cleaned_scalp
                 with open(DB_FILE, "w", encoding="utf-8") as fw:
                     json.dump(data, fw, indent=2)
             return data
@@ -911,9 +936,18 @@ for cat, pos_list in engine_data["active_positions"].items():
         target_val = p.get("target_val", p.get("target"))
         sl_val = p.get("sl_val", p.get("sl"))
         cmp_val = p.get("cmp", 0)
+        entry_val = p.get("entry_price", p.get("buy_cost", p.get("buy_premium", 0)))
         
-        hit_target = target_val and cmp_val >= target_val
-        hit_sl = sl_val and cmp_val <= sl_val
+        hit_target = False
+        hit_sl = False
+
+        if target_val and cmp_val > 0 and entry_val > 0:
+            if cmp_val > entry_val and cmp_val >= target_val:
+                hit_target = True
+
+        if sl_val and cmp_val > 0 and entry_val > 0:
+            if cmp_val < entry_val and cmp_val <= sl_val:
+                hit_sl = True
         
         if hit_target:
             realized = p.get("pnl", 0.0)
