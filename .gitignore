@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Environment & Secrets
+.env
+.streamlit/secrets.toml
+
+# Local dynamic runtime data
+data/*.json
+!data/.gitkeep
+logs/
