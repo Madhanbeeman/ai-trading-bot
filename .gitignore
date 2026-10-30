@@ -1,4 +1,9 @@
+# Secrets and configs
 .env
+.streamlit/secrets.toml
+data/coindcx_keys.json
+data/*.secret
+data/trade_ledger.json
 __pycache__/
 *.pyc
 *.pyo
