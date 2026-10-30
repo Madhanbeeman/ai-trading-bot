@@ -410,19 +410,47 @@ def get_custom_css(is_dark: bool = True) -> str:
         color: {text_muted} !important;
     }}
 
-    /* Theme Switch Button */
-    .theme-toggle-btn {{
+    /* Theme Switcher Bar (Sun ☀️ / Moon 🌙 Toggle) */
+    .theme-switch-bar {
+        display: inline-flex;
+        align-items: center;
         background: {bg_subcard};
         border: 1px solid {border_color};
-        color: {text_primary};
-        border-radius: 10px;
-        padding: 4px 8px;
-        font-size: 13px;
-        text-decoration: none !important;
+        border-radius: 12px;
+        padding: 2px;
+        gap: 2px;
+    }
+
+    .theme-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        font-size: 13px;
+        text-decoration: none !important;
         transition: all 0.15s ease;
-    }}
+    }
+
+    .theme-btn-active-sun {
+        background: #ffffff !important;
+        border: 1.5px solid #f59e0b !important;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35) !important;
+    }
+
+    .theme-btn-active-moon {
+        background: #1e293b !important;
+        border: 1.5px solid #38bdf8 !important;
+        box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35) !important;
+    }
+
+    .theme-btn-inactive {
+        opacity: 0.45 !important;
+    }
+
+    .theme-btn-inactive:hover {
+        opacity: 0.85 !important;
+    }
     </style>
     """

@@ -41,11 +41,14 @@ def generate_sparkline_svg(is_profit: bool, pos_id: str) -> str:
     """
 
 def render_header(title: str, is_dark: bool, current_tab: str, sub_tab: str = ""):
-    """Renders sleek top user bar with live clock and theme toggle."""
+    """Renders sleek top user bar with live clock and Sun ☀️ / Moon 🌙 switch toggle."""
     clock_str = format_ist_clock()
-    toggle_theme = "light" if is_dark else "dark"
-    theme_icon = "☀️" if is_dark else "🌙"
     sub_param = f"&sub={sub_tab}" if sub_tab else ""
+    target_sun = f"?tab={current_tab}{sub_param}&theme=light"
+    target_moon = f"?tab={current_tab}{sub_param}&theme=dark"
+
+    sun_cls = "theme-btn-active-sun" if not is_dark else "theme-btn-inactive"
+    moon_cls = "theme-btn-active-moon" if is_dark else "theme-btn-inactive"
 
     render_html(f"""
     <div class="top-bar">
@@ -56,9 +59,14 @@ def render_header(title: str, is_dark: bool, current_tab: str, sub_tab: str = ""
             <div class="live-pulse-badge">
                 <span class="radar-dot"></span> IST {clock_str}
             </div>
-            <a href="?tab={current_tab}{sub_param}&theme={toggle_theme}" target="_self" class="theme-toggle-btn" title="Toggle Theme">
-                {theme_icon}
-            </a>
+            <div class="theme-switch-bar">
+                <a href="{target_sun}" target="_self" class="theme-btn {sun_cls}" title="Light Theme">
+                    ☀️
+                </a>
+                <a href="{target_moon}" target="_self" class="theme-btn {moon_cls}" title="Dark Theme">
+                    🌙
+                </a>
+            </div>
         </div>
     </div>
     """)
@@ -155,7 +163,7 @@ def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub
             </div>
             <div class="metric-col">
                 <span class="metric-label">CURRENT VALUE</span>
-                <span class="metric-val" style="color:#ffffff;">₹{current_val:,.2f}</span>
+                <span class="metric-val" style="color:{'#ffffff' if is_dark else '#0f172a'};">₹{current_val:,.2f}</span>
             </div>
             <div class="metric-col" style="text-align:right;">
                 <span class="metric-label">LIVE P/L</span>
@@ -167,7 +175,7 @@ def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub
         {sparkline_html}
 
         <!-- Secondary Row: Market Price & Targets -->
-        <div style="background:rgba(255,255,255,0.03); border-radius:10px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center; font-size:10.5px; color:#94a3b8; margin-bottom:12px; font-family:'JetBrains Mono', monospace;">
+        <div style="background:{'rgba(255,255,255,0.03)' if is_dark else 'rgba(0,0,0,0.03)'}; border-radius:10px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center; font-size:10.5px; color:#94a3b8; margin-bottom:12px; font-family:'JetBrains Mono', monospace;">
             <span>Asset CMP: <b style="color:#38bdf8;">₹{pos['cmp']:,.2f}</b></span>
             <span>🎯 Tgt: <b style="color:#10b981;">₹{pos.get('target', 0):,.2f}</b></span>
             <span>🛡️ SL: <b style="color:#ef4444;">₹{pos.get('sl', 0):,.2f}</b></span>

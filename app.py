@@ -38,32 +38,54 @@ from ui.components import (
 # -------------------------------------------------------------
 # 2. QUERY PARAMS & THEME EXTRACTION
 # -------------------------------------------------------------
+# 2. QUERY PARAMS & THEME EXTRACTION (WITH SESSION PERSISTENCE)
+# -------------------------------------------------------------
+if "app_theme" not in st.session_state:
+    st.session_state["app_theme"] = "dark"
+
 active_tab = "home"
 sub_tab = ""
-current_theme = "dark"
 req_action = None
 req_cid = None
 req_cat = None
 
 try:
     if hasattr(st, "query_params"):
-        active_tab = st.query_params.get("tab", "home")
-        sub_tab = st.query_params.get("sub", "")
-        current_theme = st.query_params.get("theme", "dark")
-        req_action = st.query_params.get("action", None)
-        req_cid = st.query_params.get("cid", None)
-        req_cat = st.query_params.get("cat", None)
+        q_tab = st.query_params.get("tab", "home")
+        active_tab = q_tab[0] if isinstance(q_tab, list) else str(q_tab)
+
+        q_sub = st.query_params.get("sub", "")
+        sub_tab = q_sub[0] if isinstance(q_sub, list) else str(q_sub)
+
+        q_theme = st.query_params.get("theme", None)
+        if q_theme is not None:
+            t_str = (q_theme[0] if isinstance(q_theme, list) else str(q_theme)).strip().lower()
+            if t_str in ["light", "dark"]:
+                st.session_state["app_theme"] = t_str
+
+        q_act = st.query_params.get("action", None)
+        req_action = q_act[0] if isinstance(q_act, list) else q_act
+
+        q_cid = st.query_params.get("cid", None)
+        req_cid = q_cid[0] if isinstance(q_cid, list) else q_cid
+
+        q_cat = st.query_params.get("cat", None)
+        req_cat = q_cat[0] if isinstance(q_cat, list) else q_cat
     else:
         params = st.experimental_get_query_params()
-        active_tab = params.get("tab", ["home"])[0]
-        sub_tab = params.get("sub", [""])[0]
-        current_theme = params.get("theme", ["dark"])[0]
-        req_action = params.get("action", [None])[0]
-        req_cid = params.get("cid", [None])[0]
-        req_cat = params.get("cat", [None])[0]
+        if "tab" in params and params["tab"]: active_tab = str(params["tab"][0])
+        if "sub" in params and params["sub"]: sub_tab = str(params["sub"][0])
+        if "theme" in params and params["theme"]:
+            t_str = str(params["theme"][0]).strip().lower()
+            if t_str in ["light", "dark"]:
+                st.session_state["app_theme"] = t_str
+        if "action" in params and params["action"]: req_action = str(params["action"][0])
+        if "cid" in params and params["cid"]: req_cid = str(params["cid"][0])
+        if "cat" in params and params["cat"]: req_cat = str(params["cat"][0])
 except Exception:
     pass
 
+current_theme = st.session_state.get("app_theme", "dark")
 is_dark = current_theme != "light"
 st.markdown(get_custom_css(is_dark), unsafe_allow_html=True)
 
