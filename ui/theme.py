@@ -380,20 +380,32 @@ def get_custom_css(is_dark: bool = True) -> str:
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 3px;
         text-decoration: none !important;
         transition: transform 0.15s ease;
         padding: 4px;
-        border-radius: 10px;
+        border-radius: 12px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
     }}
 
     .dock-tab:hover {{
         transform: scale(1.05);
     }}
 
+    .dock-tab:active {{
+        transform: scale(0.95);
+    }}
+
     .dock-icon {{
         font-size: 19px;
         line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 22px;
     }}
 
     .dock-label {{
@@ -416,37 +428,52 @@ def get_custom_css(is_dark: bool = True) -> str:
         align-items: center;
         background: {bg_subcard};
         border: 1px solid {border_color};
-        border-radius: 12px;
-        padding: 2px;
-        gap: 2px;
+        border-radius: 14px;
+        padding: 3px;
+        gap: 3px;
+        position: relative;
+        z-index: 1000;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }}
 
     .theme-btn {{
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
-        border-radius: 9px;
-        font-size: 13px;
+        width: 36px;
+        height: 34px;
+        min-width: 36px;
+        border-radius: 10px;
+        font-size: 16px;
         text-decoration: none !important;
         transition: all 0.15s ease;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0.25);
+        user-select: none;
+        -webkit-user-select: none;
+    }}
+
+    .theme-btn:active {{
+        transform: scale(0.92);
     }}
 
     .theme-btn-active-sun {{
         background: #ffffff !important;
         border: 1.5px solid #f59e0b !important;
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35) !important;
+        box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4) !important;
     }}
 
     .theme-btn-active-moon {{
         background: #1e293b !important;
         border: 1.5px solid #38bdf8 !important;
-        box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35) !important;
+        box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4) !important;
     }}
 
     .theme-btn-inactive {{
         opacity: 0.45 !important;
+        border: 1.5px solid transparent !important;
     }}
 
     .theme-btn-inactive:hover {{

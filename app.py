@@ -5,7 +5,7 @@ import time
 # 1. APPLICATION SETUP & PAGE CONFIG
 # -------------------------------------------------------------
 st.set_page_config(
-    page_title="Fintech Pro Terminal",
+    page_title="Fintech Pro",
     page_icon="assets/logo.png",
     layout="centered",
     initial_sidebar_state="collapsed"
@@ -166,7 +166,7 @@ coindcx_total_portfolio = round(coindcx_wallet + coindcx_invested + coindcx_acti
 coindcx_net_pnl = round(coindcx_total_portfolio - COINDCX_INITIAL_CAPITAL, 2)
 coindcx_pct = round((coindcx_net_pnl / COINDCX_INITIAL_CAPITAL) * 100, 2)
 
-# Overall Combined Terminal Totals
+# Overall Combined Portfolio Totals
 total_portfolio = round(angel_total_portfolio + coindcx_total_portfolio, 2)
 total_available = round(angel_wallet + coindcx_wallet, 2)
 total_invested = round(angel_invested + coindcx_invested, 2)
@@ -177,7 +177,7 @@ total_pct = round((total_net_pnl / TOTAL_INITIAL_CAPITAL) * 100, 2)
 # 5. TAB 1: ⚡ HOME OVERVIEW
 # -------------------------------------------------------------
 if active_tab == "home":
-    render_header("Fintech Terminal", is_dark, "home")
+    render_header("Fintech Pro", is_dark, "home")
 
     # Master Portfolio Hero
     render_portfolio_hero(
@@ -224,7 +224,7 @@ if active_tab == "home":
             </div>
         </div>
         <a href="?tab=angel{theme_arg}" target="_self" class="btn-action-primary" style="display:block; width:100%; text-align:center;">
-            Open Angel One Terminal →
+            Open Angel One →
         </a>
     </div>
 
@@ -255,17 +255,17 @@ if active_tab == "home":
             </div>
         </div>
         <a href="?tab=coindcx{theme_arg}" target="_self" class="btn-action-primary" style="display:block; width:100%; text-align:center;">
-            Open CoinDCX Terminal →
+            Open CoinDCX →
         </a>
     </div>
     """)
 
 # -------------------------------------------------------------
-# 6. TAB 2: 🇮🇳 COINDCX TERMINAL
+# 6. TAB 2: 🇮🇳 COINDCX
 # -------------------------------------------------------------
 elif active_tab == "coindcx":
     cur_sub = sub_tab if sub_tab in ["spot", "futures"] else "spot"
-    render_header("CoinDCX Terminal", is_dark, "coindcx", cur_sub)
+    render_header("CoinDCX", is_dark, "coindcx", cur_sub)
 
     render_portfolio_hero(
         title="CoinDCX Portfolio (₹2,000 Grant)",
@@ -318,11 +318,11 @@ elif active_tab == "coindcx":
         """)
 
 # -------------------------------------------------------------
-# 7. TAB 3: 📈 ANGEL ONE TERMINAL
+# 7. TAB 3: 📈 ANGEL ONE
 # -------------------------------------------------------------
 elif active_tab == "angel":
     cur_sub = sub_tab if sub_tab in ["stocks", "options"] else "stocks"
-    render_header("Angel One Terminal", is_dark, "angel", cur_sub)
+    render_header("Angel One", is_dark, "angel", cur_sub)
 
     render_portfolio_hero(
         title="Angel One Demat (₹2,000 Grant)",

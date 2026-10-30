@@ -62,10 +62,10 @@ def render_header(title: str, is_dark: bool, current_tab: str, sub_tab: str = ""
                 <span class="radar-dot"></span> IST {clock_str}
             </div>
             <div class="theme-switch-bar">
-                <a href="{target_sun}" target="_self" class="theme-btn {sun_cls}" title="Light Theme">
+                <a href="{target_sun}" target="_self" class="theme-btn {sun_cls}" title="Light Theme" onclick="try {{ window.location.search = '?tab={current_tab}{sub_param}&theme=light'; }} catch(e) {{ window.location.href = '{target_sun}'; }} return false;">
                     ☀️
                 </a>
-                <a href="{target_moon}" target="_self" class="theme-btn {moon_cls}" title="Dark Theme">
+                <a href="{target_moon}" target="_self" class="theme-btn {moon_cls}" title="Dark Theme" onclick="try {{ window.location.search = '?tab={current_tab}{sub_param}&theme=dark'; }} catch(e) {{ window.location.href = '{target_moon}'; }} return false;">
                     🌙
                 </a>
             </div>
@@ -240,8 +240,9 @@ def render_history_card(trade: dict, is_dark: bool):
 def render_bottom_nav(active_tab: str, is_dark: bool):
     """Renders the native mobile bottom navigation dock with icons."""
     theme_arg = f"&theme={'dark' if is_dark else 'light'}"
+    fox_icon_html = f'<img src="{FOX_LOGO_URI}" style="width:20px; height:20px; object-fit:contain; border-radius:4px; vertical-align:middle; display:inline-block;" />'
     tabs = [
-        ("home", "⚡", "Home"),
+        ("home", fox_icon_html, "Home"),
         ("coindcx", "🇮🇳", "CoinDCX"),
         ("angel", "📈", "Angel One"),
         ("history", "📜", "History")
