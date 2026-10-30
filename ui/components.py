@@ -109,6 +109,55 @@ def render_sub_tabs(current_tab: str, current_sub: str, options: list, is_dark: 
     html += '</div>'
     render_html(html)
 
+def compute_our_position_targets(pos: dict) -> dict:
+    """Computes target and stop loss values in terms of YOUR actual invested money and P&L."""
+    category = pos.get("category", "")
+    entry = pos.get("entry_price", 0.0)
+    target = pos.get("target", 0.0)
+    sl = pos.get("sl", 0.0)
+    invested = pos.get("cost", pos.get("margin", pos.get("invested", 100.0)))
+
+    if entry <= 0:
+        return {
+            "target_val": round(invested * 1.05, 2),
+            "target_pnl": round(invested * 0.05, 2),
+            "sl_val": round(invested * 0.98, 2),
+            "sl_pnl": round(-invested * 0.02, 2)
+        }
+
+    if category == "angel_stocks":
+        t_pnl = round(target - entry, 2)
+        s_pnl = round(sl - entry, 2)
+    elif category == "angel_options":
+        mult = pos.get("mult", 25)
+        t_pnl = round((target - entry) * mult, 2)
+        s_pnl = round((sl - entry) * mult, 2)
+    elif category == "coindcx_spot":
+        ratio_t = (target - entry) / entry
+        ratio_s = (sl - entry) / entry
+        t_pnl = round(ratio_t * invested, 2)
+        s_pnl = round(ratio_s * invested, 2)
+    elif category == "coindcx_futures":
+        lev = pos.get("lev", 10)
+        ratio_t = (target - entry) / entry
+        ratio_s = (sl - entry) / entry
+        t_pnl = round(ratio_t * invested * lev, 2)
+        s_pnl = round(ratio_s * invested * lev, 2)
+    else:
+        ratio_t = (target - entry) / entry if entry > 0 else 0.05
+        ratio_s = (sl - entry) / entry if entry > 0 else -0.02
+        t_pnl = round(ratio_t * invested, 2)
+        s_pnl = round(ratio_s * invested, 2)
+
+    t_val = round(max(0.0, invested + t_pnl), 2)
+    s_val = round(max(0.0, invested + s_pnl), 2)
+    return {
+        "target_val": t_val,
+        "target_pnl": t_pnl,
+        "sl_val": s_val,
+        "sl_pnl": s_pnl
+    }
+
 def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub: str = ""):
     """Renders high-finish active trade card showing YOUR actual invested money, current value, live P/L, and inline sparkline chart."""
     pnl = round(pos.get("pnl", 0.0), 2)
@@ -133,6 +182,7 @@ def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub
     # YOUR actual entry money vs current value
     invested_amt = pos.get("cost", pos.get("margin", pos.get("invested", 100.0)))
     current_val = round(max(0.0, invested_amt + pnl), 2)
+    t_info = compute_our_position_targets(pos)
 
     sub_arg = f"&sub={current_sub}" if current_sub else ""
     theme_arg = f"&theme={'dark' if is_dark else 'light'}"
@@ -176,11 +226,11 @@ def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub
         <!-- Inline Mini Trading Chart -->
         {sparkline_html}
 
-        <!-- Secondary Row: Market Price & Targets -->
-        <div style="background:{'rgba(255,255,255,0.03)' if is_dark else 'rgba(0,0,0,0.03)'}; border-radius:10px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center; font-size:10.5px; color:#94a3b8; margin-bottom:12px; font-family:'JetBrains Mono', monospace;">
-            <span>Asset CMP: <b style="color:#38bdf8;">₹{pos['cmp']:,.2f}</b></span>
-            <span>🎯 Tgt: <b style="color:#10b981;">₹{pos.get('target', 0):,.2f}</b></span>
-            <span>🛡️ SL: <b style="color:#ef4444;">₹{pos.get('sl', 0):,.2f}</b></span>
+        <!-- Secondary Row: YOUR Investment Live Value, Target Return & Stop Loss -->
+        <div style="background:{'rgba(255,255,255,0.03)' if is_dark else 'rgba(0,0,0,0.03)'}; border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; font-size:10.5px; color:#94a3b8; margin-bottom:12px; font-family:'JetBrains Mono', monospace;">
+            <span>💼 Current: <b style="color:#38bdf8;">₹{current_val:,.2f}</b></span>
+            <span>🎯 Tgt: <b style="color:#10b981;">₹{t_info['target_val']:,.2f}</b></span>
+            <span>🛡️ SL: <b style="color:#ef4444;">₹{t_info['sl_val']:,.2f}</b></span>
         </div>
 
         <!-- Exit Action -->
@@ -207,6 +257,13 @@ def render_history_card(trade: dict, is_dark: bool):
     broker_bg = "rgba(168,85,247,0.15)" if trade.get("broker") == "angel" else "rgba(14,165,233,0.15)"
     broker_color = "#c084fc" if trade.get("broker") == "angel" else "#38bdf8"
 
+    # Show actual wallet amounts if recorded, else fallback cleanly
+    has_inv = "invested" in trade
+    val_1 = trade.get("invested", trade.get("entry_price", 0))
+    val_2 = trade.get("payout", trade.get("exit_price", 0))
+    lbl_1 = "MY INVESTED" if has_inv else "ENTRY"
+    lbl_2 = "PAYOUT" if has_inv else "EXIT"
+
     render_html(f"""
     <div class="trade-card" style="margin-bottom:10px; padding:14px;">
         <div class="trade-header" style="margin-bottom:8px;">
@@ -218,12 +275,12 @@ def render_history_card(trade: dict, is_dark: bool):
         </div>
         <div class="metrics-grid" style="margin-bottom:8px;">
             <div class="metric-col">
-                <span class="metric-label">ENTRY</span>
-                <span class="metric-val">₹{trade.get('entry_price', 0):,.2f}</span>
+                <span class="metric-label">{lbl_1}</span>
+                <span class="metric-val">₹{val_1:,.2f}</span>
             </div>
             <div class="metric-col">
-                <span class="metric-label">EXIT</span>
-                <span class="metric-val" style="color:#10b981;">₹{trade.get('exit_price', 0):,.2f}</span>
+                <span class="metric-label">{lbl_2}</span>
+                <span class="metric-val" style="color:#10b981;">₹{val_2:,.2f}</span>
             </div>
             <div class="metric-col" style="text-align:right;">
                 <span class="metric-label">NET P/L</span>
