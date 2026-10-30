@@ -25,6 +25,7 @@ from engine.ledger import (
 )
 from ui.theme import get_custom_css
 from ui.components import (
+    render_html,
     render_header,
     render_portfolio_hero,
     render_sub_tabs,
@@ -153,7 +154,7 @@ if active_tab == "home":
 
     # Broker Distribution Cards
     theme_arg = f"&theme={'dark' if is_dark else 'light'}"
-    st.markdown(f"""
+    render_html(f"""
     <div style="font-size:12.5px; font-weight:700; color:{'#94a3b8' if is_dark else '#64748b'}; margin:16px 0 10px 0; text-transform:uppercase; letter-spacing:0.5px;">
         🏛️ Active Broker Accounts
     </div>
@@ -219,7 +220,7 @@ if active_tab == "home":
             Open CoinDCX Terminal →
         </a>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
 # -------------------------------------------------------------
 # 6. TAB 2: 🇮🇳 COINDCX TERMINAL
@@ -302,7 +303,7 @@ elif active_tab == "history":
     p_sign = "+" if is_p else ""
     theme_arg = f"&theme={'dark' if is_dark else 'light'}"
 
-    st.markdown(f"""
+    render_html(f"""
     <div class="hero-card" style="padding:16px 18px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="hero-label">Cumulative Realized Profit</span>
@@ -315,7 +316,7 @@ elif active_tab == "history":
             <span class="{'badge-gain' if is_p else 'badge-loss'}">{wins}/{tot_count} Won</span>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
     render_sub_tabs(
         current_tab="history",
@@ -332,7 +333,7 @@ elif active_tab == "history":
         for t in reversed(filtered_trades):
             render_history_card(t, is_dark)
     else:
-        st.markdown(f"""
+        render_html(f"""
         <div style="background:{'#0f172a' if is_dark else '#ffffff'}; border:1px dashed {'#334155' if is_dark else '#cbd5e1'}; border-radius:18px; padding:24px 16px; text-align:center; margin:16px 0;">
             <div style="font-size:26px; margin-bottom:6px;">⚡</div>
             <div style="font-size:14px; font-weight:700; color:{'#f8fafc' if is_dark else '#0f172a'};">No Settled Trades Yet</div>
@@ -349,10 +350,10 @@ elif active_tab == "history":
                 </a>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     # Action Toolbar
-    st.markdown(f"""
+    render_html(f"""
     <div style="display:flex; gap:10px; margin-top:14px;">
         <a href="?tab=history&action=clear_history{theme_arg}" target="_self" class="btn-action-secondary" style="flex:1;">
             🧹 Clear History
@@ -361,7 +362,7 @@ elif active_tab == "history":
             🔄 Reset Paper (₹4,000)
         </a>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
 # -------------------------------------------------------------
 # 9. BOTTOM NATIVE APP DOCK

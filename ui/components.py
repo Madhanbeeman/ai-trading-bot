@@ -1,6 +1,11 @@
 import streamlit as st
 from config.settings import format_ist_clock
 
+def render_html(html_str: str):
+    """Safely renders HTML without Markdown indented-code-block interference."""
+    clean = "\n".join(line.strip() for line in html_str.splitlines() if line.strip() and not line.strip().startswith("<!--"))
+    st.markdown(clean, unsafe_allow_html=True)
+
 def render_header(title: str, is_dark: bool, current_tab: str, sub_tab: str = ""):
     """Renders sleek top user bar with live clock and theme toggle."""
     clock_str = format_ist_clock()
@@ -8,7 +13,7 @@ def render_header(title: str, is_dark: bool, current_tab: str, sub_tab: str = ""
     theme_icon = "☀️" if is_dark else "🌙"
     sub_param = f"&sub={sub_tab}" if sub_tab else ""
 
-    st.markdown(f"""
+    render_html(f"""
     <div class="top-bar">
         <div class="brand-title">
             <span style="font-size:18px;">⚡</span> {title}
@@ -22,7 +27,7 @@ def render_header(title: str, is_dark: bool, current_tab: str, sub_tab: str = ""
             </a>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
 def render_portfolio_hero(title: str, balance: float, pnl: float, pct_gain: float, available: float, invested: float, is_dark: bool):
     """Renders the master balance hero card."""
@@ -30,7 +35,7 @@ def render_portfolio_hero(title: str, balance: float, pnl: float, pct_gain: floa
     pnl_sign = "+" if is_profit else ""
     badge_cls = "badge-gain" if is_profit else "badge-loss"
 
-    st.markdown(f"""
+    render_html(f"""
     <div class="hero-card">
         <div class="hero-label">{title}</div>
         <div class="hero-balance">
@@ -48,7 +53,7 @@ def render_portfolio_hero(title: str, balance: float, pnl: float, pct_gain: floa
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
 def render_sub_tabs(current_tab: str, current_sub: str, options: list, is_dark: bool):
     """Renders modern segmented pill selector."""
@@ -58,7 +63,7 @@ def render_sub_tabs(current_tab: str, current_sub: str, options: list, is_dark: 
         active_cls = "tab-pill-active" if current_sub == val else "tab-pill-inactive"
         html += f'<a href="?tab={current_tab}&sub={val}{theme_arg}" target="_self" class="tab-pill {active_cls}">{label}</a>'
     html += '</div>'
-    st.markdown(html, unsafe_allow_html=True)
+    render_html(html)
 
 def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub: str = ""):
     """Renders high-finish active trade card with live CMP and square off action button."""
@@ -78,7 +83,7 @@ def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub
     else:
         badge_html = f"""<span class="segment-tag" style="background:rgba(56,189,248,0.15); color:#38bdf8;">{pos.get('segment', 'MARKET')}</span>"""
 
-    st.markdown(f"""
+    render_html(f"""
     <div class="trade-card">
         <div class="trade-header">
             <div>
@@ -109,7 +114,7 @@ def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub
             ⚡ Square Off Position
         </a>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
 def render_history_card(trade: dict, is_dark: bool):
     """Renders settled trade audit ledger entry."""
@@ -121,7 +126,7 @@ def render_history_card(trade: dict, is_dark: bool):
     broker_bg = "rgba(168,85,247,0.15)" if trade.get("broker") == "angel" else "rgba(14,165,233,0.15)"
     broker_color = "#c084fc" if trade.get("broker") == "angel" else "#38bdf8"
 
-    st.markdown(f"""
+    render_html(f"""
     <div class="trade-card" style="margin-bottom:10px; padding:14px;">
         <div class="trade-header" style="margin-bottom:8px;">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -149,7 +154,7 @@ def render_history_card(trade: dict, is_dark: bool):
             <span style="font-weight:700; color:{pnl_color};">{trade.get('status', 'TARGET HIT')}</span>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
 def render_bottom_nav(active_tab: str, is_dark: bool):
     """Renders the native mobile bottom navigation dock with icons."""
@@ -161,15 +166,11 @@ def render_bottom_nav(active_tab: str, is_dark: bool):
         ("history", "📜", "History")
     ]
 
-    html = '<div class="bottom-dock">'
+    html_parts = ['<div class="bottom-dock">']
     for tid, icon, label in tabs:
         is_active = active_tab == tid
         cls = "dock-active" if is_active else "dock-inactive"
-        html += f"""
-        <a href="?tab={tid}{theme_arg}" target="_self" class="dock-tab {cls}">
-            <span class="dock-icon">{icon}</span>
-            <span class="dock-label">{label}</span>
-        </a>
-        """
-    html += '</div>'
-    st.markdown(html, unsafe_allow_html=True)
+        html_parts.append(f'<a href="?tab={tid}{theme_arg}" target="_self" class="dock-tab {cls}"><span class="dock-icon">{icon}</span><span class="dock-label">{label}</span></a>')
+    html_parts.append('</div>')
+    
+    render_html("".join(html_parts))
