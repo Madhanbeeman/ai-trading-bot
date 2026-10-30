@@ -1,9 +1,3 @@
-import json
-import os
-import time
-import random
-from typing import Dict, Any, List
-
 from config.settings import (
     DB_FILE,
     ANGEL_INITIAL_CAPITAL,
@@ -18,6 +12,11 @@ from config.settings import (
     get_ist_now
 )
 from brokers.feed import get_live_market_data, get_micro_tick
+import json
+import os
+import time
+import random
+from typing import Dict, Any, List
 
 def create_position(category: str, item: Dict[str, Any], market_quotes: Dict[str, Any]) -> Dict[str, Any]:
     """Creates a position with live entry price, target, and stop-loss."""
@@ -84,10 +83,13 @@ def create_position(category: str, item: Dict[str, Any], market_quotes: Dict[str
         entry = round(real_p, 2)
         target = round(entry * (1.0 + item["target_pct"]), 2)
         sl = round(entry * (1.0 + item["sl_pct"]), 2)
+        cost = item["cost"]
+        qty = round(cost / entry, 6) if entry > 0 else item["qty"]
         return {
             "id": pos_id,
             "category": category,
             "broker": "coindcx",
+            "market": market,
             "symbol": item["symbol"],
             "name": item["name"],
             "segment": item["segment"],
@@ -95,8 +97,8 @@ def create_position(category: str, item: Dict[str, Any], market_quotes: Dict[str
             "entry_time": now_str,
             "entry_price": entry,
             "cmp": entry,
-            "cost": item["cost"],
-            "qty": item["qty"],
+            "cost": cost,
+            "qty": qty,
             "target": target,
             "sl": sl,
             "pnl": 0.0,
@@ -114,6 +116,7 @@ def create_position(category: str, item: Dict[str, Any], market_quotes: Dict[str
             "id": pos_id,
             "category": category,
             "broker": "coindcx",
+            "market": market,
             "symbol": item["symbol"],
             "name": item["name"],
             "segment": item["segment"],
@@ -139,20 +142,20 @@ def get_clean_initial_state() -> Dict[str, Any]:
     """Generates initial clean paper ledger with ₹2,000 Angel One + ₹2,000 CoinDCX."""
     quotes = get_live_market_data()
 
-    # Angel One Active Positions
+    # Angel One Active Positions (2 bluechips + 2 options)
     angel_stocks = [create_position("angel_stocks", ANGEL_STOCKS_POOL[i], quotes) for i in range(2)]
     angel_options = [create_position("angel_options", ANGEL_OPTIONS_POOL[i], quotes) for i in range(2)]
     angel_invested = sum(p["margin"] for p in angel_stocks) + sum(p["invested"] for p in angel_options)
     angel_cash = round(max(0.0, ANGEL_INITIAL_CAPITAL - angel_invested), 2)
 
-    # CoinDCX Active Positions
+    # CoinDCX Active Positions (2 spot + 2 futures)
     coindcx_spot = [create_position("coindcx_spot", COINDCX_SPOT_POOL[i], quotes) for i in range(2)]
     coindcx_futures = [create_position("coindcx_futures", COINDCX_FUTURES_POOL[i], quotes) for i in range(2)]
     coindcx_invested = sum(p["cost"] for p in coindcx_spot) + sum(p["margin"] for p in coindcx_futures)
     coindcx_cash = round(max(0.0, COINDCX_INITIAL_CAPITAL - coindcx_invested), 2)
 
     return {
-        "version": "2.0_clean",
+        "version": "2.1_clean",
         "initial_capital": TOTAL_INITIAL_CAPITAL,
         "accounts": {
             "angel": ANGEL_INITIAL_CAPITAL,
@@ -191,7 +194,7 @@ def load_engine_state() -> Dict[str, Any]:
         with open(DB_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
             # Schema integrity check
-            if data.get("version") != "2.0_clean" or "active_positions" not in data or "wallets" not in data:
+            if data.get("version") != "2.1_clean" or "active_positions" not in data or "wallets" not in data:
                 state = get_clean_initial_state()
                 save_engine_state(state)
                 return state
@@ -212,9 +215,46 @@ def clear_trade_history(state: Dict[str, Any]) -> None:
     state["closed_trades"] = []
     save_engine_state(state)
 
-def square_off_position(state: Dict[str, Any], position_id: str) -> bool:
-    """Manually squares off an active trade at CMP and credits funds back to wallet."""
+def open_new_position(state: Dict[str, Any], category: str) -> bool:
+    """Opens a fresh position in the selected category from the pool."""
     quotes = get_live_market_data()
+    pools = {
+        "angel_stocks": ANGEL_STOCKS_POOL,
+        "angel_options": ANGEL_OPTIONS_POOL,
+        "coindcx_spot": COINDCX_SPOT_POOL,
+        "coindcx_futures": COINDCX_FUTURES_POOL
+    }
+    pool = pools.get(category, [])
+    pos_list = state["active_positions"].get(category, [])
+    active_syms = [p["symbol"] for p in pos_list]
+    candidates = [c for c in pool if c["symbol"] not in active_syms]
+
+    if not candidates:
+        return False
+
+    new_p = create_position(category, candidates[0], quotes)
+
+    # Check and deduct wallet cash
+    broker = new_p["broker"]
+    if broker == "angel":
+        cost = new_p.get("margin", new_p.get("invested", 100.0))
+        if state["wallets"]["angel_cash"] >= cost:
+            state["wallets"]["angel_cash"] = round(state["wallets"]["angel_cash"] - cost, 2)
+            pos_list.append(new_p)
+            save_engine_state(state)
+            return True
+    elif broker == "coindcx":
+        cost = new_p.get("cost", new_p.get("margin", 100.0))
+        if state["wallets"]["coindcx_cash"] >= cost:
+            state["wallets"]["coindcx_cash"] = round(state["wallets"]["coindcx_cash"] - cost, 2)
+            pos_list.append(new_p)
+            save_engine_state(state)
+            return True
+
+    return False
+
+def square_off_position(state: Dict[str, Any], position_id: str) -> bool:
+    """Manually squares off an active trade at CMP, credits cash back, and DOES NOT auto-spawn extra trades."""
     for cat, pos_list in state["active_positions"].items():
         for p in pos_list:
             if p["id"] == position_id:
@@ -242,70 +282,72 @@ def square_off_position(state: Dict[str, Any], position_id: str) -> bool:
                     "date": format_ist_date()
                 })
 
+                # Cleanly remove position - NO auto-replenish!
                 pos_list.remove(p)
-
-                # Replenish with fresh candidate from pool
-                pools = {
-                    "angel_stocks": ANGEL_STOCKS_POOL,
-                    "angel_options": ANGEL_OPTIONS_POOL,
-                    "coindcx_spot": COINDCX_SPOT_POOL,
-                    "coindcx_futures": COINDCX_FUTURES_POOL
-                }
-                current_syms = [x["symbol"] for x in pos_list]
-                candidates = [c for c in pools.get(cat, []) if c["symbol"] not in current_syms]
-                if candidates:
-                    pos_list.append(create_position(cat, candidates[0], quotes))
-
                 save_engine_state(state)
                 return True
     return False
 
 def update_live_ticks_and_triggers(state: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Updates CMP for all active positions and triggers auto-exits on Target or Stop-Loss."""
+    """Updates CMP for all active positions and triggers auto-exits on Target or Stop-Loss with mathematically sound P&L."""
     quotes = get_live_market_data()
     notifications = []
     today_str = format_ist_date()
 
-    # 1. Update CMP & P&L for Angel Stocks
+    # 1. Update CMP & P&L for Angel Stocks (5x MIS)
     for p in state["active_positions"].get("angel_stocks", []):
         sym = p["symbol"]
         real_cmp = quotes.get("nse", {}).get(sym)
         p["cmp"] = round(real_cmp, 2) if real_cmp else get_micro_tick(p["cmp"], 0.05)
-        p["pnl"] = round(p["cmp"] - p["entry_price"], 2)
-        p["pct"] = round((p["pnl"] / p["margin"]) * 100, 2)
+        diff = p["cmp"] - p["entry_price"]
+        pnl = round(diff, 2)
+        pct = round((diff / p["margin"]) * 100.0, 2) if p.get("margin", 0) > 0 else 0.0
+        p["pnl"] = 0.0 if abs(pnl) < 0.005 else pnl
+        p["pct"] = 0.0 if abs(pnl) < 0.005 else pct
 
-    # 2. Update CMP & P&L for Angel Options
+    # 2. Update CMP & P&L for Angel Options (Zero to Hero)
     for p in state["active_positions"].get("angel_options", []):
         p["cmp"] = get_micro_tick(p["cmp"], 0.12)
-        p["pnl"] = round((p["cmp"] - p["entry_price"]) * p["mult"], 2)
-        p["pct"] = round((p["pnl"] / p["invested"]) * 100, 1)
+        diff = p["cmp"] - p["entry_price"]
+        pnl = round(diff * p.get("mult", 25), 2)
+        pct = round((pnl / p["invested"]) * 100.0, 2) if p.get("invested", 0) > 0 else 0.0
+        p["pnl"] = 0.0 if abs(pnl) < 0.005 else pnl
+        p["pct"] = 0.0 if abs(pnl) < 0.005 else pct
 
-    # 3. Update CMP & P&L for CoinDCX Spot
+    # 3. Update CMP & P&L for CoinDCX Spot (Direct Asset Value Change)
     for p in state["active_positions"].get("coindcx_spot", []):
-        m = p.get("symbol", "").replace(" / ", "").replace("INR", "INR")
+        m = p.get("market") or p.get("symbol", "").replace(" / ", "")
         real_cmp = quotes.get("coindcx", {}).get(m)
         p["cmp"] = round(real_cmp, 2) if real_cmp else get_micro_tick(p["cmp"], 0.05)
-        p["pnl"] = round((p["cmp"] - p["entry_price"]) * p["qty"], 2)
-        p["pct"] = round((p["pnl"] / p["cost"]) * 100, 2)
+        price_change_ratio = (p["cmp"] - p["entry_price"]) / p["entry_price"] if p["entry_price"] > 0 else 0.0
+        pnl = round(price_change_ratio * p["cost"], 2)
+        pct = round(price_change_ratio * 100.0, 2)
+        p["pnl"] = 0.0 if abs(pnl) < 0.005 else pnl
+        p["pct"] = 0.0 if abs(pnl) < 0.005 else pct
 
-    # 4. Update CMP & P&L for CoinDCX Futures
+    # 4. Update CMP & P&L for CoinDCX Futures (10x Leverage)
     for p in state["active_positions"].get("coindcx_futures", []):
-        m = p.get("symbol", "").split(" / ")[0] + "INR"
+        m = p.get("market") or (p.get("symbol", "").split(" / ")[0] + "INR")
         real_cmp = quotes.get("coindcx", {}).get(m)
         p["cmp"] = round(real_cmp, 2) if real_cmp else get_micro_tick(p["cmp"], 0.05)
-        p["pnl"] = round(((p["cmp"] - p["entry_price"]) / p["entry_price"]) * p["margin"] * p["lev"], 2)
-        p["pct"] = round((p["pnl"] / p["margin"]) * 100, 1)
+        price_change_ratio = (p["cmp"] - p["entry_price"]) / p["entry_price"] if p["entry_price"] > 0 else 0.0
+        lev = p.get("lev", 10)
+        pnl = round(price_change_ratio * p["margin"] * lev, 2)
+        pct = round(price_change_ratio * lev * 100.0, 2)
+        p["pnl"] = 0.0 if abs(pnl) < 0.005 else pnl
+        p["pct"] = 0.0 if abs(pnl) < 0.005 else pct
 
     # 5. Autonomous Target / SL Check
     pools = {
-        "angel_stocks": (2, ANGEL_STOCKS_POOL),
-        "angel_options": (2, ANGEL_OPTIONS_POOL),
-        "coindcx_spot": (2, COINDCX_SPOT_POOL),
-        "coindcx_futures": (2, COINDCX_FUTURES_POOL)
+        "angel_stocks": ANGEL_STOCKS_POOL,
+        "angel_options": ANGEL_OPTIONS_POOL,
+        "coindcx_spot": COINDCX_SPOT_POOL,
+        "coindcx_futures": COINDCX_FUTURES_POOL
     }
 
     for cat, pos_list in state["active_positions"].items():
         rem = []
+        pool = pools.get(cat, [])
         for p in pos_list:
             target = p.get("target", 0)
             sl = p.get("sl", 0)
@@ -341,16 +383,6 @@ def update_live_ticks_and_triggers(state: Dict[str, Any]) -> List[Dict[str, Any]
                 notifications.append({"msg": f"{status}: {p['symbol']} ({'+' if realized>=0 else ''}₹{realized:,.2f})", "is_win": hit_target})
             else:
                 rem.append(p)
-
-        # Auto-replenish to maintain exact slot target
-        target_slots, pool = pools.get(cat, (2, []))
-        while len(rem) < target_slots:
-            cur_syms = [x["symbol"] for x in rem]
-            cand = [c for c in pool if c["symbol"] not in cur_syms]
-            if cand:
-                rem.append(create_position(cat, cand[0], quotes))
-            else:
-                break
 
         state["active_positions"][cat] = rem
 

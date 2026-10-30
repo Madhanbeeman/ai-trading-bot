@@ -67,11 +67,21 @@ def render_sub_tabs(current_tab: str, current_sub: str, options: list, is_dark: 
 
 def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub: str = ""):
     """Renders high-finish active trade card with live CMP and square off action button."""
-    pnl = pos.get("pnl", 0.0)
-    pct = pos.get("pct", 0.0)
-    is_profit = pnl >= 0
-    pnl_sign = "+" if is_profit else ""
-    pnl_color = "#10b981" if is_profit else "#ef4444"
+    pnl = round(pos.get("pnl", 0.0), 2)
+    pct = round(pos.get("pct", 0.0), 2)
+
+    # Bulletproof PnL formatting - NEVER print +₹-0.00
+    if abs(pnl) < 0.005:
+        pnl = 0.0
+        pct = 0.0
+        pnl_text = "₹0.00 (0.00%)"
+        pnl_color = "#94a3b8"
+    elif pnl > 0:
+        pnl_text = f"+₹{pnl:,.2f} (+{pct:.2f}%)"
+        pnl_color = "#10b981"
+    else:
+        pnl_text = f"-₹{abs(pnl):,.2f} ({pct:.2f}%)"
+        pnl_color = "#ef4444"
 
     sub_arg = f"&sub={current_sub}" if current_sub else ""
     theme_arg = f"&theme={'dark' if is_dark else 'light'}"
@@ -103,7 +113,7 @@ def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub
             </div>
             <div class="metric-col" style="text-align:right;">
                 <span class="metric-label">LIVE P/L</span>
-                <span class="metric-val" style="color:{pnl_color};">{pnl_sign}₹{pnl:,.2f}</span>
+                <span class="metric-val" style="color:{pnl_color}; font-size:12px;">{pnl_text}</span>
             </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#94a3b8; margin-bottom:12px;">
@@ -118,10 +128,17 @@ def render_position_card(pos: dict, is_dark: bool, current_tab: str, current_sub
 
 def render_history_card(trade: dict, is_dark: bool):
     """Renders settled trade audit ledger entry."""
-    pnl = trade.get("pnl", 0.0)
-    is_profit = pnl >= 0
-    pnl_sign = "+" if is_profit else ""
-    pnl_color = "#10b981" if is_profit else "#ef4444"
+    pnl = round(trade.get("pnl", 0.0), 2)
+    if abs(pnl) < 0.005:
+        pnl_text = "₹0.00"
+        pnl_color = "#94a3b8"
+    elif pnl > 0:
+        pnl_text = f"+₹{pnl:,.2f}"
+        pnl_color = "#10b981"
+    else:
+        pnl_text = f"-₹{abs(pnl):,.2f}"
+        pnl_color = "#ef4444"
+
     broker_title = "ANGEL ONE" if trade.get("broker") == "angel" else "COINDCX"
     broker_bg = "rgba(168,85,247,0.15)" if trade.get("broker") == "angel" else "rgba(14,165,233,0.15)"
     broker_color = "#c084fc" if trade.get("broker") == "angel" else "#38bdf8"
@@ -146,7 +163,7 @@ def render_history_card(trade: dict, is_dark: bool):
             </div>
             <div class="metric-col" style="text-align:right;">
                 <span class="metric-label">NET P/L</span>
-                <span class="metric-val" style="color:{pnl_color};">{pnl_sign}₹{pnl:,.2f}</span>
+                <span class="metric-val" style="color:{pnl_color};">{pnl_text}</span>
             </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:10.5px;">

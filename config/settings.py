@@ -140,8 +140,8 @@ COINDCX_SPOT_POOL = [
         "name": "Bitcoin Spot",
         "segment": "COINDCX SPOT",
         "fallback_price": 8084000.0,
-        "cost": 245.18,
-        "qty": 0.000030,
+        "cost": 400.00,
+        "qty": 0.00005,
         "target_pct": 0.016,
         "sl_pct": -0.010
     },
@@ -151,8 +151,8 @@ COINDCX_SPOT_POOL = [
         "name": "Ethereum Spot",
         "segment": "COINDCX SPOT",
         "fallback_price": 234000.0,
-        "cost": 172.38,
-        "qty": 0.00073,
+        "cost": 350.00,
+        "qty": 0.0015,
         "target_pct": 0.020,
         "sl_pct": -0.012
     },
@@ -162,8 +162,8 @@ COINDCX_SPOT_POOL = [
         "name": "Solana Spot",
         "segment": "COINDCX SPOT",
         "fallback_price": 10110.0,
-        "cost": 105.60,
-        "qty": 0.0104,
+        "cost": 300.00,
+        "qty": 0.0296,
         "target_pct": 0.025,
         "sl_pct": -0.015
     },
@@ -173,8 +173,8 @@ COINDCX_SPOT_POOL = [
         "name": "Dogecoin Spot",
         "segment": "COINDCX SPOT",
         "fallback_price": 7.76,
-        "cost": 100.00,
-        "qty": 12.8,
+        "cost": 250.00,
+        "qty": 32.2,
         "target_pct": 0.035,
         "sl_pct": -0.020
     }

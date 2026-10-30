@@ -5,5 +5,6 @@ from .ledger import (
     reset_engine_state,
     square_off_position,
     clear_trade_history,
+    open_new_position,
     update_live_ticks_and_triggers
 )

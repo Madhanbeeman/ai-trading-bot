@@ -21,6 +21,7 @@ from engine.ledger import (
     reset_engine_state,
     square_off_position,
     clear_trade_history,
+    open_new_position,
     update_live_ticks_and_triggers
 )
 from ui.theme import get_custom_css
@@ -42,6 +43,7 @@ sub_tab = ""
 current_theme = "dark"
 req_action = None
 req_cid = None
+req_cat = None
 
 try:
     if hasattr(st, "query_params"):
@@ -50,6 +52,7 @@ try:
         current_theme = st.query_params.get("theme", "dark")
         req_action = st.query_params.get("action", None)
         req_cid = st.query_params.get("cid", None)
+        req_cat = st.query_params.get("cat", None)
     else:
         params = st.experimental_get_query_params()
         active_tab = params.get("tab", ["home"])[0]
@@ -57,6 +60,7 @@ try:
         current_theme = params.get("theme", ["dark"])[0]
         req_action = params.get("action", [None])[0]
         req_cid = params.get("cid", [None])[0]
+        req_cat = params.get("cat", [None])[0]
 except Exception:
     pass
 
@@ -71,7 +75,19 @@ state = load_engine_state()
 # Handle query actions
 if req_action == "close" and req_cid:
     if square_off_position(state, req_cid):
-        st.toast("⚡ Position Squared Off at Current Market Price!", icon="✅")
+        st.toast("⚡ Position Squared Off & Closed!", icon="✅")
+    if hasattr(st, "query_params"):
+        st.query_params.clear()
+        st.query_params["tab"] = active_tab
+        if sub_tab: st.query_params["sub"] = sub_tab
+        st.query_params["theme"] = current_theme
+    st.rerun()
+
+elif req_action == "open_trade" and req_cat:
+    if open_new_position(state, req_cat):
+        st.toast("🚀 New Position Opened Successfully!", icon="📈")
+    else:
+        st.toast("⚠️ Insufficient Wallet Cash or All Pool Slots Active!", icon="⚠️")
     if hasattr(st, "query_params"):
         st.query_params.clear()
         st.query_params["tab"] = active_tab
@@ -246,9 +262,38 @@ elif active_tab == "coindcx":
         is_dark=is_dark
     )
 
-    positions = coindcx_spot if cur_sub == "spot" else coindcx_futures
-    for pos in positions:
-        render_position_card(pos, is_dark, "coindcx", cur_sub)
+    category_key = "coindcx_spot" if cur_sub == "spot" else "coindcx_futures"
+    positions = state["active_positions"].get(category_key, [])
+    theme_arg = f"&theme={'dark' if is_dark else 'light'}"
+
+    if positions:
+        for pos in positions:
+            render_position_card(pos, is_dark, "coindcx", cur_sub)
+        if len(positions) < 2:
+            open_url = f"?tab=coindcx&sub={cur_sub}&action=open_trade&cat={category_key}{theme_arg}"
+            render_html(f"""
+            <div style="margin-top:12px;">
+                <a href="{open_url}" target="_self" class="btn-action-secondary" style="display:block; width:100%; text-align:center; padding:10px;">
+                    + 🚀 Open Next CoinDCX Trade ({len(positions)}/2 Active)
+                </a>
+            </div>
+            """)
+    else:
+        open_url = f"?tab=coindcx&sub={cur_sub}&action=open_trade&cat={category_key}{theme_arg}"
+        render_html(f"""
+        <div style="background:{'#0f172a' if is_dark else '#ffffff'}; border:1px dashed {'#334155' if is_dark else '#cbd5e1'}; border-radius:18px; padding:24px 16px; text-align:center; margin:14px 0;">
+            <div style="font-size:26px; margin-bottom:6px;">💼</div>
+            <div style="font-size:14px; font-weight:700; color:{'#f8fafc' if is_dark else '#0f172a'};">No Active Trades in this Segment</div>
+            <div style="font-size:11.5px; color:#94a3b8; margin-top:4px; line-height:1.4;">
+                All positions in this category are closed and cash is safely in your wallet.
+            </div>
+            <div style="margin-top:14px;">
+                <a href="{open_url}" target="_self" class="btn-action-primary" style="display:inline-block; padding:8px 18px;">
+                    + 🚀 Open Fresh Position
+                </a>
+            </div>
+        </div>
+        """)
 
 # -------------------------------------------------------------
 # 7. TAB 3: 📈 ANGEL ONE TERMINAL
@@ -274,9 +319,38 @@ elif active_tab == "angel":
         is_dark=is_dark
     )
 
-    positions = angel_stocks if cur_sub == "stocks" else angel_options
-    for pos in positions:
-        render_position_card(pos, is_dark, "angel", cur_sub)
+    category_key = "angel_stocks" if cur_sub == "stocks" else "angel_options"
+    positions = state["active_positions"].get(category_key, [])
+    theme_arg = f"&theme={'dark' if is_dark else 'light'}"
+
+    if positions:
+        for pos in positions:
+            render_position_card(pos, is_dark, "angel", cur_sub)
+        if len(positions) < 2:
+            open_url = f"?tab=angel&sub={cur_sub}&action=open_trade&cat={category_key}{theme_arg}"
+            render_html(f"""
+            <div style="margin-top:12px;">
+                <a href="{open_url}" target="_self" class="btn-action-secondary" style="display:block; width:100%; text-align:center; padding:10px;">
+                    + 🚀 Open Next Angel One Trade ({len(positions)}/2 Active)
+                </a>
+            </div>
+            """)
+    else:
+        open_url = f"?tab=angel&sub={cur_sub}&action=open_trade&cat={category_key}{theme_arg}"
+        render_html(f"""
+        <div style="background:{'#0f172a' if is_dark else '#ffffff'}; border:1px dashed {'#334155' if is_dark else '#cbd5e1'}; border-radius:18px; padding:24px 16px; text-align:center; margin:14px 0;">
+            <div style="font-size:26px; margin-bottom:6px;">💼</div>
+            <div style="font-size:14px; font-weight:700; color:{'#f8fafc' if is_dark else '#0f172a'};">No Active Trades in this Segment</div>
+            <div style="font-size:11.5px; color:#94a3b8; margin-top:4px; line-height:1.4;">
+                All positions in this category are closed and cash is safely in your wallet.
+            </div>
+            <div style="margin-top:14px;">
+                <a href="{open_url}" target="_self" class="btn-action-primary" style="display:inline-block; padding:8px 18px;">
+                    + 🚀 Open Fresh Position
+                </a>
+            </div>
+        </div>
+        """)
 
 # -------------------------------------------------------------
 # 8. TAB 4: 📜 TRADE HISTORY & AUDIT LEDGER
