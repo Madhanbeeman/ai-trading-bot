@@ -68,6 +68,8 @@ except Exception:
     sub_tab = ""
 
 active_tab = (active_tab or "home").lower().strip()
+if active_tab == "bybit":
+    active_tab = "home"
 sub_tab = (sub_tab or "").lower().strip()
 st.session_state.app_theme = current_theme
 is_dark = (current_theme == "dark")
@@ -613,12 +615,10 @@ import random
 DB_DIR = os.path.join(os.path.dirname(__file__), "data")
 DB_FILE = os.path.join(DB_DIR, "trade_ledger.json")
 
-# CAPITAL CONFIGURATION: ₹2,000 per broker, ₹6,000 overall total
+# CAPITAL CONFIGURATION: ₹2,000 per broker, ₹4,000 overall total (Angel One + CoinDCX India)
 ANGEL_CAPITAL = 2000.0
-BYBIT_CAPITAL_USDT = 22.85 # $22.85 USDT = ₹2,000 at ₹87.5/$
-BYBIT_CAPITAL_INR = 2000.0
 COINDCX_CAPITAL = 2000.0
-TOTAL_OVERALL_CAPITAL = ANGEL_CAPITAL + BYBIT_CAPITAL_INR + COINDCX_CAPITAL # ₹6,000.00
+TOTAL_OVERALL_CAPITAL = ANGEL_CAPITAL + COINDCX_CAPITAL # ₹4,000.00 (₹2,000 Angel + ₹2,000 CoinDCX)
 INR_RATE = 87.5
 CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL", "DOGE"]
 
@@ -883,9 +883,10 @@ def get_initial_engine_state():
             "coindcx_futures": [create_fresh_position("coindcx_futures", COINDCX_FUT_POOL[i]) for i in range(3)]
         },
         "closed_trades": [
-            {"symbol": "BNBUSDT", "broker": "bybit", "segment": "10X LONG", "entry_price": 585.0, "exit_price": 598.0, "pnl": 0.65, "status": "🎯 TARGET HIT", "exit_time": "10:50 AM", "date": datetime.now().strftime("%Y-%m-%d")},
-            {"symbol": "HDFC BANK", "broker": "angel", "segment": "NSE EQ", "entry_price": 280.0, "exit_price": 292.0, "pnl": 12.0, "status": "🎯 TARGET BOOKED", "exit_time": "11:45 AM", "date": datetime.now().strftime("%Y-%m-%d")},
-            {"symbol": "MATIC / INR", "broker": "coindcx", "segment": "SPOT", "entry_price": 38.5, "exit_price": 40.2, "pnl": 14.50, "status": "🎯 TARGET HIT", "exit_time": "12:10 PM", "date": datetime.now().strftime("%Y-%m-%d")}
+            {"symbol": "SBIN", "broker": "angel", "segment": "NSE EQ (5x MIS)", "entry_price": 930.0, "exit_price": 948.5, "pnl": 18.50, "status": "🎯 TARGET HIT", "exit_time": "10:15 AM", "date": datetime.now().strftime("%Y-%m-%d")},
+            {"symbol": "NIFTY 22800 CE", "broker": "angel", "segment": "🚀 ZERO TO HERO", "entry_price": 5.40, "exit_price": 28.00, "pnl": 565.00, "status": "🎯 TARGET HIT", "exit_time": "11:30 AM", "date": datetime.now().strftime("%Y-%m-%d")},
+            {"symbol": "BTCINR", "broker": "coindcx", "segment": "🇮🇳 24/7 SPOT", "entry_price": 7950000.0, "exit_price": 8080000.0, "pnl": 42.50, "status": "🎯 TARGET HIT", "exit_time": "12:05 PM", "date": datetime.now().strftime("%Y-%m-%d")},
+            {"symbol": "ETHINR", "broker": "coindcx", "segment": "⚡ 10X FUTURES", "entry_price": 228000.0, "exit_price": 234500.0, "pnl": 35.80, "status": "🎯 TARGET HIT", "exit_time": "12:45 PM", "date": datetime.now().strftime("%Y-%m-%d")}
         ]
     }
 
@@ -1003,6 +1004,16 @@ elif req_action == "new_trade" and req_cat:
         st.query_params.clear()
         st.query_params["tab"] = active_tab
         if sub_tab: st.query_params["sub"] = sub_tab
+        st.query_params["theme"] = current_theme
+    st.rerun()
+
+elif req_action == "clear_history":
+    engine_data["closed_trades"] = []
+    save_engine_state(engine_data)
+    st.toast("🧹 Trade History Cleared Successfully!", icon="🗑️")
+    if hasattr(st, "query_params"):
+        st.query_params.clear()
+        st.query_params["tab"] = "history"
         st.query_params["theme"] = current_theme
     st.rerun()
 
@@ -1192,14 +1203,14 @@ angel_total_demat = round(angel_wallet + angel_stocks_invested + angel_active_pn
 angel_pct_gain = round(((angel_total_demat - ANGEL_CAPITAL) / ANGEL_CAPITAL) * 100, 2)
 
 # ------------------------------------------
-# 4. HOME DASHBOARD OVERALL COMBINED (₹6,000 TOTAL)
+# 4. HOME DASHBOARD OVERALL COMBINED (₹4,000 TOTAL: ANGEL ONE + COINDCX INDIA)
 # ------------------------------------------
-total_combined_portfolio = round(angel_total_demat + bybit_inr_portfolio + coindcx_total_portfolio, 2)
-total_combined_invested = round(angel_stocks_invested + (bybit_margin_used * INR_RATE) + coindcx_spot_invested, 2)
-total_combined_available = round(angel_wallet + (bybit_wallet * INR_RATE) + coindcx_wallet, 2)
+total_combined_portfolio = round(angel_total_demat + coindcx_total_portfolio, 2)
+total_combined_invested = round(angel_stocks_invested + coindcx_spot_invested, 2)
+total_combined_available = round(angel_wallet + coindcx_wallet, 2)
 total_combined_net_profit = round(total_combined_portfolio - TOTAL_OVERALL_CAPITAL, 2)
-total_combined_pct = round(((total_combined_portfolio - TOTAL_OVERALL_CAPITAL) / TOTAL_OVERALL_CAPITAL) * 100, 2)
-today_live_gain = round(angel_active_pnl + (bybit_active_pnl * INR_RATE) + coindcx_active_pnl, 2)
+total_combined_pct = round(((total_combined_portfolio - TOTAL_OVERALL_CAPITAL) / TOTAL_OVERALL_CAPITAL) * 100, 2) if TOTAL_OVERALL_CAPITAL else 0.0
+today_live_gain = round(angel_active_pnl + coindcx_active_pnl, 2)
 
 # Backward compatibility aliases
 invested_amount = total_combined_invested
@@ -1246,273 +1257,145 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ####################################################################
-# SCREEN 2: BYBIT GLOBAL TERMINAL (TESTNET DEMO - ₹2,000 / $22.85 USDT)
+# SCREEN: 📜 TRADE HISTORY & AUDIT LEDGER (ANGEL ONE + COINDCX)
 # ####################################################################
-if active_tab == "bybit":
+if active_tab == "history":
     # 1. Header
     st.markdown(f"""
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <div style="display:flex; align-items:center; gap:10px;">
-            <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1.5px solid #10b981;" />
+            <div style="width:34px; height:34px; border-radius:50%; background:{'rgba(204,255,0,0.12)' if is_dark else '#e2e8f0'}; border:1.5px solid #10b981; display:flex; align-items:center; justify-content:center; font-size:17px;">
+                📜
+            </div>
             <div>
-                <div style="font-size:15px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'}; letter-spacing:-0.2px;">Bybit Global Terminal</div>
-                <div style="font-size:11px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">testnet.bybit.com • $22.85 USDT (₹2,000) Demo Balance</div>
+                <div style="font-size:15px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'}; letter-spacing:-0.2px;">Trade History & Ledger</div>
+                <div style="font-size:11px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">Angel One SmartAPI • CoinDCX India • Real-time Audit</div>
             </div>
         </div>
         <div style="background:{'rgba(16,185,129,0.12)' if is_dark else 'rgba(16,185,129,0.08)'}; border:1px solid {'rgba(16,185,129,0.35)' if is_dark else 'rgba(16,185,129,0.3)'}; color:#10b981; padding:3px 8px; border-radius:10px; font-size:9.5px; font-weight:600; letter-spacing:0.3px;">
-            ● TESTNET LIVE
+            ● VERIFIED LOGS
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 2. Master Portfolio Card (Bybit Demo)
+    # 2. Filter valid closed trades for Angel One & CoinDCX
+    valid_closed = [t for t in engine_data.get("closed_trades", []) if t.get("broker") in ["angel", "coindcx"]]
+    tot_realized = round(sum(t.get("pnl", 0.0) for t in valid_closed), 2)
+    angel_realized = round(sum(t.get("pnl", 0.0) for t in valid_closed if t.get("broker") == "angel"), 2)
+    coindcx_realized = round(sum(t.get("pnl", 0.0) for t in valid_closed if t.get("broker") == "coindcx"), 2)
+    tot_count = len(valid_closed)
+    wins = len([t for t in valid_closed if t.get("pnl", 0.0) >= 0])
+    win_rate = round((wins / tot_count * 100), 1) if tot_count > 0 else 0.0
+
+    # 3. Master History Performance Card
     st.markdown(f"""
     <div class="master-card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="master-label">
-                Bybit Total Demo Portfolio
+                Cumulative Realized Profit
             </span>
             <span style="background:{'rgba(16,185,129,0.15)' if is_dark else 'rgba(16,185,129,0.1)'}; color:#10b981; font-weight:600; font-size:9.5px; padding:2px 7px; border-radius:8px;">
-                ● 24/7 Futures Engine Live
+                ● Win Rate: {win_rate:.1f}%
             </span>
         </div>
         <div class="master-val">
-            ${bybit_total_portfolio:,.2f} <span style="font-size:15px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:500;">USDT</span>
+            {'+' if tot_realized>=0 else ''}₹{tot_realized:,.2f}
             <span class="pill-lime">
-                {'+' if bybit_pct_gain>=0 else ''}{bybit_pct_gain:.2f}% ↑
+                {wins}/{tot_count} Won
             </span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="master-sub-left">
-                Initial Grant: $22.85 USDT (₹2,000.00)
+                Angel Demat: {'+' if angel_realized>=0 else ''}₹{angel_realized:,.2f}
             </span>
             <span class="master-sub-right">
-                ● Live Ticking: ~₹{bybit_inr_portfolio:,.2f}
+                CoinDCX: {'+' if coindcx_realized>=0 else ''}₹{coindcx_realized:,.2f}
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 3. 5-Grid Financial Breakdown Vault (Bybit Demo Wallet & Profit Ledger)
+    # 4. Interactive History Sub-Tabs (All / Angel One / CoinDCX)
+    hist_sub = sub_tab if sub_tab in ["all", "angel", "coindcx"] else "all"
     st.markdown(f"""
-    <div class="stats-vault" style="margin-bottom:14px;">
-        <div style="font-size:10.5px; font-weight:600; color:#cbd5e1; letter-spacing:0.5px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
-            💼 Bybit Testnet Margin & Profit Ledger (Demo)
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div class="vault-item">
-                <div class="v-label">💵 Wallet / Available</div>
-                <div class="v-val" style="color:#ccff00;">${bybit_wallet:,.2f}</div>
-            </div>
-            <div class="vault-item">
-                <div class="v-label">⚡ Margin Used (Pos)</div>
-                <div class="v-val" style="color:#38bdf8;">${bybit_margin_used:,.2f}</div>
-            </div>
-            <div class="vault-item">
-                <div class="v-label">📈 Live Unrealized P/L</div>
-                <div class="v-val {'green' if bybit_active_pnl>=0 else 'red'}">{'+' if bybit_active_pnl>=0 else ''}${bybit_active_pnl:,.2f}</div>
-            </div>
-            <div class="vault-item">
-                <div class="v-label">🟢 Today's Profit</div>
-                <div class="v-val green">+${bybit_active_pnl + 0.95:,.2f}</div>
-            </div>
-        </div>
-        <div class="vault-item" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <div class="v-label">🏆 Total Realized Profit</div>
-                <div style="font-size:11px; color:#64748b; margin-top:2px;">Cumulative Testnet Gains</div>
-            </div>
-            <div class="v-val green" style="font-size:18px;">+$3.80 USDT (~₹332.50)</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 4. Interactive Strategy Switch (USDT Perpetual vs AI Scalp)
-    is_perp = bybit_sub != "scalp"
-    st.markdown(f"""
-    <div style="display:flex; background:{'#111827' if is_dark else '#e2e8f0'}; padding:4px; border-radius:16px; border:1px solid {'#1f2937' if is_dark else '#cbd5e1'}; margin:14px 0 14px 0;">
-        <a href="?tab=bybit&sub=perpetual{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if is_perp else 'transparent'}; color:{'#0f172a' if is_perp else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_perp else 'none'};">
-            🚀 USDT Perpetual 10x
+    <div style="display:flex; background:{'#111827' if is_dark else '#e2e8f0'}; padding:4px; border-radius:16px; border:1px solid {'#1f2937' if is_dark else '#cbd5e1'}; margin:12px 0 14px 0;">
+        <a href="?tab=history&sub=all{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if hist_sub == 'all' else 'transparent'}; color:{'#0f172a' if hist_sub == 'all' else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if hist_sub == 'all' else 'none'};">
+            🌐 All ({tot_count})
         </a>
-        <a href="?tab=bybit&sub=scalp{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if not is_perp else 'transparent'}; color:{'#0f172a' if not is_perp else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_perp else 'none'};">
-            ⚡ High-Speed AI Scalp (20x)
+        <a href="?tab=history&sub=angel{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if hist_sub == 'angel' else 'transparent'}; color:{'#0f172a' if hist_sub == 'angel' else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if hist_sub == 'angel' else 'none'};">
+            📈 Angel ({len([t for t in valid_closed if t.get('broker') == 'angel'])})
+        </a>
+        <a href="?tab=history&sub=coindcx{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if hist_sub == 'coindcx' else 'transparent'}; color:{'#0f172a' if hist_sub == 'coindcx' else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if hist_sub == 'coindcx' else 'none'};">
+            🇮🇳 CoinDCX ({len([t for t in valid_closed if t.get('broker') == 'coindcx'])})
         </a>
     </div>
     """, unsafe_allow_html=True)
 
-    # ################################################################
-    # ################################################################
-    # SUB-TAB 1: USDT PERPETUAL 10X FUTURES
-    # ################################################################
-    if is_perp:
-        perp_positions = engine_data["active_positions"].get("bybit_perpetual", [])
-        st.markdown(f'<div style="font-size:13px; font-weight:600; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Perpetual Positions ({len(perp_positions)} Open)</div>', unsafe_allow_html=True)
+    # 5. Display Selected Trades
+    if hist_sub == "angel":
+        filtered_trades = [t for t in valid_closed if t.get("broker") == "angel"]
+    elif hist_sub == "coindcx":
+        filtered_trades = [t for t in valid_closed if t.get("broker") == "coindcx"]
+    else:
+        filtered_trades = valid_closed
 
-        for p in perp_positions:
-            is_prof = p.get("is_profit", p.get("pnl", 0) >= 0)
+    if filtered_trades:
+        st.markdown(f'<div style="font-size:12.5px; font-weight:600; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📁 Settled Trade Records ({len(filtered_trades)} Executed)</div>', unsafe_allow_html=True)
+        for t in reversed(filtered_trades):
+            pnl_v = t.get("pnl", 0.0)
+            is_p = pnl_v >= 0
+            b_name = "ANGEL ONE" if t.get("broker") == "angel" else "COINDCX"
+            b_bg = "rgba(168,85,247,0.15)" if t.get("broker") == "angel" else "rgba(14,165,233,0.15)"
+            b_color = "#c084fc" if t.get("broker") == "angel" else "#38bdf8"
             render_html(f"""
             <div class="trade-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:#1e293b; color:#38bdf8; font-weight:600; font-size:10px; padding:3px 8px; border-radius:8px;">{p.get('segment')}</span>
-                        <span style="font-size:15px; font-weight:600; color:#ffffff;">{p.get('symbol')}</span>
+                        <span style="background:{b_bg}; color:{b_color}; font-size:9.5px; font-weight:600; padding:2px 7px; border-radius:6px; letter-spacing:0.3px;">{b_name}</span>
+                        <span style="font-size:14px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'};">{t.get('symbol')}</span>
+                        <span style="font-size:10px; color:{'#94a3b8' if is_dark else '#64748b'};">• {t.get('segment', 'MARKET')}</span>
                     </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {p.get('date', 'Today')}</span>
+                    <span style="font-size:10.5px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">📅 {t.get('date', 'Today')}</span>
                 </div>
                 <div class="trade-subcard" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
-                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">ENTRY PRICE</div>
-                        <div style="font-size:14px; font-weight:600; color:#ffffff; font-family:'JetBrains Mono',monospace;">${p.get('entry_price', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:500; letter-spacing:0.4px;">ENTRY PRICE</div>
+                        <div style="font-size:13.5px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'}; font-family:'JetBrains Mono',monospace;">₹{t.get('entry_price', 0):,.2f}</div>
                     </div>
                     <div>
-                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:600; color:#ccff00; font-family:'JetBrains Mono',monospace;">${p.get('cmp', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:500; letter-spacing:0.4px;">EXIT PRICE</div>
+                        <div style="font-size:13.5px; font-weight:600; color:{'#ccff00' if is_dark else '#059669'}; font-family:'JetBrains Mono',monospace;">₹{t.get('exit_price', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">MARGIN (LEV)</div>
-                        <div style="font-size:12px; font-weight:600; color:#38bdf8;">${p.get('margin', 0):.2f} ({p.get('lev', 10)}x)</div>
+                        <div style="font-size:9.5px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:500; letter-spacing:0.4px;">NET P/L</div>
+                        <div style="font-size:13.5px; font-weight:600; color:{'#10b981' if is_p else '#ef4444'}; font-family:'JetBrains Mono',monospace;">{'+' if is_p else ''}₹{pnl_v:,.2f}</div>
                     </div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <div>
-                        <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:600; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if p.get('pnl',0)>=0 else ''}${p.get('pnl',0):,.2f} ({'+' if p.get('pct',0)>=0 else ''}{p.get('pct',0):.1f}% 🚀)</span>
-                    </div>
-                    <div style="font-size:11px;">
-                        <span style="color:#10b981; font-weight:700;">🎯 ${p.get('target', 0):,.2f}</span>
-                        <span style="color:#64748b; margin:0 3px;">|</span>
-                        <span style="color:#ef4444; font-weight:700;">🛡️ ${p.get('sl', 0):,.2f}</span>
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
-                    <a href="?tab=bybit&sub=perpetual&action=close&cid={p.get('id')}{theme_suffix}" target="_self" class="btn-square-off">
-                        ⚡ Square Off Position
-                    </a>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:10.5px; color:{'#94a3b8' if is_dark else '#64748b'};">
+                    <span style="background:{'rgba(16,185,129,0.12)' if is_p else 'rgba(239,68,68,0.12)'}; color:{'#10b981' if is_p else '#ef4444'}; border:1px solid {'rgba(16,185,129,0.3)' if is_p else 'rgba(239,68,68,0.3)'}; font-size:9.5px; font-weight:600; padding:2px 7px; border-radius:6px;">{t.get('status', 'TARGET HIT')}</span>
+                    <span>Executed at {t.get('exit_time', '11:30 AM')}</span>
                 </div>
             </div>
             """)
-
-        # Strategy Controls Bar
-        render_html(f"""
-        <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
-            <a href="?tab=bybit&sub=perpetual&action=new_trade&cat=bybit_perpetual{theme_suffix}" target="_self" class="btn-primary-action">
-                🔄 Scan & Take New Perpetual Trade
-            </a>
-            <a href="?tab=bybit&action=reset_demo{theme_suffix}" target="_self" class="btn-secondary-action">
-                🧹 Reset Demo ($22.85)
-            </a>
-        </div>
-        """)
-
-        # Closed Completed Trades
-        bybit_closed = [t for t in engine_data["closed_trades"] if t.get("broker") == "bybit"]
-        with st.expander(f"📁 Closed Bybit Trades Today ({len(bybit_closed)} Trades)", expanded=False):
-            if bybit_closed:
-                for t in reversed(bybit_closed[-10:]):
-                    render_html(f"""
-                    <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <span style="font-size:13px; font-weight:600; color:#ffffff;">{t.get('symbol')}</span>
-                                <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Entry ${t.get('entry_price',0):,.2f} → Exit ${t.get('exit_price',0):,.2f}</span>
-                            </div>
-                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:600; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}${t.get('pnl',0):.2f}</span>
-                        </div>
-                        <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at {t.get('exit_time', '10:50 AM')} • {t.get('status')}</div>
-                    </div>
-                    """)
-            else:
-                st.info("No closed Bybit trades recorded yet.")
-
-    # ################################################################
-    # SUB-TAB 2: ⚡ HIGH-SPEED AI SCALP (20X RAPID)
-    # ################################################################
     else:
-        scalp_positions = engine_data["active_positions"].get("bybit_scalp", [])
-        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:600; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ Bybit 20x Rapid AI Scalper ({len(scalp_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px;">20X SCALP</span></div>')
-
-        for s in scalp_positions:
-            is_prof = s.get("is_profit", s.get("pnl", 0) >= 0)
-            render_html(f"""
-            <div class="trade-card" style="border-color:rgba(16,185,129,0.3);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:{s.get('badge_bg', '#ccff00')}; color:{s.get('badge_color', '#0f172a')}; font-weight:600; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('badge', '20X SCALP')}</span>
-                        <span style="font-size:15px; font-weight:600; color:#ffffff;">{s.get('contract', s.get('symbol'))}</span>
-                    </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s.get('date', 'Today')}</span>
-                </div>
-                <div class="trade-subcard" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-                    <div>
-                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">ENTRY PRICE</div>
-                        <div style="font-size:14px; font-weight:600; color:#ffffff; font-family:'JetBrains Mono',monospace;">${s.get('entry_price', 0)}</div>
-                    </div>
-                    <div>
-                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:600; color:#ccff00; font-family:'JetBrains Mono',monospace;">${s.get('cmp', 0)}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">MARGIN (LEV)</div>
-                        <div style="font-size:12px; font-weight:600; color:#38bdf8;">${s.get('margin', 0):.2f} ({s.get('lev', 20)}x)</div>
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <div>
-                        <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:600; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}${s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.1f}% 🔥)</span>
-                    </div>
-                    <div style="font-size:11px;">
-                        <span style="color:#10b981; font-weight:700;">🎯 ${s.get('target', 0)}</span>
-                        <span style="color:#64748b; margin:0 3px;">|</span>
-                        <span style="color:#ef4444; font-weight:700;">🛡️ ${s.get('sl', 0)}</span>
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
-                    <a href="?tab=bybit&sub=scalp&action=close&cid={s.get('id')}{theme_suffix}" target="_self" class="btn-square-off">
-                        ⚡ Square Off Position
-                    </a>
-                </div>
-            </div>
-            """)
-
-        # Strategy Controls Bar
         render_html(f"""
-        <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
-            <a href="?tab=bybit&sub=scalp&action=new_trade&cat=bybit_scalp{theme_suffix}" target="_self" class="btn-primary-action">
-                🔄 Scan & Take New Scalp Trade
-            </a>
-            <a href="?tab=bybit&action=reset_demo{theme_suffix}" target="_self" class="btn-secondary-action">
-                🧹 Reset Demo ($22.85)
-            </a>
+        <div style="background:{'#111827' if is_dark else '#ffffff'}; border:1px dashed {'#334155' if is_dark else '#cbd5e1'}; border-radius:16px; padding:20px; text-align:center; margin:16px 0;">
+            <div style="font-size:14px; font-weight:600; color:{'#cbd5e1' if is_dark else '#0f172a'};">🛡️ No Settled Trades in this Category</div>
+            <div style="font-size:11px; color:{'#94a3b8' if is_dark else '#64748b'}; margin-top:4px;">As active positions hit Target or Stop-Loss, they will be archived here automatically.</div>
         </div>
         """)
 
-        # Next AI Breakout Radar Card
-        render_html("""
-        <div style="background:#090d16; border:1px dashed #334155; border-radius:16px; padding:12px 14px; margin-top:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:14px;">👀</span>
-                    <span style="font-size:13px; font-weight:600; color:#ffffff;">NEARUSDT (10x AI Breakout)</span>
-                </div>
-                <span style="background:#1e293b; color:#eab308; font-size:10px; font-weight:600; padding:2px 6px; border-radius:6px;">ARMED</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-top:6px;">
-                <span>Trigger Entry: <b style="color:#ffffff;">$4.85</b> (CMP: $4.78)</span>
-                <span>🎯 Target: <b style="color:#10b981;">$5.40 (+113%)</b></span>
-            </div>
-        </div>
-        """)
-
-    # 5. Bybit Testnet Simulation Safety Footer
-    st.markdown("""
-    <div style="background:#090d16; border:1px solid #1e293b; border-radius:14px; padding:12px; margin-top:14px; font-size:11px; color:#94a3b8;">
-        <div style="color:#ffffff; font-weight:700; margin-bottom:4px;">🛡️ Bybit Official Testnet Environment (Zero Risk)</div>
-        <div>• Connected to testnet.bybit.com with official simulated order matching.</div>
-        <div>• 10ms low-latency WebSocket feed with full margin protection.</div>
-        <div>• Zero risk to real funds — switchable to Live Bybit Pro API anytime.</div>
+    # 6. Action Bar
+    render_html(f"""
+    <div style="display:flex; gap:10px; margin:14px 0 18px 0;">
+        <a href="?tab=history&action=clear_history{theme_suffix}" target="_self" class="btn-secondary-action" style="flex:1;">
+            🧹 Clear History
+        </a>
+        <a href="?tab=history&action=reset_demo{theme_suffix}" target="_self" class="btn-primary-action" style="flex:1;">
+            🔄 Reset Demo (₹4,000)
+        </a>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
 
 # ####################################################################
@@ -2062,10 +1945,10 @@ else:
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="master-sub-left">
-                Total Capital: ₹{TOTAL_OVERALL_CAPITAL:,.0f} (3 Accounts × ₹2,000)
+                Total Capital: ₹{TOTAL_OVERALL_CAPITAL:,.0f} (2 Accounts × ₹2,000)
             </span>
             <span class="master-sub-right">
-                ● 3 Platforms Synced Live
+                ● 2 Platforms Synced Live
             </span>
         </div>
     </div>
@@ -2075,7 +1958,7 @@ else:
     st.markdown(f"""
     <div class="stats-vault" style="margin-bottom:14px;">
         <div style="font-size:11px; font-weight:600; color:#cbd5e1; letter-spacing:0.5px; margin-bottom:12px; text-transform:uppercase;">
-            📊 Overall Financial Breakdown (Angel One + Bybit + CoinDCX)
+            📊 Overall Financial Breakdown (Angel One + CoinDCX India)
         </div>
         <div class="vault-grid">
             <div class="vault-item">
@@ -2132,22 +2015,7 @@ else:
             </div>
         </a>
 
-        <!-- Card 2: Bybit Global -->
-        <a href="?tab=bybit{theme_suffix}" target="_self" class="trade-card" style="text-decoration:none !important; display:block; padding:12px 14px; margin-bottom:0;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #10b981;" />
-                    <div>
-                        <div style="font-size:13.5px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'};">Bybit Global Terminal</div>
-                        <div style="font-size:10px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">10x Perpetual & 20x AI Scalp</div>
-                    </div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-size:13.5px; font-weight:600; color:{'#ccff00' if is_dark else '#059669'}; font-family:'JetBrains Mono',monospace;">${bybit_total_portfolio:,.2f} USDT</div>
-                    <div style="font-size:10px; color:#10b981; font-weight:500;">{'+' if bybit_inr_pnl>=0 else ''}₹{bybit_inr_pnl:,.2f} (Demo ₹2,000)</div>
-                </div>
-            </div>
-        </a>
+
 
         <!-- Card 3: CoinDCX India -->
         <a href="?tab=coindcx{theme_suffix}" target="_self" class="trade-card" style="text-decoration:none !important; display:block; padding:12px 14px; margin-bottom:0;">
@@ -2216,7 +2084,7 @@ else:
     # Mini Live Spotlight (Active Positions Across All 3 Brokers)
     all_active_positions = []
     for cat_name, p_list in engine_data["active_positions"].items():
-        all_active_positions.extend(p_list)
+        all_active_positions.extend([p for p in p_list if p.get("broker") in ["angel", "coindcx"]])
 
     if len(all_active_positions) > 0:
         st.markdown(f'<div style="font-size:14px; font-weight:600; color:#f8fafc; margin-bottom:10px;">⚡ Active Unified Positions ({len(all_active_positions)} Live)</div>', unsafe_allow_html=True)
@@ -2250,7 +2118,7 @@ else:
         render_html(f"""
         <div style="display:flex; justify-content:center; margin-top:10px; margin-bottom:14px;">
             <a href="?tab=home&action=reset_demo{theme_suffix}" target="_self" style="background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:600; padding:8px 16px; border-radius:12px; text-decoration:none !important;">
-                🧹 Reset All 3 Accounts to ₹2,000 Demo Grant
+                🧹 Reset Accounts to ₹2,000 Demo Grant
             </a>
         </div>
         """)
@@ -2264,12 +2132,12 @@ else:
 
 
 # ==========================================
-# FIXED MOBILE BOTTOM APP MENU BAR (Always Anchored)
+# FIXED MOBILE BOTTOM APP MENU BAR (Always Anchored: Home, CoinDCX, Angel One, History)
 # ==========================================
-is_home = active_tab not in ["bybit", "angel", "coindcx"]
-is_bybit = active_tab == "bybit"
-is_angel = active_tab == "angel"
+is_home = active_tab not in ["coindcx", "angel", "history"]
 is_coindcx = active_tab == "coindcx"
+is_angel = active_tab == "angel"
+is_history = active_tab == "history"
 
 st.markdown(f"""
 <div class="fixed-bottom-bar">
@@ -2277,11 +2145,11 @@ st.markdown(f"""
         <div class="{'nav-icon-active' if is_home else 'nav-icon'}">🏠</div>
         <span style="color:{'#0f172a' if (is_home and not is_dark) else ('#ccff00' if is_home else ('#94a3b8' if is_dark else '#64748b'))};">Home</span>
     </a>
-    <a href="?tab=bybit{theme_suffix}" target="_self" class="nav-btn">
-        <div class="{'nav-icon-active' if is_bybit else 'nav-icon'}" style="padding:2px;">
-            <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
+    <a href="?tab=coindcx{theme_suffix}" target="_self" class="nav-btn">
+        <div class="{'nav-icon-active' if is_coindcx else 'nav-icon'}" style="padding:2px;">
+            <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
         </div>
-        <span style="color:{'#0f172a' if (is_bybit and not is_dark) else ('#ccff00' if is_bybit else ('#94a3b8' if is_dark else '#64748b'))};">Bybit</span>
+        <span style="color:{'#0f172a' if (is_coindcx and not is_dark) else ('#ccff00' if is_coindcx else ('#94a3b8' if is_dark else '#64748b'))};">CoinDCX</span>
     </a>
     <a href="?tab=angel{theme_suffix}" target="_self" class="nav-btn">
         <div class="{'nav-icon-active' if is_angel else 'nav-icon'}" style="padding:2px;">
@@ -2289,11 +2157,9 @@ st.markdown(f"""
         </div>
         <span style="color:{'#0f172a' if (is_angel and not is_dark) else ('#ccff00' if is_angel else ('#94a3b8' if is_dark else '#64748b'))};">Angel One</span>
     </a>
-    <a href="?tab=coindcx{theme_suffix}" target="_self" class="nav-btn">
-        <div class="{'nav-icon-active' if is_coindcx else 'nav-icon'}" style="padding:2px;">
-            <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:24px; height:24px; border-radius:50%; object-fit:cover;" />
-        </div>
-        <span style="color:{'#0f172a' if (is_coindcx and not is_dark) else ('#ccff00' if is_coindcx else ('#94a3b8' if is_dark else '#64748b'))};">CoinDCX</span>
+    <a href="?tab=history{theme_suffix}" target="_self" class="nav-btn">
+        <div class="{'nav-icon-active' if is_history else 'nav-icon'}">📜</div>
+        <span style="color:{'#0f172a' if (is_history and not is_dark) else ('#ccff00' if is_history else ('#94a3b8' if is_dark else '#64748b'))};">History</span>
     </a>
 </div>
 """, unsafe_allow_html=True)
