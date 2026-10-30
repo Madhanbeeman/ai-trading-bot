@@ -79,25 +79,52 @@ light_theme_css = """
     /* DYNAMIC WHITE THEME OVERRIDES (SUN ☀️ MODE)        */
     /* ================================================== */
     html, body, [class*="stApp"], .stApp {
-        background-color: #f1f5f9 !important;
+        background-color: #f8fafc !important;
         color: #0f172a !important;
     }
 
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.05) !important;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
         color: #0f172a !important;
+    }
+
+    .master-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+        color: #0f172a !important;
+    }
+    .master-card .master-label {
+        color: #64748b !important;
+    }
+    .master-card .master-val {
+        color: #0f172a !important;
+    }
+    .master-card .master-sub-left {
+        color: #64748b !important;
+    }
+    .master-card .master-sub-right {
+        color: #059669 !important;
+    }
+    .master-card .pill-lime {
+        background: #0f172a !important;
+        color: #ccff00 !important;
     }
 
     .stats-vault {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.05) !important;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
     }
     .vault-item {
         background: #f8fafc !important;
         border: 1px solid #e2e8f0 !important;
+    }
+    .vault-item:hover {
+        background: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
     }
     .v-label {
         color: #64748b !important;
@@ -106,27 +133,35 @@ light_theme_css = """
         color: #0f172a !important;
     }
 
-    .master-card {
+    .trade-card {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.06) !important;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+    }
+    .trade-card:hover {
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08) !important;
+        border-color: #cbd5e1 !important;
+    }
+    .trade-subcard {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
     }
 
     .fixed-bottom-bar {
         background: rgba(255, 255, 255, 0.96) !important;
         border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 -4px 25px rgba(0,0,0,0.08) !important;
+        box-shadow: 0 -4px 25px rgba(15, 23, 42, 0.08) !important;
     }
     .nav-icon-active {
         background: #0f172a !important;
         color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(15,23,42,0.25) !important;
+        box-shadow: 0 3px 10px rgba(15, 23, 42, 0.2) !important;
     }
     .nav-btn span {
         color: #64748b !important;
     }
 
-    /* Override dark containers and nested cards */
+    /* Override dark containers and nested cards in light mode */
     [style*="background:#090d16"], [style*="background: #090d16"] {
         background: #f8fafc !important;
         border-color: #e2e8f0 !important;
@@ -134,13 +169,13 @@ light_theme_css = """
     [style*="background:#111827"], [style*="background: #111827"] {
         background: #ffffff !important;
         border-color: #e2e8f0 !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
     }
     [style*="background:#0b0f19"], [style*="background: #0b0f19"] {
-        background: #f1f5f9 !important;
+        background: #f8fafc !important;
     }
     [style*="background:#1e293b"], [style*="background: #1e293b"] {
-        background: #e2e8f0 !important;
+        background: #f1f5f9 !important;
     }
 
     /* Text overrides in Light Mode */
@@ -150,8 +185,8 @@ light_theme_css = """
     [style*="color:#94a3b8"], [style*="color: #94a3b8"], [style*="color:#cbd5e1"], [style*="color: #cbd5e1"] {
         color: #64748b !important;
     }
-    [style*="color:#ccff00"], [style*="color: #ccff00"], .lime {
-        color: #0d9488 !important;
+    [style*="color:#ccff00"], [style*="color: #ccff00"] {
+        color: #059669 !important;
     }
 
     /* Border overrides */
@@ -175,30 +210,32 @@ light_theme_css = """
         box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35) !important;
     }
     .theme-btn-inactive {
-        opacity: 0.45 !important;
+        opacity: 0.5 !important;
     }
 """ if not is_dark else ""
 
 st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
     html, body, [class*="stApp"] {{
-        background-color: #0b0f19 !important;
+        background-color: #0a0e17 !important;
         color: #f8fafc !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }}
 
     [data-testid="stVerticalBlockBorderWrapper"] {{
-        background: #111827 !important;
-        border: 1px solid #1f2937 !important;
+        background: #101623 !important;
+        border: 1px solid rgba(255, 255, 255, 0.07) !important;
         border-radius: 18px !important;
         color: #f8fafc !important;
     }}
     
     .block-container {{
-        padding-top: 26px !important; /* Proper margin below mobile camera notch & status bar */
-        padding-bottom: 115px !important; /* Space so fixed bottom bar never overlaps content */
+        padding-top: 24px !important; /* Margin below mobile notch */
+        padding-bottom: 110px !important; /* Space above bottom bar */
         padding-left: 10px !important;
         padding-right: 10px !important;
         max-width: 440px !important;
@@ -217,20 +254,21 @@ st.markdown(f"""
     .user-info {{
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         min-width: 0;
         flex: 1;
     }}
     .user-avatar {{
         width: 36px;
         height: 36px;
-        background: #e2e8f0;
+        background: #1e293b;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 17px;
+        font-size: 16px;
         flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }}
     .top-controls {{
         display: flex;
@@ -239,98 +277,210 @@ st.markdown(f"""
         flex-shrink: 0;
     }}
 
-    /* Master Total Asset Card (Reference Image White Surface) */
+    /* Master Total Asset Card (High-End Fintech Surface) */
     .master-card {{
-        background: #ffffff !important;
-        border-radius: 26px !important;
-        padding: 22px 20px !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        background: linear-gradient(135deg, #131d2e 0%, #0d1524 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 20px !important;
+        padding: 18px 18px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.06) !important;
         margin-bottom: 14px !important;
-        color: #0f172a !important;
+        color: #f8fafc !important;
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }}
+    .master-card:hover {{
+        transform: translateY(-1px);
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5) !important;
     }}
     .master-card .master-label {{
-        font-size: 11px !important;
-        font-weight: 700 !important;
-        color: #64748b !important;
+        font-size: 10.5px !important;
+        font-weight: 600 !important;
+        color: #94a3b8 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.6px !important;
     }}
     .master-card .master-val {{
-        font-size: 34px !important;
-        font-weight: 800 !important;
-        letter-spacing: -1px !important;
-        margin: 4px 0 12px 0 !important;
-        color: #0f172a !important;
+        font-size: 28px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.5px !important;
+        margin: 5px 0 10px 0 !important;
+        color: #ffffff !important;
+        font-family: 'JetBrains Mono', monospace !important;
     }}
     .master-card .pill-lime {{
         background: #ccff00 !important;
         color: #0f172a !important;
-        font-weight: 800 !important;
-        font-size: 11px !important;
-        padding: 3px 8px !important;
-        border-radius: 12px !important;
+        font-weight: 600 !important;
+        font-size: 10.5px !important;
+        padding: 2.5px 8px !important;
+        border-radius: 8px !important;
         vertical-align: middle !important;
         margin-left: 6px !important;
         display: inline-block !important;
+        letter-spacing: 0.2px !important;
     }}
     .master-card .master-sub-left {{
-        color: #475569 !important;
-        font-size: 12px !important;
-        font-weight: 700 !important;
+        color: #94a3b8 !important;
+        font-size: 11px !important;
+        font-weight: 500 !important;
     }}
     .master-card .master-sub-right {{
-        color: #059669 !important;
-        font-size: 12px !important;
-        font-weight: 800 !important;
+        color: #10b981 !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
     }}
 
-    /* 6-Grid Financial Stats Card (Comprehensive Account Ledger) */
+    /* Financial Stats Card (Comprehensive Account Ledger) */
     .stats-vault {{
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 22px;
-        padding: 16px;
+        background: rgba(17, 24, 39, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 18px;
+        padding: 14px 16px;
         margin-bottom: 14px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
     }}
     .vault-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 10px;
     }}
     .vault-item {{
-        background: #090d16;
-        border: 1px solid #1e293b;
-        padding: 10px 12px;
-        border-radius: 14px;
+        background: rgba(9, 13, 22, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 9px 12px;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }}
+    .vault-item:hover {{
+        border-color: rgba(255, 255, 255, 0.12);
+        background: rgba(15, 23, 42, 0.7);
     }}
     .v-label {{
-        font-size: 10px;
+        font-size: 9.5px;
         color: #94a3b8;
-        font-weight: 600;
+        font-weight: 500;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: 0.5px;
     }}
     .v-val {{
-        font-size: 15px;
-        font-weight: 800;
+        font-size: 14px;
+        font-weight: 600;
         margin-top: 3px;
         font-family: 'JetBrains Mono', monospace;
+        letter-spacing: -0.2px;
+    }}
+
+    /* Modern Trade Cards with Tactile Interactions */
+    .trade-card {{
+        background: #111827;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 16px;
+        padding: 13px 14px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+    }}
+    .trade-card:hover {{
+        transform: translateY(-1.5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.14);
+    }}
+    .trade-card:active {{
+        transform: scale(0.99);
+    }}
+
+    .trade-subcard {{
+        background: rgba(9, 13, 22, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 11px;
+        padding: 9px 11px;
+        margin-bottom: 10px;
+    }}
+
+    /* Action Buttons with Sleek Touch States */
+    .btn-square-off {{
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #f87171 !important;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 8px;
+        text-decoration: none !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s ease;
+    }}
+    .btn-square-off:hover {{
+        background: rgba(239, 68, 68, 0.2);
+        border-color: #ef4444;
+        transform: translateY(-1px);
+    }}
+    .btn-square-off:active {{
+        transform: scale(0.96);
+    }}
+
+    .btn-primary-action {{
+        flex: 1;
+        text-align: center;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        color: #10b981 !important;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 9px 12px;
+        border-radius: 12px;
+        text-decoration: none !important;
+        transition: all 0.2s ease;
+    }}
+    .btn-primary-action:hover {{
+        background: rgba(16, 185, 129, 0.2);
+        border-color: #10b981;
+        transform: translateY(-1px);
+    }}
+    .btn-primary-action:active {{
+        transform: scale(0.97);
+    }}
+
+    .btn-secondary-action {{
+        text-align: center;
+        background: rgba(51, 65, 85, 0.35);
+        border: 1px solid rgba(100, 116, 139, 0.35);
+        color: #cbd5e1 !important;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 9px 13px;
+        border-radius: 12px;
+        text-decoration: none !important;
+        transition: all 0.2s ease;
+    }}
+    .btn-secondary-action:hover {{
+        background: rgba(51, 65, 85, 0.55);
+        color: #ffffff !important;
+        transform: translateY(-1px);
+    }}
+    .btn-secondary-action:active {{
+        transform: scale(0.97);
     }}
 
     /* Pastel Mini Cards */
     .card-mint {{
         background: #d1fae5 !important;
-        border-radius: 18px !important;
-        padding: 14px !important;
+        border-radius: 16px !important;
+        padding: 12px 14px !important;
+        box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
     }}
     .card-mint, .card-mint * {{
         color: #064e3b !important;
     }}
     .card-lavender {{
         background: #ede9fe !important;
-        border-radius: 18px !important;
-        padding: 14px !important;
+        border-radius: 16px !important;
+        padding: 12px 14px !important;
+        box-shadow: 0 2px 10px rgba(139, 92, 246, 0.15);
     }}
     .card-lavender, .card-lavender * {{
         color: #3b0764 !important;
@@ -341,7 +491,7 @@ st.markdown(f"""
         display: inline-flex;
         align-items: center;
         background: #090d16;
-        border: 1px solid #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 20px;
         padding: 2px 3px;
         gap: 3px;
@@ -364,16 +514,16 @@ st.markdown(f"""
         background: #ffffff !important;
         border: 1.5px solid #f59e0b !important;
         box-shadow: 0 0 10px rgba(245, 158, 11, 0.45) !important;
-        transform: scale(1.08);
+        transform: scale(1.06);
     }}
     .theme-btn-active-moon {{
         background: #1e293b !important;
         border: 1.5px solid #ccff00 !important;
-        box-shadow: 0 0 10px rgba(204, 255, 0, 0.4) !important;
-        transform: scale(1.08);
+        box-shadow: 0 0 10px rgba(204, 255, 0, 0.35) !important;
+        transform: scale(1.06);
     }}
     .theme-btn-inactive {{
-        opacity: 0.4;
+        opacity: 0.45;
         filter: grayscale(40%);
     }}
     .theme-btn-inactive:hover {{
@@ -384,58 +534,62 @@ st.markdown(f"""
     /* FIXED MOBILE BOTTOM APP MENU BAR (Stick to bottom of screen permanently) */
     .fixed-bottom-bar {{
         position: fixed;
-        bottom: 16px;
+        bottom: 12px;
         left: 50%;
         transform: translateX(-50%);
-        width: calc(100% - 20px);
-        max-width: 420px;
-        background: rgba(10, 14, 23, 0.95);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid #1f2937;
-        border-radius: 35px;
-        padding: 9px 16px;
+        width: calc(100% - 24px);
+        max-width: 410px;
+        background: rgba(13, 19, 32, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 28px;
+        padding: 7px 14px;
         display: flex;
         justify-content: space-around;
         align-items: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
         z-index: 9999;
     }}
     .nav-btn {{
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 3px;
+        gap: 2px;
         color: #94a3b8 !important;
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 600;
         text-decoration: none !important;
         cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease;
     }}
-    .nav-btn:visited, .nav-btn:hover, .nav-btn:active {{
+    .nav-btn:active {{
+        transform: scale(0.92);
+    }}
+    .nav-btn:visited, .nav-btn:hover {{
         text-decoration: none !important;
         color: inherit !important;
     }}
     .nav-icon-active {{
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         background: #ccff00;
-        border-radius: 50%;
+        border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #0f172a;
-        font-size: 18px;
-        box-shadow: 0 0 12px rgba(204, 255, 0, 0.4);
+        font-size: 17px;
+        box-shadow: 0 2px 10px rgba(204, 255, 0, 0.35);
     }}
     .nav-icon {{
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: 17px;
         color: #64748b;
     }}
 
@@ -1070,12 +1224,12 @@ st.markdown(f"""
     <div class="user-info">
         <div class="user-avatar">🧑‍💼</div>
         <div style="min-width:0; overflow:hidden;">
-            <div style="font-size:10px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Trader Pro AI</div>
-            <div style="font-size:14px; font-weight:800; color:{'#ffffff' if is_dark else '#0f172a'}; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Terminal Dashboard</div>
+            <div style="font-size:10px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Trader Pro AI</div>
+            <div style="font-size:13.5px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'}; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Terminal Dashboard</div>
         </div>
     </div>
     <div class="top-controls">
-        <span style="background:{'rgba(16,185,129,0.15)' if is_dark else 'rgba(16,185,129,0.1)'}; border:1px solid #10b981; color:#10b981; font-size:10px; font-weight:800; padding:4px 7px; border-radius:12px; font-family:'JetBrains Mono',monospace; white-space:nowrap; flex-shrink:0;">
+        <span style="background:{'rgba(16,185,129,0.12)' if is_dark else 'rgba(16,185,129,0.08)'}; border:1px solid {'rgba(16,185,129,0.35)' if is_dark else 'rgba(16,185,129,0.3)'}; color:#10b981; font-size:9.5px; font-weight:600; padding:3px 7px; border-radius:10px; font-family:'JetBrains Mono',monospace; white-space:nowrap; flex-shrink:0;">
             ● LIVE {live_clock_str}
         </span>
         <!-- Sun (White Theme) / Moon (Dark Theme) Switch Toggle -->
@@ -1096,16 +1250,16 @@ st.markdown(f"""
 # ####################################################################
 if active_tab == "bybit":
     # 1. Header
-    st.markdown("""
+    st.markdown(f"""
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <div style="display:flex; align-items:center; gap:10px;">
-            <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid #ccff00;" />
+            <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1.5px solid #10b981;" />
             <div>
-                <div style="font-size:16px; font-weight:800; color:#ffffff;">Bybit Global Terminal</div>
-                <div style="font-size:11px; color:#94a3b8; font-weight:600;">testnet.bybit.com • $22.85 USDT (₹2,000) Demo Balance</div>
+                <div style="font-size:15px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'}; letter-spacing:-0.2px;">Bybit Global Terminal</div>
+                <div style="font-size:11px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">testnet.bybit.com • $22.85 USDT (₹2,000) Demo Balance</div>
             </div>
         </div>
-        <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800;">
+        <div style="background:{'rgba(16,185,129,0.12)' if is_dark else 'rgba(16,185,129,0.08)'}; border:1px solid {'rgba(16,185,129,0.35)' if is_dark else 'rgba(16,185,129,0.3)'}; color:#10b981; padding:3px 8px; border-radius:10px; font-size:9.5px; font-weight:600; letter-spacing:0.3px;">
             ● TESTNET LIVE
         </div>
     </div>
@@ -1113,26 +1267,26 @@ if active_tab == "bybit":
 
     # 2. Master Portfolio Card (Bybit Demo)
     st.markdown(f"""
-    <div class="master-card" style="background:#ffffff !important; border-radius:24px !important; padding:18px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:12px !important;">
+    <div class="master-card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase; letter-spacing:0.6px;">
+            <span class="master-label">
                 Bybit Total Demo Portfolio
             </span>
-            <span style="background:rgba(16,185,129,0.15); color:#059669; font-weight:800; font-size:10px; padding:2px 8px; border-radius:10px;">
+            <span style="background:{'rgba(16,185,129,0.15)' if is_dark else 'rgba(16,185,129,0.1)'}; color:#10b981; font-weight:600; font-size:9.5px; padding:2px 7px; border-radius:8px;">
                 ● 24/7 Futures Engine Live
             </span>
         </div>
-        <div class="master-val" style="font-size:32px !important; font-weight:800 !important; letter-spacing:-1px; margin:4px 0 10px 0; color:#0f172a !important;">
-            ${bybit_total_portfolio:,.2f} <span style="font-size:16px; color:#64748b; font-weight:700;">USDT</span>
-            <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px; padding:3px 8px; border-radius:12px; margin-left:6px; display:inline-block !important;">
+        <div class="master-val">
+            ${bybit_total_portfolio:,.2f} <span style="font-size:15px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:500;">USDT</span>
+            <span class="pill-lime">
                 {'+' if bybit_pct_gain>=0 else ''}{bybit_pct_gain:.2f}% ↑
             </span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="master-sub-left" style="color:#475569 !important; font-size:11px !important; font-weight:700 !important;">
+            <span class="master-sub-left">
                 Initial Grant: $22.85 USDT (₹2,000.00)
             </span>
-            <span class="master-sub-right" style="color:#059669 !important; font-size:11px !important; font-weight:800 !important;">
+            <span class="master-sub-right">
                 ● Live Ticking: ~₹{bybit_inr_portfolio:,.2f}
             </span>
         </div>
@@ -1142,7 +1296,7 @@ if active_tab == "bybit":
     # 3. 5-Grid Financial Breakdown Vault (Bybit Demo Wallet & Profit Ledger)
     st.markdown(f"""
     <div class="stats-vault" style="margin-bottom:14px;">
-        <div style="font-size:11px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+        <div style="font-size:10.5px; font-weight:600; color:#cbd5e1; letter-spacing:0.5px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
             💼 Bybit Testnet Margin & Profit Ledger (Demo)
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -1177,10 +1331,10 @@ if active_tab == "bybit":
     is_perp = bybit_sub != "scalp"
     st.markdown(f"""
     <div style="display:flex; background:{'#111827' if is_dark else '#e2e8f0'}; padding:4px; border-radius:16px; border:1px solid {'#1f2937' if is_dark else '#cbd5e1'}; margin:14px 0 14px 0;">
-        <a href="?tab=bybit&sub=perpetual{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_perp else 'transparent'}; color:{'#0f172a' if is_perp else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_perp else 'none'};">
+        <a href="?tab=bybit&sub=perpetual{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if is_perp else 'transparent'}; color:{'#0f172a' if is_perp else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_perp else 'none'};">
             🚀 USDT Perpetual 10x
         </a>
-        <a href="?tab=bybit&sub=scalp{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_perp else 'transparent'}; color:{'#0f172a' if not is_perp else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_perp else 'none'};">
+        <a href="?tab=bybit&sub=scalp{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if not is_perp else 'transparent'}; color:{'#0f172a' if not is_perp else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_perp else 'none'};">
             ⚡ High-Speed AI Scalp (20x)
         </a>
     </div>
@@ -1192,37 +1346,37 @@ if active_tab == "bybit":
     # ################################################################
     if is_perp:
         perp_positions = engine_data["active_positions"].get("bybit_perpetual", [])
-        st.markdown(f'<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Perpetual Positions ({len(perp_positions)} Open)</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:13px; font-weight:600; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Perpetual Positions ({len(perp_positions)} Open)</div>', unsafe_allow_html=True)
 
         for p in perp_positions:
             is_prof = p.get("is_profit", p.get("pnl", 0) >= 0)
             render_html(f"""
-            <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+            <div class="trade-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{p.get('segment')}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{p.get('symbol')}</span>
+                        <span style="background:#1e293b; color:#38bdf8; font-weight:600; font-size:10px; padding:3px 8px; border-radius:8px;">{p.get('segment')}</span>
+                        <span style="font-size:15px; font-weight:600; color:#ffffff;">{p.get('symbol')}</span>
                     </div>
                     <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {p.get('date', 'Today')}</span>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                <div class="trade-subcard" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">ENTRY PRICE</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">${p.get('entry_price', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">ENTRY PRICE</div>
+                        <div style="font-size:14px; font-weight:600; color:#ffffff; font-family:'JetBrains Mono',monospace;">${p.get('entry_price', 0):,.2f}</div>
                     </div>
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">${p.get('cmp', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:600; color:#ccff00; font-family:'JetBrains Mono',monospace;">${p.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">MARGIN (LEV)</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">${p.get('margin', 0):.2f} ({p.get('lev', 10)}x)</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">MARGIN (LEV)</div>
+                        <div style="font-size:12px; font-weight:600; color:#38bdf8;">${p.get('margin', 0):.2f} ({p.get('lev', 10)}x)</div>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if p.get('pnl',0)>=0 else ''}${p.get('pnl',0):,.2f} ({'+' if p.get('pct',0)>=0 else ''}{p.get('pct',0):.1f}% 🚀)</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:600; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if p.get('pnl',0)>=0 else ''}${p.get('pnl',0):,.2f} ({'+' if p.get('pct',0)>=0 else ''}{p.get('pct',0):.1f}% 🚀)</span>
                     </div>
                     <div style="font-size:11px;">
                         <span style="color:#10b981; font-weight:700;">🎯 ${p.get('target', 0):,.2f}</span>
@@ -1231,7 +1385,7 @@ if active_tab == "bybit":
                     </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
-                    <a href="?tab=bybit&sub=perpetual&action=close&cid={p.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                    <a href="?tab=bybit&sub=perpetual&action=close&cid={p.get('id')}{theme_suffix}" target="_self" class="btn-square-off">
                         ⚡ Square Off Position
                     </a>
                 </div>
@@ -1241,10 +1395,10 @@ if active_tab == "bybit":
         # Strategy Controls Bar
         render_html(f"""
         <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
-            <a href="?tab=bybit&sub=perpetual&action=new_trade&cat=bybit_perpetual{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=bybit&sub=perpetual&action=new_trade&cat=bybit_perpetual{theme_suffix}" target="_self" class="btn-primary-action">
                 🔄 Scan & Take New Perpetual Trade
             </a>
-            <a href="?tab=bybit&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=bybit&action=reset_demo{theme_suffix}" target="_self" class="btn-secondary-action">
                 🧹 Reset Demo ($22.85)
             </a>
         </div>
@@ -1259,10 +1413,10 @@ if active_tab == "bybit":
                     <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
-                                <span style="font-size:13px; font-weight:800; color:#ffffff;">{t.get('symbol')}</span>
+                                <span style="font-size:13px; font-weight:600; color:#ffffff;">{t.get('symbol')}</span>
                                 <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Entry ${t.get('entry_price',0):,.2f} → Exit ${t.get('exit_price',0):,.2f}</span>
                             </div>
-                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}${t.get('pnl',0):.2f}</span>
+                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:600; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}${t.get('pnl',0):.2f}</span>
                         </div>
                         <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at {t.get('exit_time', '10:50 AM')} • {t.get('status')}</div>
                     </div>
@@ -1275,37 +1429,37 @@ if active_tab == "bybit":
     # ################################################################
     else:
         scalp_positions = engine_data["active_positions"].get("bybit_scalp", [])
-        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ Bybit 20x Rapid AI Scalper ({len(scalp_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">20X SCALP</span></div>')
+        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:600; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ Bybit 20x Rapid AI Scalper ({len(scalp_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px;">20X SCALP</span></div>')
 
         for s in scalp_positions:
             is_prof = s.get("is_profit", s.get("pnl", 0) >= 0)
             render_html(f"""
-            <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
+            <div class="trade-card" style="border-color:rgba(16,185,129,0.3);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:{s.get('badge_bg', '#ccff00')}; color:{s.get('badge_color', '#0f172a')}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('badge', '20X SCALP')}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s.get('contract', s.get('symbol'))}</span>
+                        <span style="background:{s.get('badge_bg', '#ccff00')}; color:{s.get('badge_color', '#0f172a')}; font-weight:600; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('badge', '20X SCALP')}</span>
+                        <span style="font-size:15px; font-weight:600; color:#ffffff;">{s.get('contract', s.get('symbol'))}</span>
                     </div>
                     <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s.get('date', 'Today')}</span>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                <div class="trade-subcard" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">ENTRY PRICE</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">${s.get('entry_price', 0)}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">ENTRY PRICE</div>
+                        <div style="font-size:14px; font-weight:600; color:#ffffff; font-family:'JetBrains Mono',monospace;">${s.get('entry_price', 0)}</div>
                     </div>
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">${s.get('cmp', 0)}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:600; color:#ccff00; font-family:'JetBrains Mono',monospace;">${s.get('cmp', 0)}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">MARGIN (LEV)</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">${s.get('margin', 0):.2f} ({s.get('lev', 20)}x)</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">MARGIN (LEV)</div>
+                        <div style="font-size:12px; font-weight:600; color:#38bdf8;">${s.get('margin', 0):.2f} ({s.get('lev', 20)}x)</div>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}${s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.1f}% 🔥)</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:600; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}${s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.1f}% 🔥)</span>
                     </div>
                     <div style="font-size:11px;">
                         <span style="color:#10b981; font-weight:700;">🎯 ${s.get('target', 0)}</span>
@@ -1314,7 +1468,7 @@ if active_tab == "bybit":
                     </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
-                    <a href="?tab=bybit&sub=scalp&action=close&cid={s.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                    <a href="?tab=bybit&sub=scalp&action=close&cid={s.get('id')}{theme_suffix}" target="_self" class="btn-square-off">
                         ⚡ Square Off Position
                     </a>
                 </div>
@@ -1324,10 +1478,10 @@ if active_tab == "bybit":
         # Strategy Controls Bar
         render_html(f"""
         <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
-            <a href="?tab=bybit&sub=scalp&action=new_trade&cat=bybit_scalp{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=bybit&sub=scalp&action=new_trade&cat=bybit_scalp{theme_suffix}" target="_self" class="btn-primary-action">
                 🔄 Scan & Take New Scalp Trade
             </a>
-            <a href="?tab=bybit&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=bybit&action=reset_demo{theme_suffix}" target="_self" class="btn-secondary-action">
                 🧹 Reset Demo ($22.85)
             </a>
         </div>
@@ -1339,9 +1493,9 @@ if active_tab == "bybit":
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:14px;">👀</span>
-                    <span style="font-size:13px; font-weight:800; color:#ffffff;">NEARUSDT (10x AI Breakout)</span>
+                    <span style="font-size:13px; font-weight:600; color:#ffffff;">NEARUSDT (10x AI Breakout)</span>
                 </div>
-                <span style="background:#1e293b; color:#eab308; font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px;">ARMED</span>
+                <span style="background:#1e293b; color:#eab308; font-size:10px; font-weight:600; padding:2px 6px; border-radius:6px;">ARMED</span>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-top:6px;">
                 <span>Trigger Entry: <b style="color:#ffffff;">$4.85</b> (CMP: $4.78)</span>
@@ -1366,16 +1520,16 @@ if active_tab == "bybit":
 # ####################################################################
 elif active_tab == "angel":
     # 1. Header
-    st.markdown("""
+    st.markdown(f"""
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <div style="display:flex; align-items:center; gap:10px;">
-            <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid #ccff00;" />
+            <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1.5px solid #10b981;" />
             <div>
-                <div style="font-size:16px; font-weight:800; color:#ffffff;">Angel One SmartAPI</div>
-                <div style="font-size:11px; color:#94a3b8; font-weight:600;">Client ID: IIRA162977 • Demo Capital: ₹2,000 🔒</div>
+                <div style="font-size:15px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'}; letter-spacing:-0.2px;">Angel One SmartAPI</div>
+                <div style="font-size:11px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">Client ID: IIRA162977 • Demo Capital: ₹2,000 🔒</div>
             </div>
         </div>
-        <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800;">
+        <div style="background:{'rgba(16,185,129,0.12)' if is_dark else 'rgba(16,185,129,0.08)'}; border:1px solid {'rgba(16,185,129,0.35)' if is_dark else 'rgba(16,185,129,0.3)'}; color:#10b981; padding:3px 8px; border-radius:10px; font-size:9.5px; font-weight:600; letter-spacing:0.3px;">
             ● ACTIVE
         </div>
     </div>
@@ -1383,26 +1537,26 @@ elif active_tab == "angel":
 
     # 2. Master Portfolio Card (Angel One)
     st.markdown(f"""
-    <div class="master-card" style="background:#ffffff !important; border-radius:24px !important; padding:18px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:12px !important;">
+    <div class="master-card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase; letter-spacing:0.6px;">
+            <span class="master-label">
                 Angel One Total Demat Value
             </span>
-            <span style="background:rgba(16,185,129,0.15); color:#059669; font-weight:800; font-size:10px; padding:2px 8px; border-radius:10px;">
+            <span style="background:{'rgba(16,185,129,0.15)' if is_dark else 'rgba(16,185,129,0.1)'}; color:#10b981; font-weight:600; font-size:9.5px; padding:2px 7px; border-radius:8px;">
                 ● NSE / F&O Live
             </span>
         </div>
-        <div class="master-val" style="font-size:32px !important; font-weight:800 !important; letter-spacing:-1px; margin:4px 0 10px 0; color:#0f172a !important;">
+        <div class="master-val">
             ₹{angel_total_demat:,.2f}
-            <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px; padding:3px 8px; border-radius:12px; margin-left:6px; display:inline-block !important;">
+            <span class="pill-lime">
                 +{angel_pct_gain:.2f}% ↑
             </span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="master-sub-left" style="color:#475569 !important; font-size:11px !important; font-weight:700 !important;">
+            <span class="master-sub-left">
                 Initial Margin: ₹2,000.00
             </span>
-            <span class="master-sub-right" style="color:#059669 !important; font-size:11px !important; font-weight:800 !important;">
+            <span class="master-sub-right">
                 ● Live Ticking SmartAPI
             </span>
         </div>
@@ -1412,7 +1566,7 @@ elif active_tab == "angel":
     # 3. 5-Grid Financial Breakdown Vault (Angel One Wallet & Profit Ledger)
     st.markdown(f"""
     <div class="stats-vault" style="margin-bottom:14px;">
-        <div style="font-size:11px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+        <div style="font-size:10.5px; font-weight:600; color:#cbd5e1; letter-spacing:0.5px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
             💼 Angel One Margin & Financial Ledger (Demo)
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -1447,10 +1601,10 @@ elif active_tab == "angel":
     is_stocks = angel_sub != "zerohero"
     st.markdown(f"""
     <div style="display:flex; background:{'#111827' if is_dark else '#e2e8f0'}; padding:4px; border-radius:16px; border:1px solid {'#1f2937' if is_dark else '#cbd5e1'}; margin:14px 0 14px 0;">
-        <a href="?tab=angel&sub=stocks{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_stocks else 'transparent'}; color:{'#0f172a' if is_stocks else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_stocks else 'none'};">
+        <a href="?tab=angel&sub=stocks{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if is_stocks else 'transparent'}; color:{'#0f172a' if is_stocks else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_stocks else 'none'};">
             📈 Normal Stocks Trade
         </a>
-        <a href="?tab=angel&sub=zerohero{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_stocks else 'transparent'}; color:{'#0f172a' if not is_stocks else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_stocks else 'none'};">
+        <a href="?tab=angel&sub=zerohero{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if not is_stocks else 'transparent'}; color:{'#0f172a' if not is_stocks else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_stocks else 'none'};">
             🚀 NIFTY Zero to Hero
         </a>
     </div>
@@ -1462,37 +1616,37 @@ elif active_tab == "angel":
     # ################################################################
     if is_stocks:
         stock_positions = engine_data["active_positions"].get("angel_stocks", [])
-        st.markdown(f'<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Stock Holdings & Trades ({len(stock_positions)} Open)</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:13px; font-weight:600; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Stock Holdings & Trades ({len(stock_positions)} Open)</div>', unsafe_allow_html=True)
 
         for s in stock_positions:
             is_prof = s.get("is_profit", s.get("pnl", 0) >= 0)
             render_html(f"""
-            <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+            <div class="trade-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('segment')}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s.get('symbol')}</span>
+                        <span style="background:#1e293b; color:#38bdf8; font-weight:600; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('segment')}</span>
+                        <span style="font-size:15px; font-weight:600; color:#ffffff;">{s.get('symbol')}</span>
                     </div>
                     <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s.get('date', 'Today')}</span>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                <div class="trade-subcard" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY COST</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{s.get('buy_cost', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">BUY COST</div>
+                        <div style="font-size:14px; font-weight:600; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{s.get('buy_cost', 0):,.2f}</div>
                     </div>
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{s.get('cmp', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:600; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{s.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">QTY / MARGIN</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{s.get('qty', '1 Share')}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">QTY / MARGIN</div>
+                        <div style="font-size:12px; font-weight:600; color:#38bdf8;">{s.get('qty', '1 Share')}</div>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}₹{s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.2f}%)</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:600; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}₹{s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.2f}%)</span>
                     </div>
                     <div style="font-size:11px;">
                         <span style="color:#10b981; font-weight:700;">🎯 ₹{s.get('target', 0):,.2f}</span>
@@ -1501,7 +1655,7 @@ elif active_tab == "angel":
                     </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
-                    <a href="?tab=angel&sub=stocks&action=close&cid={s.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                    <a href="?tab=angel&sub=stocks&action=close&cid={s.get('id')}{theme_suffix}" target="_self" class="btn-square-off">
                         ⚡ Square Off Position
                     </a>
                 </div>
@@ -1511,10 +1665,10 @@ elif active_tab == "angel":
         # Strategy Controls Bar
         render_html(f"""
         <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
-            <a href="?tab=angel&sub=stocks&action=new_trade&cat=angel_stocks{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=angel&sub=stocks&action=new_trade&cat=angel_stocks{theme_suffix}" target="_self" class="btn-primary-action">
                 🔄 Scan & Take New Stock Trade
             </a>
-            <a href="?tab=angel&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=angel&action=reset_demo{theme_suffix}" target="_self" class="btn-secondary-action">
                 🧹 Reset Demo (₹2,000)
             </a>
         </div>
@@ -1529,10 +1683,10 @@ elif active_tab == "angel":
                     <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
-                                <span style="font-size:13px; font-weight:800; color:#ffffff;">{t.get('symbol')}</span>
+                                <span style="font-size:13px; font-weight:600; color:#ffffff;">{t.get('symbol')}</span>
                                 <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Entry ₹{t.get('entry_price',0):,.2f} → Exit ₹{t.get('exit_price',0):,.2f}</span>
                             </div>
-                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}₹{t.get('pnl',0):.2f}</span>
+                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:600; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}₹{t.get('pnl',0):.2f}</span>
                         </div>
                         <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at {t.get('exit_time', '11:45 AM')} • {t.get('status')}</div>
                     </div>
@@ -1545,37 +1699,37 @@ elif active_tab == "angel":
     # ################################################################
     else:
         zero_positions = engine_data["active_positions"].get("angel_zerohero", [])
-        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">🔥 NIFTY Zero to Hero Contracts ({len(zero_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">EXPIRY SPECIAL</span></div>')
+        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:600; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">🔥 NIFTY Zero to Hero Contracts ({len(zero_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px;">EXPIRY SPECIAL</span></div>')
 
         for z in zero_positions:
             is_prof = z.get("is_profit", z.get("pnl", 0) >= 0)
             render_html(f"""
-            <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
+            <div class="trade-card" style="border-color:rgba(16,185,129,0.3);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:{z.get('badge_bg', '#ccff00')}; color:{z.get('badge_color', '#0f172a')}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{z.get('badge', 'ZERO TO HERO')}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{z.get('contract', z.get('symbol'))}</span>
+                        <span style="background:{z.get('badge_bg', '#ccff00')}; color:{z.get('badge_color', '#0f172a')}; font-weight:600; font-size:10px; padding:3px 8px; border-radius:8px;">{z.get('badge', 'ZERO TO HERO')}</span>
+                        <span style="font-size:15px; font-weight:600; color:#ffffff;">{z.get('contract', z.get('symbol'))}</span>
                     </div>
                     <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {z.get('date', 'Today')}</span>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                <div class="trade-subcard" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY PREMIUM</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{z.get('buy_premium', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">BUY PREMIUM</div>
+                        <div style="font-size:14px; font-weight:600; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{z.get('buy_premium', 0):,.2f}</div>
                     </div>
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE PREMIUM</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{z.get('cmp', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">LIVE PREMIUM</div>
+                        <div style="font-size:14px; font-weight:600; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{z.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LOT / CAPITAL</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">{z.get('lot', '1 Lot')}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">LOT / CAPITAL</div>
+                        <div style="font-size:12px; font-weight:600; color:#38bdf8;">{z.get('lot', '1 Lot')}</div>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if z.get('pnl',0)>=0 else ''}₹{z.get('pnl',0):,.2f} ({'+' if z.get('pct',0)>=0 else ''}{z.get('pct',0):.1f}% 🚀)</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:600; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if z.get('pnl',0)>=0 else ''}₹{z.get('pnl',0):,.2f} ({'+' if z.get('pct',0)>=0 else ''}{z.get('pct',0):.1f}% 🚀)</span>
                     </div>
                     <div style="font-size:11px;">
                         <span style="color:#10b981; font-weight:700;">🎯 {z.get('hero_target', '₹35.00')}</span>
@@ -1584,7 +1738,7 @@ elif active_tab == "angel":
                     </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
-                    <a href="?tab=angel&sub=zerohero&action=close&cid={z.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                    <a href="?tab=angel&sub=zerohero&action=close&cid={z.get('id')}{theme_suffix}" target="_self" class="btn-square-off">
                         ⚡ Square Off Position
                     </a>
                 </div>
@@ -1594,10 +1748,10 @@ elif active_tab == "angel":
         # Strategy Controls Bar
         render_html(f"""
         <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
-            <a href="?tab=angel&sub=zerohero&action=new_trade&cat=angel_zerohero{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=angel&sub=zerohero&action=new_trade&cat=angel_zerohero{theme_suffix}" target="_self" class="btn-primary-action">
                 🔄 Scan & Take New Zero-Hero Trade
             </a>
-            <a href="?tab=angel&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=angel&action=reset_demo{theme_suffix}" target="_self" class="btn-secondary-action">
                 🧹 Reset Demo (₹2,000)
             </a>
         </div>
@@ -1609,9 +1763,9 @@ elif active_tab == "angel":
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:14px;">👀</span>
-                    <span style="font-size:13px; font-weight:800; color:#ffffff;">NIFTY 24700 PE (Next Hero Radar)</span>
+                    <span style="font-size:13px; font-weight:600; color:#ffffff;">NIFTY 24700 PE (Next Hero Radar)</span>
                 </div>
-                <span style="background:#1e293b; color:#eab308; font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px;">ARMED</span>
+                <span style="background:#1e293b; color:#eab308; font-size:10px; font-weight:600; padding:2px 6px; border-radius:6px;">ARMED</span>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-top:6px;">
                 <span>Trigger Entry: <b style="color:#ffffff;">₹8.00</b> (CMP: ₹7.40)</span>
@@ -1636,16 +1790,16 @@ elif active_tab == "angel":
 # ####################################################################
 elif active_tab == "coindcx":
     # 1. Header
-    st.markdown("""
+    st.markdown(f"""
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <div style="display:flex; align-items:center; gap:10px;">
-            <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid #ccff00;" />
+            <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1.5px solid #10b981;" />
             <div>
-                <div style="font-size:16px; font-weight:800; color:#ffffff;">CoinDCX India Terminal</div>
-                <div style="font-size:11px; color:#94a3b8; font-weight:600;">🇮🇳 FIU-Regulated • Paper Trading Mode (₹2,000 Capital)</div>
+                <div style="font-size:15px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'}; letter-spacing:-0.2px;">CoinDCX India Terminal</div>
+                <div style="font-size:11px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">🇮🇳 FIU-Regulated • Paper Trading Mode (₹2,000 Capital)</div>
             </div>
         </div>
-        <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800;">
+        <div style="background:{'rgba(16,185,129,0.12)' if is_dark else 'rgba(16,185,129,0.08)'}; border:1px solid {'rgba(16,185,129,0.35)' if is_dark else 'rgba(16,185,129,0.3)'}; color:#10b981; padding:3px 8px; border-radius:10px; font-size:9.5px; font-weight:600; letter-spacing:0.3px;">
             ● PAPER LIVE
         </div>
     </div>
@@ -1653,26 +1807,26 @@ elif active_tab == "coindcx":
 
     # 2. Master Portfolio Card (CoinDCX)
     st.markdown(f"""
-    <div class="master-card" style="background:#ffffff !important; border-radius:24px !important; padding:18px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:12px !important;">
+    <div class="master-card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase; letter-spacing:0.6px;">
+            <span class="master-label">
                 CoinDCX Total Paper Portfolio
             </span>
-            <span style="background:rgba(16,185,129,0.15); color:#059669; font-weight:800; font-size:10px; padding:2px 8px; border-radius:10px;">
+            <span style="background:{'rgba(16,185,129,0.15)' if is_dark else 'rgba(16,185,129,0.1)'}; color:#10b981; font-weight:600; font-size:9.5px; padding:2px 7px; border-radius:8px;">
                 ● 24/7 Live Crypto Feed
             </span>
         </div>
-        <div class="master-val" style="font-size:32px !important; font-weight:800 !important; letter-spacing:-1px; margin:4px 0 10px 0; color:#0f172a !important;">
+        <div class="master-val">
             ₹{coindcx_total_portfolio:,.2f}
-            <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px; padding:3px 8px; border-radius:12px; margin-left:6px; display:inline-block !important;">
+            <span class="pill-lime">
                 +{coindcx_pct_gain:.2f}% ↑
             </span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="master-sub-left" style="color:#475569 !important; font-size:11px !important; font-weight:700 !important;">
+            <span class="master-sub-left">
                 Initial Capital: ₹2,000.00
             </span>
-            <span class="master-sub-right" style="color:#059669 !important; font-size:11px !important; font-weight:800 !important;">
+            <span class="master-sub-right">
                 ● Live Autonomous Paper Engine
             </span>
         </div>
@@ -1682,7 +1836,7 @@ elif active_tab == "coindcx":
     # 3. 5-Grid Financial Breakdown Vault (CoinDCX Wallet & Profit Ledger)
     st.markdown(f"""
     <div class="stats-vault" style="margin-bottom:14px;">
-        <div style="font-size:11px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+        <div style="font-size:10.5px; font-weight:600; color:#cbd5e1; letter-spacing:0.5px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
             💼 CoinDCX Capital & Profit Ledger (Paper)
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -1717,10 +1871,10 @@ elif active_tab == "coindcx":
     is_spot = coindcx_sub != "futures"
     st.markdown(f"""
     <div style="display:flex; background:{'#111827' if is_dark else '#e2e8f0'}; padding:4px; border-radius:16px; border:1px solid {'#1f2937' if is_dark else '#cbd5e1'}; margin:14px 0 14px 0;">
-        <a href="?tab=coindcx&sub=spot{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if is_spot else 'transparent'}; color:{'#0f172a' if is_spot else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_spot else 'none'};">
+        <a href="?tab=coindcx&sub=spot{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if is_spot else 'transparent'}; color:{'#0f172a' if is_spot else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if is_spot else 'none'};">
             🇮🇳 INR Spot Trade (24/7)
         </a>
-        <a href="?tab=coindcx&sub=futures{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:10px 4px; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none !important; background:{'#ccff00' if not is_spot else 'transparent'}; color:{'#0f172a' if not is_spot else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_spot else 'none'};">
+        <a href="?tab=coindcx&sub=futures{theme_suffix}" target="_self" style="flex:1; text-align:center; padding:8px 4px; border-radius:11px; font-size:11.5px; font-weight:600; transition:all 0.2s ease; text-decoration:none !important; background:{'#ccff00' if not is_spot else 'transparent'}; color:{'#0f172a' if not is_spot else ('#94a3b8' if is_dark else '#64748b')} !important; box-shadow:{'0 2px 10px rgba(204,255,0,0.3)' if not is_spot else 'none'};">
             ⚡ Crypto 10x Futures
         </a>
     </div>
@@ -1732,37 +1886,37 @@ elif active_tab == "coindcx":
     # ################################################################
     if is_spot:
         spot_positions = engine_data["active_positions"].get("coindcx_spot", [])
-        st.markdown(f'<div style="font-size:13px; font-weight:800; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Spot Holdings & Trades ({len(spot_positions)} Open)</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:13px; font-weight:600; color:#f8fafc; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📦 Active Spot Holdings & Trades ({len(spot_positions)} Open)</div>', unsafe_allow_html=True)
 
         for s in spot_positions:
             is_prof = s.get("is_profit", s.get("pnl", 0) >= 0)
             render_html(f"""
-            <div style="background:#111827; border:1px solid #1f2937; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+            <div class="trade-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:#1e293b; color:#38bdf8; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('segment')}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{s.get('symbol')}</span>
+                        <span style="background:#1e293b; color:#38bdf8; font-weight:600; font-size:10px; padding:3px 8px; border-radius:8px;">{s.get('segment')}</span>
+                        <span style="font-size:15px; font-weight:600; color:#ffffff;">{s.get('symbol')}</span>
                     </div>
                     <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {s.get('date', 'Today')}</span>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                <div class="trade-subcard" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">BUY COST</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{s.get('buy_cost', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">BUY COST</div>
+                        <div style="font-size:14px; font-weight:600; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{s.get('buy_cost', 0):,.2f}</div>
                     </div>
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{s.get('cmp', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:600; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{s.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">QTY / VALUE</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">₹{s.get('cost', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">QTY / VALUE</div>
+                        <div style="font-size:12px; font-weight:600; color:#38bdf8;">₹{s.get('cost', 0):,.2f}</div>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}₹{s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.2f}%)</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:600; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if s.get('pnl',0)>=0 else ''}₹{s.get('pnl',0):,.2f} ({'+' if s.get('pct',0)>=0 else ''}{s.get('pct',0):.2f}%)</span>
                     </div>
                     <div style="font-size:11px;">
                         <span style="color:#10b981; font-weight:700;">🎯 ₹{s.get('target', 0):,.2f}</span>
@@ -1771,7 +1925,7 @@ elif active_tab == "coindcx":
                     </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
-                    <a href="?tab=coindcx&sub=spot&action=close&cid={s.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                    <a href="?tab=coindcx&sub=spot&action=close&cid={s.get('id')}{theme_suffix}" target="_self" class="btn-square-off">
                         ⚡ Square Off Position
                     </a>
                 </div>
@@ -1781,10 +1935,10 @@ elif active_tab == "coindcx":
         # Strategy Controls Bar
         render_html(f"""
         <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
-            <a href="?tab=coindcx&sub=spot&action=new_trade&cat=coindcx_spot{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=coindcx&sub=spot&action=new_trade&cat=coindcx_spot{theme_suffix}" target="_self" class="btn-primary-action">
                 🔄 Scan & Take New Spot Trade
             </a>
-            <a href="?tab=coindcx&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=coindcx&action=reset_demo{theme_suffix}" target="_self" class="btn-secondary-action">
                 🧹 Reset Demo (₹2,000)
             </a>
         </div>
@@ -1799,10 +1953,10 @@ elif active_tab == "coindcx":
                     <div style="background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:6px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
-                                <span style="font-size:13px; font-weight:800; color:#ffffff;">{t.get('symbol')}</span>
+                                <span style="font-size:13px; font-weight:600; color:#ffffff;">{t.get('symbol')}</span>
                                 <span style="font-size:11px; color:#94a3b8; margin-left:6px;">Entry ₹{t.get('entry_price',0):,.2f} → Exit ₹{t.get('exit_price',0):,.2f}</span>
                             </div>
-                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}₹{t.get('pnl',0):.2f}</span>
+                            <span style="color:{'#10b981' if t.get('pnl',0)>=0 else '#ef4444'}; font-weight:600; font-size:13px; font-family:'JetBrains Mono',monospace;">{'+' if t.get('pnl',0)>=0 else ''}₹{t.get('pnl',0):.2f}</span>
                         </div>
                         <div style="font-size:10px; color:#64748b; margin-top:3px;">Executed at {t.get('exit_time', '12:10 PM')} • {t.get('status')}</div>
                     </div>
@@ -1815,37 +1969,37 @@ elif active_tab == "coindcx":
     # ################################################################
     else:
         futures_positions = engine_data["active_positions"].get("coindcx_futures", [])
-        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ CoinDCX 10x Futures Positions ({len(futures_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">10X LEVERAGE</span></div>')
+        render_html(f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:13px; font-weight:600; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">⚡ CoinDCX 10x Futures Positions ({len(futures_positions)} Active)</span><span style="background:rgba(204,255,0,0.15); color:#ccff00; border:1px solid #ccff0055; font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px;">10X LEVERAGE</span></div>')
 
         for f in futures_positions:
             is_prof = f.get("is_profit", f.get("pnl", 0) >= 0)
             render_html(f"""
-            <div style="background:#111827; border:1px solid #10b98155; border-radius:18px; padding:14px; margin-bottom:12px; box-shadow:0 6px 20px rgba(16,185,129,0.15);">
+            <div class="trade-card" style="border-color:rgba(16,185,129,0.3);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="background:{f.get('badge_bg', '#ccff00')}; color:{f.get('badge_color', '#0f172a')}; font-weight:800; font-size:10px; padding:3px 8px; border-radius:8px;">{f.get('badge', '10X FUTURES')}</span>
-                        <span style="font-size:15px; font-weight:800; color:#ffffff;">{f.get('contract', f.get('symbol'))}</span>
+                        <span style="background:{f.get('badge_bg', '#ccff00')}; color:{f.get('badge_color', '#0f172a')}; font-weight:600; font-size:10px; padding:3px 8px; border-radius:8px;">{f.get('badge', '10X FUTURES')}</span>
+                        <span style="font-size:15px; font-weight:600; color:#ffffff;">{f.get('contract', f.get('symbol'))}</span>
                     </div>
                     <span style="font-size:11px; color:#94a3b8; font-weight:600;">📅 {f.get('date', 'Today')}</span>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:10px;">
+                <div class="trade-subcard" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">ENTRY PRICE</div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{f.get('buy_cost', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">ENTRY PRICE</div>
+                        <div style="font-size:14px; font-weight:600; color:#ffffff; font-family:'JetBrains Mono',monospace;">₹{f.get('buy_cost', 0):,.2f}</div>
                     </div>
                     <div>
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">LIVE CMP</div>
-                        <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{f.get('cmp', 0):,.2f}</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">LIVE CMP</div>
+                        <div style="font-size:14px; font-weight:600; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{f.get('cmp', 0):,.2f}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:10px; color:#94a3b8; font-weight:700;">MARGIN USED</div>
-                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">₹{f.get('margin', 0):.2f} ({f.get('lev', 10)}x)</div>
+                        <div style="font-size:9.5px; color:#94a3b8; font-weight:500; letter-spacing:0.4px;">MARGIN USED</div>
+                        <div style="font-size:12px; font-weight:600; color:#38bdf8;">₹{f.get('margin', 0):.2f} ({f.get('lev', 10)}x)</div>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
                         <span style="color:#94a3b8; font-size:11px;">Current P/L: </span>
-                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if f.get('pnl',0)>=0 else ''}₹{f.get('pnl',0):,.2f} ({'+' if f.get('pct',0)>=0 else ''}{f.get('pct',0):.1f}% 🚀)</span>
+                        <span style="color:{'#10b981' if is_prof else '#ef4444'}; font-weight:600; font-family:'JetBrains Mono',monospace; font-size:14px;">{'+' if f.get('pnl',0)>=0 else ''}₹{f.get('pnl',0):,.2f} ({'+' if f.get('pct',0)>=0 else ''}{f.get('pct',0):.1f}% 🚀)</span>
                     </div>
                     <div style="font-size:11px;">
                         <span style="color:#10b981; font-weight:700;">🎯 ₹{f.get('target', 0):,.2f}</span>
@@ -1854,7 +2008,7 @@ elif active_tab == "coindcx":
                     </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #1f2937;">
-                    <a href="?tab=coindcx&sub=futures&action=close&cid={f.get('id')}{theme_suffix}" target="_self" style="background:#ef444422; border:1px solid #ef4444; color:#f87171 !important; font-size:11px; font-weight:800; padding:4px 12px; border-radius:8px; text-decoration:none !important; display:inline-flex; align-items:center; gap:4px;">
+                    <a href="?tab=coindcx&sub=futures&action=close&cid={f.get('id')}{theme_suffix}" target="_self" class="btn-square-off">
                         ⚡ Square Off Position
                     </a>
                 </div>
@@ -1864,10 +2018,10 @@ elif active_tab == "coindcx":
         # Strategy Controls Bar
         render_html(f"""
         <div style="display:flex; gap:10px; margin:12px 0 16px 0;">
-            <a href="?tab=coindcx&sub=futures&action=new_trade&cat=coindcx_futures{theme_suffix}" target="_self" style="flex:1; text-align:center; background:#10b98122; border:1px solid #10b981; color:#10b981 !important; font-size:11px; font-weight:800; padding:10px 12px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=coindcx&sub=futures&action=new_trade&cat=coindcx_futures{theme_suffix}" target="_self" class="btn-primary-action">
                 🔄 Scan & Take New Futures Trade
             </a>
-            <a href="?tab=coindcx&action=reset_demo{theme_suffix}" target="_self" style="text-align:center; background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:10px 14px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=coindcx&action=reset_demo{theme_suffix}" target="_self" class="btn-secondary-action">
                 🧹 Reset Demo (₹2,000)
             </a>
         </div>
@@ -1891,26 +2045,26 @@ elif active_tab == "coindcx":
 else:
     # Master Total Asset Value Card (Unified across 3 Platforms)
     st.markdown(f"""
-    <div class="master-card" style="background:#ffffff !important; border-radius:26px !important; padding:22px 20px !important; color:#0f172a !important; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important; margin-bottom:14px !important;">
+    <div class="master-card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="master-label" style="font-size:11px !important; font-weight:700 !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.6px !important;">
+            <span class="master-label">
                 Total Combined Demo Portfolio Value
             </span>
-            <span style="background:rgba(16,185,129,0.15); color:#059669; font-weight:800; font-size:10px; padding:2px 8px; border-radius:10px;">
+            <span style="background:{'rgba(16,185,129,0.15)' if is_dark else 'rgba(16,185,129,0.1)'}; color:#10b981; font-weight:600; font-size:9.5px; padding:2px 7px; border-radius:8px;">
                 ● Live Real-Time Ticking
             </span>
         </div>
-        <div class="master-val" style="font-size:34px !important; font-weight:800 !important; letter-spacing:-1px !important; margin:4px 0 12px 0 !important; color:#0f172a !important;">
+        <div class="master-val">
             ₹{total_combined_portfolio:,.2f}
-            <span class="pill-lime" style="background:#ccff00 !important; color:#0f172a !important; font-weight:800 !important; font-size:11px !important; padding:3px 8px !important; border-radius:12px !important; margin-left:6px !important; display:inline-block !important;">
+            <span class="pill-lime">
                 +{total_combined_pct:.2f}% ↑
             </span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="master-sub-left" style="color:#334155 !important; font-size:12px !important; font-weight:700 !important;">
+            <span class="master-sub-left">
                 Total Capital: ₹{TOTAL_OVERALL_CAPITAL:,.0f} (3 Accounts × ₹2,000)
             </span>
-            <span class="master-sub-right" style="color:#059669 !important; font-size:12px !important; font-weight:800 !important;">
+            <span class="master-sub-right">
                 ● 3 Platforms Synced Live
             </span>
         </div>
@@ -1920,7 +2074,7 @@ else:
     # 6-GRID FINANCIAL STATS VAULT (Overall Portfolio Breakdown)
     st.markdown(f"""
     <div class="stats-vault" style="margin-bottom:14px;">
-        <div style="font-size:12px; font-weight:700; color:#cbd5e1; margin-bottom:12px; text-transform:uppercase;">
+        <div style="font-size:11px; font-weight:600; color:#cbd5e1; letter-spacing:0.5px; margin-bottom:12px; text-transform:uppercase;">
             📊 Overall Financial Breakdown (Angel One + Bybit + CoinDCX)
         </div>
         <div class="vault-grid">
@@ -1954,7 +2108,7 @@ else:
 
     # 3-BROKER UNIFIED CAPITAL BREAKDOWN CARDS
     st.markdown("""
-    <div style="font-size:12px; font-weight:700; color:#cbd5e1; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+    <div style="font-size:11px; font-weight:600; color:#cbd5e1; letter-spacing:0.5px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
         🏢 Platform-Wise Capital Allocation (₹2,000 Each)
     </div>
     """, unsafe_allow_html=True)
@@ -1962,52 +2116,52 @@ else:
     render_html(f"""
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
         <!-- Card 1: Angel One -->
-        <a href="?tab=angel{theme_suffix}" target="_self" style="text-decoration:none !important; display:block; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
+        <a href="?tab=angel{theme_suffix}" target="_self" class="trade-card" style="text-decoration:none !important; display:block; padding:12px 14px; margin-bottom:0;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #ccff00;" />
+                    <img src="https://assets-netstorage.groww.in/stock-assets/logos2/ANGELONE.webp" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #10b981;" />
                     <div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff;">Angel One SmartAPI</div>
-                        <div style="font-size:10px; color:#94a3b8;">NSE Stocks & Zero to Hero Options</div>
+                        <div style="font-size:13.5px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'};">Angel One SmartAPI</div>
+                        <div style="font-size:10px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">NSE Stocks & Zero to Hero Options</div>
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{angel_total_demat:,.2f}</div>
-                    <div style="font-size:10px; color:#10b981; font-weight:700;">{'+' if (angel_total_demat - 2000.0)>=0 else ''}₹{angel_total_demat - 2000.0:,.2f} (Demo ₹2,000)</div>
+                    <div style="font-size:13.5px; font-weight:600; color:{'#ccff00' if is_dark else '#059669'}; font-family:'JetBrains Mono',monospace;">₹{angel_total_demat:,.2f}</div>
+                    <div style="font-size:10px; color:#10b981; font-weight:500;">{'+' if (angel_total_demat - 2000.0)>=0 else ''}₹{angel_total_demat - 2000.0:,.2f} (Demo ₹2,000)</div>
                 </div>
             </div>
         </a>
 
         <!-- Card 2: Bybit Global -->
-        <a href="?tab=bybit{theme_suffix}" target="_self" style="text-decoration:none !important; display:block; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
+        <a href="?tab=bybit{theme_suffix}" target="_self" class="trade-card" style="text-decoration:none !important; display:block; padding:12px 14px; margin-bottom:0;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #ccff00;" />
+                    <img src="https://assets.coingecko.com/markets/images/698/small/bybit_spot.png" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #10b981;" />
                     <div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff;">Bybit Global Terminal</div>
-                        <div style="font-size:10px; color:#94a3b8;">10x Perpetual & 20x AI Scalp</div>
+                        <div style="font-size:13.5px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'};">Bybit Global Terminal</div>
+                        <div style="font-size:10px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">10x Perpetual & 20x AI Scalp</div>
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">${bybit_total_portfolio:,.2f} USDT</div>
-                    <div style="font-size:10px; color:#10b981; font-weight:700;">{'+' if bybit_inr_pnl>=0 else ''}₹{bybit_inr_pnl:,.2f} (Demo ₹2,000)</div>
+                    <div style="font-size:13.5px; font-weight:600; color:{'#ccff00' if is_dark else '#059669'}; font-family:'JetBrains Mono',monospace;">${bybit_total_portfolio:,.2f} USDT</div>
+                    <div style="font-size:10px; color:#10b981; font-weight:500;">{'+' if bybit_inr_pnl>=0 else ''}₹{bybit_inr_pnl:,.2f} (Demo ₹2,000)</div>
                 </div>
             </div>
         </a>
 
         <!-- Card 3: CoinDCX India -->
-        <a href="?tab=coindcx{theme_suffix}" target="_self" style="text-decoration:none !important; display:block; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:12px 14px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
+        <a href="?tab=coindcx{theme_suffix}" target="_self" class="trade-card" style="text-decoration:none !important; display:block; padding:12px 14px; margin-bottom:0;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #ccff00;" />
+                    <img src="https://play-lh.googleusercontent.com/1fe3ZZGVphz2gyty2Cb2pm7-INTz6ryG8ekFaPDE5vV9WwN9dJRFd1fFhOhwA3JXVIhx3hAaMg4WARjzogGGnA=s96" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #10b981;" />
                     <div>
-                        <div style="font-size:14px; font-weight:800; color:#ffffff;">CoinDCX India Terminal</div>
-                        <div style="font-size:10px; color:#94a3b8;">24/7 Spot & 10x Crypto Futures</div>
+                        <div style="font-size:13.5px; font-weight:600; color:{'#ffffff' if is_dark else '#0f172a'};">CoinDCX India Terminal</div>
+                        <div style="font-size:10px; color:{'#94a3b8' if is_dark else '#64748b'}; font-weight:400;">24/7 Spot & 10x Crypto Futures</div>
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:14px; font-weight:800; color:#ccff00; font-family:'JetBrains Mono',monospace;">₹{coindcx_total_portfolio:,.2f}</div>
-                    <div style="font-size:10px; color:#10b981; font-weight:700;">{'+' if (coindcx_total_portfolio - 2000.0)>=0 else ''}₹{coindcx_total_portfolio - 2000.0:,.2f} (Paper ₹2,000)</div>
+                    <div style="font-size:13.5px; font-weight:600; color:{'#ccff00' if is_dark else '#059669'}; font-family:'JetBrains Mono',monospace;">₹{coindcx_total_portfolio:,.2f}</div>
+                    <div style="font-size:10px; color:#10b981; font-weight:500;">{'+' if (coindcx_total_portfolio - 2000.0)>=0 else ''}₹{coindcx_total_portfolio - 2000.0:,.2f} (Paper ₹2,000)</div>
                 </div>
             </div>
         </a>
@@ -2016,15 +2170,15 @@ else:
 
     # REAL-TIME QUANTITATIVE INDICATOR RADAR (Zero Dummy Trades Guarantee)
     st.markdown("""
-    <div style="background:#111827; border:1px solid #1f2937; border-radius:20px; padding:14px; margin-bottom:14px; box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+    <div class="stats-vault" style="margin-bottom:14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <div style="display:flex; align-items:center; gap:6px;">
                 <span style="font-size:14px;">📡</span>
-                <span style="font-size:12px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">
+                <span style="font-size:12px; font-weight:600; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">
                     Real Technical Gate (Zero Dummy Trades)
                 </span>
             </div>
-            <span style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; font-size:9px; font-weight:800; padding:2px 6px; border-radius:8px;">
+            <span style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; font-size:9px; font-weight:600; padding:2px 6px; border-radius:8px;">
                 100% REAL FEED
             </span>
         </div>
@@ -2037,12 +2191,12 @@ else:
         rsi = tech.get("rsi", 50.0)
         p_inr = p_data.get("inr", 0.0)
         is_buy = sig == "BUY"
-        status_badge = f'<span style="background:{"rgba(16,185,129,0.2)" if is_buy else "rgba(234,179,8,0.15)"}; color:{"#10b981" if is_buy else "#eab308"}; border:1px solid {"#10b98155" if is_buy else "#eab30855"}; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px;">{"🟢 BUY ARMED" if is_buy else "⏳ WAITING"}</span>'
+        status_badge = f'<span style="background:{"rgba(16,185,129,0.2)" if is_buy else "rgba(234,179,8,0.15)"}; color:{"#10b981" if is_buy else "#eab308"}; border:1px solid {"#10b98155" if is_buy else "#eab30855"}; font-size:9px; font-weight:600; padding:2px 6px; border-radius:6px;">{"🟢 BUY ARMED" if is_buy else "⏳ WAITING"}</span>'
 
         render_html(f"""
-        <div style="display:flex; justify-content:space-between; align-items:center; background:#090d16; border:1px solid #1e293b; border-radius:12px; padding:8px 12px; margin-bottom:6px;">
+        <div class="trade-subcard" style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; margin-bottom:6px;">
             <div>
-                <span style="font-size:13px; font-weight:800; color:#ffffff;">{sym} / USDT</span>
+                <span style="font-size:13px; font-weight:600; color:#ffffff;">{sym} / USDT</span>
                 <span style="font-size:11px; color:#64748b; margin-left:6px; font-family:'JetBrains Mono',monospace;">₹{p_inr:,.1f}</span>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
@@ -2065,7 +2219,7 @@ else:
         all_active_positions.extend(p_list)
 
     if len(all_active_positions) > 0:
-        st.markdown(f'<div style="font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:10px;">⚡ Active Unified Positions ({len(all_active_positions)} Live)</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:14px; font-weight:600; color:#f8fafc; margin-bottom:10px;">⚡ Active Unified Positions ({len(all_active_positions)} Live)</div>', unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         pos_sub = all_active_positions[:2]
         for idx, p in enumerate(pos_sub):
@@ -2080,12 +2234,12 @@ else:
             with col:
                 st.markdown(f"""
                 <div class="{theme}">
-                    <div style="display:flex; justify-content:space-between; font-weight:800; font-size:14px;">
+                    <div style="display:flex; justify-content:space-between; font-weight:600; font-size:14px;">
                         <span>{sym_name}</span>
                         <span style="font-size:10px; background:rgba(0,0,0,0.15); padding:2px 6px; border-radius:6px;">{b_label}</span>
                     </div>
                     <div style="font-size:10px; margin-top:2px; opacity:0.8;">📅 {p.get('date', 'Today')}</div>
-                    <div style="font-size:16px; font-weight:800; margin-top:4px;">{cur_prefix}{cmp_val:,.2f}</div>
+                    <div style="font-size:16px; font-weight:600; margin-top:4px;">{cur_prefix}{cmp_val:,.2f}</div>
                     <div style="font-size:11px; font-weight:700; margin-top:3px;">
                         P&L: {'+' if pnl_val>=0 else ''}{cur_prefix}{pnl_val:.2f}
                     </div>
@@ -2095,7 +2249,7 @@ else:
         # Quick Reset Demo Action
         render_html(f"""
         <div style="display:flex; justify-content:center; margin-top:10px; margin-bottom:14px;">
-            <a href="?tab=home&action=reset_demo{theme_suffix}" target="_self" style="background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:800; padding:8px 16px; border-radius:12px; text-decoration:none !important;">
+            <a href="?tab=home&action=reset_demo{theme_suffix}" target="_self" style="background:#33415544; border:1px solid #64748b; color:#cbd5e1 !important; font-size:11px; font-weight:600; padding:8px 16px; border-radius:12px; text-decoration:none !important;">
                 🧹 Reset All 3 Accounts to ₹2,000 Demo Grant
             </a>
         </div>
