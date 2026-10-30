@@ -6,7 +6,7 @@ import time
 # -------------------------------------------------------------
 st.set_page_config(
     page_title="Fintech Pro Terminal",
-    page_icon="⚡",
+    page_icon="assets/logo.png",
     layout="centered",
     initial_sidebar_state="collapsed"
 )

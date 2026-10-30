@@ -1,5 +1,6 @@
 import streamlit as st
 from config.settings import format_ist_clock
+from .logo import FOX_LOGO_URI
 
 def render_html(html_str: str):
     """Safely renders HTML without Markdown indented-code-block interference."""
@@ -53,7 +54,8 @@ def render_header(title: str, is_dark: bool, current_tab: str, sub_tab: str = ""
     render_html(f"""
     <div class="top-bar">
         <div class="brand-title">
-            <span style="font-size:18px;">⚡</span> {title}
+            <img src="{FOX_LOGO_URI}" style="width:28px; height:28px; border-radius:8px; object-fit:contain; box-shadow:0 2px 8px rgba(0,0,0,0.25); vertical-align:middle;" />
+            <span>{title}</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
             <div class="live-pulse-badge">
