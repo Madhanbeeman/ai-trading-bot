@@ -8,7 +8,13 @@ try:
     import yfinance as yf
 except Exception:
     yf = None
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+# 🇮🇳 Indian Standard Time (IST = UTC+05:30)
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def ist_now():
+    return datetime.now(IST)
 
 def render_html(html_str: str):
     """Safely render HTML without Markdown indented-code-block interference."""
@@ -760,7 +766,7 @@ def get_live_tick(base_price, volatility_pct=0.08):
 # FRESH TRADE BUILDER (ALWAYS REAL TIMESTAMPS & REAL PRICES)
 # ------------------------------------------
 def create_fresh_position(category, candidate_item):
-    now_str = datetime.now().strftime("%I:%M %p")
+    now_str = ist_now().strftime("%I:%M %p")
     pos_id = f"{category}_{int(time.time()*1000)}_{random.randint(100,999)}"
 
     if category == "bybit_perpetual":
@@ -891,7 +897,8 @@ def get_initial_engine_state():
             "coindcx_spot": coindcx_pos_spot,
             "coindcx_futures": coindcx_pos_fut
         },
-        "closed_trades": []
+        "closed_trades": [],
+        "is_ist_v2": True
     }
 
 def init_db():
@@ -911,12 +918,26 @@ def load_engine_state():
                 data.get("initial_capital", 0) > 4000 or
                 "bybit_perpetual" in data.get("active_positions", {}) or
                 any(t.get("broker") == "bybit" for t in data.get("closed_trades", [])) or
-                "active_positions" not in data or "wallets" not in data
+                "active_positions" not in data or "wallets" not in data or
+                not data.get("is_ist_v2", False)
             )
             if is_legacy:
                 data = get_initial_engine_state()
                 with open(DB_FILE, "w", encoding="utf-8") as fw:
                     json.dump(data, fw, indent=2)
+            else:
+                # Also ensure existing active positions display current IST time
+                updated_times = False
+                cur_ist_str = ist_now().strftime("%I:%M %p")
+                for cat, pos_list in data.get("active_positions", {}).items():
+                    for p in pos_list:
+                        if "09:0" in p.get("entry_time", "") or "08:" in p.get("entry_time", ""):
+                            p["entry_time"] = cur_ist_str
+                            p["date"] = f"Today {cur_ist_str}"
+                            updated_times = True
+                if updated_times:
+                    with open(DB_FILE, "w", encoding="utf-8") as fw:
+                        json.dump(data, fw, indent=2)
             return data
     except Exception:
         return get_initial_engine_state()
@@ -958,8 +979,8 @@ if req_action == "close" and req_cid:
                     "exit_price": p.get("cmp", 0),
                     "pnl": realized,
                     "status": "⚡ SQUARE OFF",
-                    "exit_time": datetime.now().strftime("%I:%M %p"),
-                    "date": datetime.now().strftime("%Y-%m-%d")
+                    "exit_time": ist_now().strftime("%I:%M %p"),
+                    "date": ist_now().strftime("%Y-%m-%d")
                 })
                 pos_list.remove(p)
                 # Auto replace with fresh trade immediately
@@ -1034,7 +1055,7 @@ elif req_action == "reset_demo":
 # ------------------------------------------
 # REAL-TIME LIVE TICKS & AUTONOMOUS TARGET / SL AUTO-EXIT
 # ------------------------------------------
-today_str = datetime.now().strftime("%Y-%m-%d")
+today_str = ist_now().strftime("%Y-%m-%d")
 
 # Process Bybit Perpetuals (100% Real Bybit Live Feed)
 for p in engine_data["active_positions"].get("bybit_perpetual", []):
@@ -1128,7 +1149,7 @@ for cat, pos_list in engine_data["active_positions"].items():
                 "segment": p.get("segment", "TARGET EXIT"),
                 "entry_price": p.get("entry_price", p.get("buy_cost", p.get("buy_premium", 0))),
                 "exit_price": cmp_val, "pnl": realized, "status": "🎯 TARGET HIT",
-                "exit_time": datetime.now().strftime("%I:%M %p"), "date": today_str
+                "exit_time": ist_now().strftime("%I:%M %p"), "date": today_str
             })
             st.toast(f"🎯 Target Hit: {p.get('symbol', p.get('contract'))} (+{realized})", icon="✅")
         elif hit_sl:
@@ -1142,7 +1163,7 @@ for cat, pos_list in engine_data["active_positions"].items():
                 "segment": p.get("segment", "SL CUT"),
                 "entry_price": p.get("entry_price", p.get("buy_cost", p.get("buy_premium", 0))),
                 "exit_price": cmp_val, "pnl": realized, "status": "🛡️ STOP LOSS",
-                "exit_time": datetime.now().strftime("%I:%M %p"), "date": today_str
+                "exit_time": ist_now().strftime("%I:%M %p"), "date": today_str
             })
             st.toast(f"🛡️ SL Protected: {p.get('symbol', p.get('contract'))} ({realized})", icon="⚠️")
         else:
@@ -1223,7 +1244,7 @@ today_invested = total_combined_invested
 # ==========================================
 # 1. TOP USER BAR (WITH REAL-TIME TICK PULSE & SUN ☀️ / MOON 🌙 THEME TOGGLE)
 # ==========================================
-live_clock_str = datetime.now().strftime("%H:%M:%S")
+live_clock_str = ist_now().strftime("%H:%M:%S")
 toggle_target_light = f"?tab={active_tab}{f'&sub={sub_tab}' if sub_tab else ''}&theme=light"
 toggle_target_dark = f"?tab={active_tab}{f'&sub={sub_tab}' if sub_tab else ''}&theme=dark"
 
@@ -1380,9 +1401,21 @@ if active_tab == "history":
             """)
     else:
         render_html(f"""
-        <div style="background:{'#111827' if is_dark else '#ffffff'}; border:1px dashed {'#334155' if is_dark else '#cbd5e1'}; border-radius:16px; padding:20px; text-align:center; margin:16px 0;">
-            <div style="font-size:14px; font-weight:600; color:{'#cbd5e1' if is_dark else '#0f172a'};">🛡️ No Settled Trades in this Category</div>
-            <div style="font-size:11px; color:{'#94a3b8' if is_dark else '#64748b'}; margin-top:4px;">As active positions hit Target or Stop-Loss, they will be archived here automatically.</div>
+        <div style="background:{'#111827' if is_dark else '#ffffff'}; border:1px dashed {'#334155' if is_dark else '#cbd5e1'}; border-radius:16px; padding:22px 16px; text-align:center; margin:16px 0;">
+            <div style="font-size:24px; margin-bottom:6px;">⚡</div>
+            <div style="font-size:14px; font-weight:600; color:{'#cbd5e1' if is_dark else '#0f172a'};">No Settled Trades Yet (0 Closed Trades)</div>
+            <div style="font-size:11.5px; color:{'#94a3b8' if is_dark else '#64748b'}; margin-top:6px; line-height:1.5;">
+                Active trades are currently running live in <b>Angel One</b> and <b>CoinDCX</b>.<br>
+                When a trade hits <b>Target 🎯</b> or <b>Stop Loss 🛡️</b> (or when you click <b>Square Off</b>), it will settle and appear here in the history ledger!
+            </div>
+            <div style="margin-top:14px; display:flex; gap:8px; justify-content:center;">
+                <a href="?tab=angel{theme_suffix}" target="_self" class="btn-primary-action" style="font-size:11px; padding:6px 12px; text-decoration:none !important;">
+                    📈 Angel Active Trades
+                </a>
+                <a href="?tab=coindcx{theme_suffix}" target="_self" class="btn-primary-action" style="font-size:11px; padding:6px 12px; text-decoration:none !important;">
+                    🇮🇳 CoinDCX Active Trades
+                </a>
+            </div>
         </div>
         """)
 
