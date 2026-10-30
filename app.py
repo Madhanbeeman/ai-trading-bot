@@ -864,32 +864,34 @@ def create_fresh_position(category, candidate_item):
 # DATABASE PERSISTENCE & INITIALIZATION
 # ------------------------------------------
 def get_initial_engine_state():
+    # Fresh active positions right from now
+    angel_pos_stocks = [create_fresh_position("angel_stocks", ANGEL_STOCKS_POOL[i]) for i in range(2)]
+    angel_pos_zero = [create_fresh_position("angel_zerohero", ANGEL_ZERO_POOL[i]) for i in range(2)]
+    angel_invested = sum(p.get("margin", 0.0) for p in angel_pos_stocks) + sum(p.get("invested", 0.0) for p in angel_pos_zero)
+    angel_cash = round(max(0.0, ANGEL_CAPITAL - angel_invested), 2)
+
+    coindcx_pos_spot = [create_fresh_position("coindcx_spot", COINDCX_SPOT_POOL[i]) for i in range(2)]
+    coindcx_pos_fut = [create_fresh_position("coindcx_futures", COINDCX_FUT_POOL[i]) for i in range(2)]
+    coindcx_invested = sum(p.get("cost", 0.0) for p in coindcx_pos_spot) + sum(p.get("margin", 0.0) for p in coindcx_pos_fut)
+    coindcx_cash = round(max(0.0, COINDCX_CAPITAL - coindcx_invested), 2)
+
     return {
         "initial_capital": TOTAL_OVERALL_CAPITAL,
         "accounts": {
-            "angel": ANGEL_CAPITAL,
-            "bybit": BYBIT_CAPITAL_USDT,
-            "coindcx": COINDCX_CAPITAL
+            "angel": ANGEL_CAPITAL, # ₹2,000.00
+            "coindcx": COINDCX_CAPITAL # ₹2,000.00
         },
         "wallets": {
-            "angel_cash": 1498.15,
-            "bybit_usdt": 16.35,
-            "coindcx_cash": 1476.84
+            "angel_cash": angel_cash,
+            "coindcx_cash": coindcx_cash
         },
         "active_positions": {
-            "bybit_perpetual": [create_fresh_position("bybit_perpetual", BYBIT_PERP_POOL[i]) for i in range(3)],
-            "bybit_scalp": [create_fresh_position("bybit_scalp", BYBIT_SCALP_POOL[i]) for i in range(2)],
-            "angel_stocks": [create_fresh_position("angel_stocks", ANGEL_STOCKS_POOL[i]) for i in range(2)],
-            "angel_zerohero": [create_fresh_position("angel_zerohero", ANGEL_ZERO_POOL[i]) for i in range(2)],
-            "coindcx_spot": [create_fresh_position("coindcx_spot", COINDCX_SPOT_POOL[i]) for i in range(3)],
-            "coindcx_futures": [create_fresh_position("coindcx_futures", COINDCX_FUT_POOL[i]) for i in range(3)]
+            "angel_stocks": angel_pos_stocks,
+            "angel_zerohero": angel_pos_zero,
+            "coindcx_spot": coindcx_pos_spot,
+            "coindcx_futures": coindcx_pos_fut
         },
-        "closed_trades": [
-            {"symbol": "SBIN", "broker": "angel", "segment": "NSE EQ (5x MIS)", "entry_price": 930.0, "exit_price": 948.5, "pnl": 18.50, "status": "🎯 TARGET HIT", "exit_time": "10:15 AM", "date": datetime.now().strftime("%Y-%m-%d")},
-            {"symbol": "NIFTY 22800 CE", "broker": "angel", "segment": "🚀 ZERO TO HERO", "entry_price": 5.40, "exit_price": 28.00, "pnl": 565.00, "status": "🎯 TARGET HIT", "exit_time": "11:30 AM", "date": datetime.now().strftime("%Y-%m-%d")},
-            {"symbol": "BTCINR", "broker": "coindcx", "segment": "🇮🇳 24/7 SPOT", "entry_price": 7950000.0, "exit_price": 8080000.0, "pnl": 42.50, "status": "🎯 TARGET HIT", "exit_time": "12:05 PM", "date": datetime.now().strftime("%Y-%m-%d")},
-            {"symbol": "ETHINR", "broker": "coindcx", "segment": "⚡ 10X FUTURES", "entry_price": 228000.0, "exit_price": 234500.0, "pnl": 35.80, "status": "🎯 TARGET HIT", "exit_time": "12:45 PM", "date": datetime.now().strftime("%Y-%m-%d")}
-        ]
+        "closed_trades": []
     }
 
 def init_db():
@@ -904,16 +906,15 @@ def load_engine_state():
     try:
         with open(DB_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            # Validate schema integrity and sanitize old symbols
-            if "active_positions" not in data or "wallets" not in data:
+            # If database has legacy Bybit or capital > 4000 or old simulated trades, reset to clean fresh 2k state
+            is_legacy = (
+                data.get("initial_capital", 0) > 4000 or
+                "bybit_perpetual" in data.get("active_positions", {}) or
+                any(t.get("broker") == "bybit" for t in data.get("closed_trades", [])) or
+                "active_positions" not in data or "wallets" not in data
+            )
+            if is_legacy:
                 data = get_initial_engine_state()
-                with open(DB_FILE, "w", encoding="utf-8") as fw:
-                    json.dump(data, fw, indent=2)
-            # Remove any broken PEPEUSDT from active positions
-            scalp_active = data.get("active_positions", {}).get("bybit_scalp", [])
-            cleaned_scalp = [p for p in scalp_active if p.get("symbol") != "PEPEUSDT"]
-            if len(cleaned_scalp) != len(scalp_active):
-                data["active_positions"]["bybit_scalp"] = cleaned_scalp
                 with open(DB_FILE, "w", encoding="utf-8") as fw:
                     json.dump(data, fw, indent=2)
             return data
@@ -1149,14 +1150,12 @@ for cat, pos_list in engine_data["active_positions"].items():
             
     engine_data["active_positions"][cat] = rem
 
-# Auto Replenish Empty/Low Slots
+# Auto Replenish Empty/Low Slots (Angel One + CoinDCX)
 min_counts = {
-    "bybit_perpetual": (3, BYBIT_PERP_POOL),
-    "bybit_scalp": (2, BYBIT_SCALP_POOL),
     "angel_stocks": (2, ANGEL_STOCKS_POOL),
     "angel_zerohero": (2, ANGEL_ZERO_POOL),
-    "coindcx_spot": (3, COINDCX_SPOT_POOL),
-    "coindcx_futures": (3, COINDCX_FUT_POOL)
+    "coindcx_spot": (2, COINDCX_SPOT_POOL),
+    "coindcx_futures": (2, COINDCX_FUT_POOL)
 }
 for cat, (target_min, pool) in min_counts.items():
     current_list = engine_data["active_positions"].get(cat, [])
@@ -1175,10 +1174,10 @@ save_engine_state(engine_data)
 # ------------------------------------------
 # 1. BYBIT TOTALS ($22.85 USDT / ₹2,000)
 # ------------------------------------------
-bybit_margin_used = round(sum(p.get("margin", 0.0) for p in engine_data["active_positions"]["bybit_perpetual"] + engine_data["active_positions"]["bybit_scalp"]), 2)
-bybit_active_pnl = round(sum(p.get("pnl", 0.0) for p in engine_data["active_positions"]["bybit_perpetual"] + engine_data["active_positions"]["bybit_scalp"]), 2)
-bybit_closed_profit = round(sum(t.get("pnl", 0.0) for t in engine_data["closed_trades"] if t.get("broker") == "bybit"), 2)
-bybit_wallet = round(max(0.0, engine_data["wallets"]["bybit_usdt"]), 2)
+bybit_margin_used = round(sum(p.get("margin", 0.0) for p in engine_data["active_positions"].get("bybit_perpetual", []) + engine_data["active_positions"].get("bybit_scalp", [])), 2)
+bybit_active_pnl = round(sum(p.get("pnl", 0.0) for p in engine_data["active_positions"].get("bybit_perpetual", []) + engine_data["active_positions"].get("bybit_scalp", [])), 2)
+bybit_closed_profit = round(sum(t.get("pnl", 0.0) for t in engine_data.get("closed_trades", []) if t.get("broker") == "bybit"), 2)
+bybit_wallet = round(max(0.0, engine_data["wallets"].get("bybit_usdt", 0.0)), 2)
 bybit_total_portfolio = round(bybit_wallet + bybit_margin_used + bybit_active_pnl, 2)
 bybit_pct_gain = round(((bybit_total_portfolio - BYBIT_CAPITAL_USDT) / BYBIT_CAPITAL_USDT) * 100, 2)
 bybit_inr_portfolio = round(bybit_total_portfolio * INR_RATE, 2)
@@ -1469,15 +1468,15 @@ elif active_tab == "angel":
             </div>
             <div class="vault-item">
                 <div class="v-label">🟢 Today's Profit</div>
-                <div class="v-val green">+₹{angel_active_pnl + 105.00:,.2f}</div>
+                <div class="v-val {'green' if (angel_active_pnl + angel_closed_profit)>=0 else 'red'}">{'+' if (angel_active_pnl + angel_closed_profit)>=0 else ''}₹{angel_active_pnl + angel_closed_profit:,.2f}</div>
             </div>
         </div>
         <div class="vault-item" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
             <div>
                 <div class="v-label">🏆 Total Realized Profit</div>
-                <div style="font-size:11px; color:#64748b; margin-top:2px;">Cumulative Net Earnings</div>
+                <div style="font-size:11px; color:#64748b; margin-top:2px;">Settled Target & SL Gains</div>
             </div>
-            <div class="v-val green" style="font-size:18px;">+₹340.00</div>
+            <div class="v-val {'green' if angel_closed_profit>=0 else 'red'}" style="font-size:18px;">{'+' if angel_closed_profit>=0 else ''}₹{angel_closed_profit:,.2f}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1739,15 +1738,15 @@ elif active_tab == "coindcx":
             </div>
             <div class="vault-item">
                 <div class="v-label">🟢 Today's Profit</div>
-                <div class="v-val green">+₹{coindcx_active_pnl + 78.00:,.2f}</div>
+                <div class="v-val {'green' if (coindcx_active_pnl + coindcx_closed_profit)>=0 else 'red'}">{'+' if (coindcx_active_pnl + coindcx_closed_profit)>=0 else ''}₹{coindcx_active_pnl + coindcx_closed_profit:,.2f}</div>
             </div>
         </div>
         <div class="vault-item" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
             <div>
                 <div class="v-label">🏆 Total Realized Profit</div>
-                <div style="font-size:11px; color:#64748b; margin-top:2px;">Cumulative Paper Earnings</div>
+                <div style="font-size:11px; color:#64748b; margin-top:2px;">Settled Paper Gains</div>
             </div>
-            <div class="v-val green" style="font-size:18px;">+₹315.00</div>
+            <div class="v-val {'green' if coindcx_closed_profit>=0 else 'red'}" style="font-size:18px;">{'+' if coindcx_closed_profit>=0 else ''}₹{coindcx_closed_profit:,.2f}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
