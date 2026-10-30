@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">AI Trading Bot</string>
-    <string name="app_url">https://ai-trading-bot-ldsmwaqdanntqnkunkfait.streamlit.app/</string>
-    <string name="offline_message">No Internet Connection</string>
-    <string name="offline_sub">Please check your network and try again.</string>
-    <string name="retry">Retry</string>
-</resources>
